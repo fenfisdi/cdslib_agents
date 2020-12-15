@@ -1,0 +1,33 @@
+# COVID-19_example/pruebas
+COVID-19_example/pruebas
+COVID-19_example/multiprocessing.ipynb
+COVID-19_example/graphication.ipynb
+
+# Results
+*.sh
+*.tar.gz
+*.csv
+*.pdf
+*.wsl
+*.html
+*.txt
+
+
+# Notebook Checkpoints
+.ipynb_checkpoints
+.vscode
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# Distribution / packaging
+eggs/
+.eggs/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Text editor
+
+*.vscode
