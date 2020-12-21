@@ -11,7 +11,8 @@ def small_df():
     return df
 
 def test_behaviour_move_agent(small_df: pd.DataFrame):
-    df_move = behaviour.move_agent(small_df, dt=1.)
-    x_test = df_move['x'] == pytest.approx(1, rel=0.99)
-    y_test = df_move['y'] == pytest.approx(5, rel=0.99)
+    new_df = behaviour.move_agent(small_df, dt=1.)
+    agent = new_df.iloc[0]
+    x_test = agent['x'] == pytest.approx(1, rel=0.99)
+    y_test = agent['y'] == pytest.approx(5, rel=0.99)
     assert x_test and y_test
