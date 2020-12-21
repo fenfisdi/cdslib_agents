@@ -6,7 +6,7 @@ from agents import behaviour
 
 @pytest.fixture
 def small_df():
-    data = {'x': 0, 'y': 0, 'vx': 1, 'vy': 5}
+    data = {'x': [0], 'y': [0], 'vx': [1], 'vy': [5]}
     df = pd.DataFrame(data)
     return df
 
