@@ -6,6 +6,7 @@ import numpy as np
 
 from agents import behaviour
 
+
 # All combinations of x, y, vx, vy (positive, negative or zero)
 possible_values = [1., 0, -1.]
 permutations = np.array(
@@ -38,6 +39,7 @@ def test_behaviour_move_agent(small_df: pd.DataFrame):
         x_test = agent['x'] == pytest.approx(x_expected, rel=0.99)
         y_test = agent['y'] == pytest.approx(y_expected, rel=0.99)
         assert x_test and y_test
+
 
 def test_behaviour_stop_agents(small_df: pd.DataFrame):
     """Test stopping agents for some specific agents"""
