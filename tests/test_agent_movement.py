@@ -28,16 +28,24 @@ def test_behaviour_move_agent(small_df: pd.DataFrame):
     def q_new(q, v, dt):
         return q + v * dt
     
-    dtime = 1
+    dtime = 1.
     new_df = behaviour.move_agent(small_df, dtime)
     
     for i in range(len(new_df)):
         x_expected = q_new(x[i], vx[i], dtime)
         y_expected = q_new(y[i], vy[i], dtime)
-        
         agent = new_df.iloc[i]
-        
         x_test = agent['x'] == pytest.approx(x_expected, rel=0.99)
         y_test = agent['y'] == pytest.approx(y_expected, rel=0.99)
-        
         assert x_test and y_test
+
+def test_behaviour_stop_agents(small_df: pd.DataFrame):
+    """Test stopping agents for some specific agents"""
+    condition = (small_df['vx'] == 1.) & (small_df['vy'] == 1.)
+    indexes = small_df[condition].index.tolist()
+    new_df = behaviour.stop_agents(small_df, indexes)
+    for index in indexes:
+        row = new_df.loc[[index]]
+        test_vx = float(row['vx']) == pytest.approx(0, rel=0.99)
+        test_vy = float(row['vy']) == pytest.approx(0, rel=0.99)
+        assert test_vx and test_vy
