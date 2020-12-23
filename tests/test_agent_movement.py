@@ -7,18 +7,17 @@ import numpy as np
 from agents import behaviour
 
 
+# Relative tolerance when comparing numerical data
+REL_TOL =0.99
 # All combinations of x, y, vx, vy (positive, negative or zero)
-possible_values = [1., 0, -1.]
-permutations = np.array(
-    [np.array(values) for values in product(possible_values, repeat=4)]
-)
-permutations = permutations.T
-x, y, vx, vy = permutations[0], permutations[1], permutations[2], permutations[3]
+POSITION_X, POSITION_Y, VX, VY = np.array(
+    [np.array(values) for values in product([1., 0, -1.], repeat=4)]
+).T
 
 
 @pytest.fixture
 def small_df():
-    data = {'x': x, 'y': y, 'vx': vx, 'vy': vy}
+    data = {'x': POSITION_X, 'y': POSITION_Y, 'vx': VX, 'vy': VY}
     df = pd.DataFrame(data)
     return df
 
@@ -30,15 +29,15 @@ def test_behaviour_move_agent(small_df: pd.DataFrame):
         return q + v * dt
     
     dtime = 1.
-    new_df = behaviour.move_agent(small_df, dtime)
+    new_df = behaviour.move_agents(small_df, dtime)
     
     for i in range(len(new_df)):
-        x_expected = q_new(x[i], vx[i], dtime)
-        y_expected = q_new(y[i], vy[i], dtime)
+        x_expected = q_new(POSITION_X[i], VX[i], dtime)
+        y_expected = q_new(POSITION_Y[i], VY[i], dtime)
         agent = new_df.iloc[i]
-        x_test = agent['x'] == pytest.approx(x_expected, rel=0.99)
-        y_test = agent['y'] == pytest.approx(y_expected, rel=0.99)
-        assert x_test and y_test
+        x_is_expected = agent['x'] == pytest.approx(x_expected, rel=REL_TOL)
+        y_is_expected = agent['y'] == pytest.approx(y_expected, rel=REL_TOL)
+        assert x_is_expected and y_is_expected
 
 
 def test_behaviour_stop_agents(small_df: pd.DataFrame):
@@ -48,6 +47,6 @@ def test_behaviour_stop_agents(small_df: pd.DataFrame):
     new_df = behaviour.stop_agents(small_df, indexes)
     for index in indexes:
         row = new_df.loc[[index]]
-        test_vx = float(row['vx']) == pytest.approx(0, rel=0.99)
-        test_vy = float(row['vy']) == pytest.approx(0, rel=0.99)
-        assert test_vx and test_vy
+        vx_is_zero = float(row['vx']) == pytest.approx(0, rel=REL_TOL)
+        vy_is_zero = float(row['vy']) == pytest.approx(0, rel=REL_TOL)
+        assert vx_is_zero and vy_is_zero
