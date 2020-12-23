@@ -29,5 +29,7 @@ eggs/
 *.egg
 
 # Text editor
-
 *.vscode
+
+# Experiments
+*experiment*
