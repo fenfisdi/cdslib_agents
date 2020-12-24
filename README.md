@@ -2,4 +2,4 @@
 
 CDSLib - Agent Based Models
 
-![repo_logo](./images/CDSLib_agents.png "CDSLib - Agents Logo")
+![repo_logo](./images/CDSLib_agents_white-background.png "CDSLib - Agents Logo")
