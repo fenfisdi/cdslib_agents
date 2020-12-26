@@ -138,6 +138,7 @@ def bounce_once(
             "position_1 must be out of the 'box' defined by x_lim and y_lim."
         )
 
+
 def bounce(
     position_0: np.ndarray, position_1: np.ndarray, x_lim: float, y_lim: float
 ) -> np.ndarray:
