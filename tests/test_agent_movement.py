@@ -50,3 +50,38 @@ def test_behaviour_stop_agents(small_df: pd.DataFrame):
         vx_is_zero = float(row['vx']) == pytest.approx(0, rel=REL_TOL)
         vy_is_zero = float(row['vy']) == pytest.approx(0, rel=REL_TOL)
         assert vx_is_zero and vy_is_zero
+
+@pytest.mark.parametrize(
+    'slope,point,x_lim,expected_result',
+    [
+        (0, np.array([0, 0]), 1, np.array([1, 0])),
+        (0, np.array([-1, 0]), 1, np.array([1, 0])),
+        (0, np.array([1, 0]), 1, np.array([1, 0])),
+        (1, np.array([1, 1]), 1, np.array([1, 1])),
+        (-1, np.array([-2, -2]), 1, np.array([1, -3])),
+        (0.5, np.array([1, 1]), 1, np.array([3, 2])),
+    ]
+)
+def test_behaviour_intercept_x_lim(
+    slope: float, point: np.array, x_lim: float, expected_result: np.array
+):
+    result = behaviour.intercept_x_lim(slope, point, x_lim)
+    assert result == pytest.approx(expected_result, rel=REL_TOL)
+
+
+@pytest.mark.parametrize(
+    'slope,point,y_lim,expected_result',
+    [
+        (np.inf, np.array([0, 0]), 1, np.array([0, 1])),
+        (np.inf, np.array([-1, 0]), 1, np.array([-1, 1])),
+        (np.inf, np.array([1, 0]), 1, np.array([1, 1])),
+        (1, np.array([1, 1]), 1, np.array([1, 1])),
+        (-1, np.array([-2, -2]), 1, np.array([-5, 1])),
+        (0.5, np.array([1, 1]), 1, np.array([1, 1])),
+    ]
+)
+def test_behaviour_intercept_y_lim(
+    slope: float, point: np.array, y_lim: float, expected_result: np.array
+):
+    result = behaviour.intercept_y_lim(slope, point, y_lim)
+    assert result == pytest.approx(expected_result, rel=REL_TOL)
