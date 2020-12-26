@@ -160,3 +160,19 @@ def test_behaviour_bounce(
 ):
     result = behaviour.bounce(position_0, position_1, x_lim, y_lim)
     assert result == pytest.approx(expected_result, rel=REL_TOL)
+
+
+def test_behaviour_bounce_once_error():
+    with pytest.raises(ValueError):
+        behaviour.bounce_once(
+            np.array([0, 0.5]), np.array([0, 0.7]), 1, 1
+        )
+
+def test_behaviour_intercept_x_lim_error():
+    with pytest.raises(ValueError):
+        behaviour.intercept_x_lim(np.inf, None, None)
+
+
+def test_behaviour_intercept_y_lim_error():
+    with pytest.raises(ValueError):
+        behaviour.intercept_y_lim(0, None, None)
