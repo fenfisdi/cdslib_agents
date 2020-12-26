@@ -73,13 +73,13 @@ def intercept_y_lim(slope: float, point: np.ndarray, y_lim: float):
     return np.array([point[0] + (y_lim - point[1]) / slope, y_lim])
 
 
-def reflect_x(vector: np.ndarray) -> np.ndarray:
-    """Reflected 2d vector across x axis."""
+def reflect_x_component(vector: np.ndarray) -> np.ndarray:
+    """Reflected 2d vector across y axis."""
     return np.array([-vector[0], vector[1]])
 
 
-def reflect_y(vector: np.ndarray) -> np.ndarray:
-    """Reflected 2d vector across y axis."""
+def reflect_y_component(vector: np.ndarray) -> np.ndarray:
+    """Reflected 2d vector across x axis."""
     return np.array([vector[0], -vector[1]])
 
 
@@ -122,14 +122,14 @@ def bounce_once(
         if not np.abs(bounce_point[1]) > y_lim:
             bounce_x = True
             delta_aux = position_1 - bounce_point
-            final_position = bounce_point + reflect_x(delta_aux)
+            final_position = bounce_point + reflect_x_component(delta_aux)
             return bounce_point, final_position
 
     if np.abs(position_1[1]) > y_lim and not bounce_x:
         y_sign = np.sign(delta[1])
         bounce_point = intercept_y_lim(slope, position_0, y_sign * y_lim)
         delta_aux = position_1 - bounce_point
-        final_position = bounce_point + reflect_y(delta_aux)
+        final_position = bounce_point + reflect_y_component(delta_aux)
         bounce_y = True
         return bounce_point, final_position
 
