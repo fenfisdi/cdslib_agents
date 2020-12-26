@@ -39,6 +39,11 @@ def intercept_x_lim(slope: float, point: np.ndarray, x_lim: float):
         Point of intercept between line defined by (``slope``, ``position_0``)
         and line ``x = x_lim``.
     """
+    if slope == np.inf:
+        raise ValueError(
+            "slope can't be np.inf, because the two lines would be parallel."
+        )
+
     return np.array([x_lim, slope * (x_lim - point[0]) + point[1]])
 
 
@@ -61,6 +66,10 @@ def intercept_y_lim(slope: float, point: np.ndarray, y_lim: float):
         Point of intercept between line defined by (``slope``, ``position_0``)
         and line ``y = y_lim``
     """
+    if slope == 0:
+        raise ValueError(
+            "slope can't be zero, because the two lines would be parallel."
+        )
     return np.array([point[0] + (y_lim - point[1]) / slope, y_lim])
 
 
