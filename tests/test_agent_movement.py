@@ -1,4 +1,5 @@
 import pytest
+from typing import Tuple
 from itertools import product
 
 import pandas as pd
@@ -50,6 +51,7 @@ def test_behaviour_stop_agents(small_df: pd.DataFrame):
         vx_is_zero = float(row['vx']) == pytest.approx(0, rel=REL_TOL)
         vy_is_zero = float(row['vy']) == pytest.approx(0, rel=REL_TOL)
         assert vx_is_zero and vy_is_zero
+
 
 @pytest.mark.parametrize(
     'slope,point,x_lim,expected_result',
@@ -112,4 +114,49 @@ def test_behaviour_reflect_x_component(vector: np.array, expected_result: np.arr
 )
 def test_behaviour_reflect_y_component(vector: np.array, expected_result: np.array):
     result = behaviour.reflect_y_component(vector)
+    assert result == pytest.approx(expected_result, rel=REL_TOL)
+
+
+@pytest.mark.parametrize(
+    'position_0,position_1,x_lim,y_lim,expected_result',
+    [
+        (np.array([0, -1]), np.array([2, 1]), 1, 1, (np.array([1, 0]), np.array([0, 1]))),
+        (np.array([0, -1]), np.array([3, 2]), 1, 1, (np.array([1, 0]), np.array([-1, 2]))),
+        (np.array([0, -1]), np.array([0, -2]), 1, 1, (np.array([0, -1]), np.array([0, 0]))),
+        (np.array([0, 0]), np.array([0, -2]), 1, 1, (np.array([0, -1]), np.array([0, 0]))),
+        (np.array([0, 0]), np.array([0, -2]), 1, 1, (np.array([0, -1]), np.array([0, 0]))),
+        (np.array([0, 0]), np.array([4, 2]), 1, 1, (np.array([1, 0.5]), np.array([-2, 2]))),
+        (np.array([-1, 0]), np.array([1, -2]), 1, 1, (np.array([0, -1]), np.array([1, 0]))),
+        (np.array([-1, 0]), np.array([1, 2]), 1, 1, (np.array([0, 1]), np.array([1, 0]))),
+        (np.array([-1, 0]), np.array([2, 3]), 1, 1, (np.array([0, 1]), np.array([2, -1]))),
+    ]
+)
+def test_behaviour_bounce_once(
+    position_0: np.ndarray, position_1: np.ndarray, x_lim: float, y_lim: float,
+    expected_result: Tuple[np.ndarray, np.ndarray]
+):
+    result = behaviour.bounce_once(position_0, position_1, x_lim, y_lim)
+    assert result[0] == pytest.approx(expected_result[0], rel=REL_TOL)
+    assert result[1] == pytest.approx(expected_result[1], rel=REL_TOL)
+
+
+@pytest.mark.parametrize(
+    'position_0,position_1,x_lim,y_lim,expected_result',
+    [
+        (np.array([0, -1]), np.array([2, 1]), 1, 1, np.array([0, 1])),
+        (np.array([0, -1]), np.array([3, 2]), 1, 1, np.array([-1, 0])),
+        (np.array([0, -1]), np.array([0, -2]), 1, 1, np.array([0, 0])),
+        (np.array([0, 0]), np.array([0, -2]), 1, 1, np.array([0, 0])),
+        (np.array([0, 0]), np.array([0, -2]), 1, 1, np.array([0, 0])),
+        (np.array([0, 0]), np.array([4, 2]), 1, 1, np.array([0, 0])),
+        (np.array([-1, 0]), np.array([1, -2]), 1, 1, np.array([1, 0])),
+        (np.array([-1, 0]), np.array([1, 2]), 1, 1, np.array([1, 0])),
+        (np.array([-1, 0]), np.array([2, 3]), 1, 1, np.array([0, -1])),
+    ]
+)
+def test_behaviour_bounce(
+    position_0: np.ndarray, position_1: np.ndarray, x_lim: float, y_lim: float,
+    expected_result: np.ndarray
+):
+    result = behaviour.bounce(position_0, position_1, x_lim, y_lim)
     assert result == pytest.approx(expected_result, rel=REL_TOL)
