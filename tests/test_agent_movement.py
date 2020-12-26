@@ -85,3 +85,31 @@ def test_behaviour_intercept_y_lim(
 ):
     result = behaviour.intercept_y_lim(slope, point, y_lim)
     assert result == pytest.approx(expected_result, rel=REL_TOL)
+
+
+@pytest.mark.parametrize(
+    'vector,expected_result',
+    [
+        (np.array([0, 1]), np.array([0, 1])),
+        (np.array([0, 0]), np.array([0, 0])),
+        (np.array([1, 1]), np.array([-1, 1])),
+        (np.array([-1, 1]), np.array([1, 1])),
+    ]
+)
+def test_behaviour_reflect_x_component(vector: np.array, expected_result: np.array):
+    result = behaviour.reflect_x_component(vector)
+    assert result == pytest.approx(expected_result, rel=REL_TOL)
+
+
+@pytest.mark.parametrize(
+    'vector,expected_result',
+    [
+        (np.array([0, 1]), np.array([0, -1])),
+        (np.array([0, 0]), np.array([0, 0])),
+        (np.array([1, -1]), np.array([1, 1])),
+        (np.array([-1, 1]), np.array([-1, -1])),
+    ]
+)
+def test_behaviour_reflect_y_component(vector: np.array, expected_result: np.array):
+    result = behaviour.reflect_y_component(vector)
+    assert result == pytest.approx(expected_result, rel=REL_TOL)
