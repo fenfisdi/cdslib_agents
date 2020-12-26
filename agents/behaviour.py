@@ -3,6 +3,7 @@ from typing import List, Tuple
 import pandas as pd
 import numpy as np
 
+
 def move_agents(df: pd.DataFrame, dt: float) -> pd.DataFrame:
     """Updates position of all agents based on previous velocity."""
     aux_df = df.copy()
@@ -104,6 +105,7 @@ def bounce_once(
     delta = position_1 - position_0
     slope = delta[1] / delta[0] if delta[0] != 0. else np.inf
     bounce_x = False
+    bounce_y = False
 
     if np.abs(position_1[0]) > x_lim and slope != np.inf:
         x_sign = np.sign(delta[0])
@@ -119,8 +121,13 @@ def bounce_once(
         bounce_point = intercept_y_lim(slope, position_0, y_sign * y_lim)
         delta_aux = position_1 - bounce_point
         final_position = bounce_point + reflect_y(delta_aux)
+        bounce_y = True
         return bounce_point, final_position
 
+    if not bounce_y and not bounce_x:
+        raise ValueError(
+            "position_1 must be out of the 'box' defined by x_lim and y_lim."
+        )
 
 def bounce(
     position_0: np.ndarray, position_1: np.ndarray, x_lim: float, y_lim: float
