@@ -30,12 +30,12 @@ def test_behaviour_move_agent(small_df: pd.DataFrame):
         return q + v * dt
     
     dtime = 1.
-    new_df = behaviour.move_agents(small_df, dtime)
+    behaviour.move_agents(small_df, dtime)
     
-    for i in range(len(new_df)):
+    for i in range(len(small_df)):
         x_expected = q_new(POSITION_X[i], VX[i], dtime)
         y_expected = q_new(POSITION_Y[i], VY[i], dtime)
-        agent = new_df.iloc[i]
+        agent = small_df.iloc[i]
         x_is_expected = agent['x'] == pytest.approx(x_expected, rel=REL_TOL)
         y_is_expected = agent['y'] == pytest.approx(y_expected, rel=REL_TOL)
         assert x_is_expected and y_is_expected
@@ -45,9 +45,9 @@ def test_behaviour_stop_agents(small_df: pd.DataFrame):
     """Test stopping agents for some specific agents"""
     condition = (small_df['vx'] == 1.) & (small_df['vy'] == 1.)
     indexes = small_df[condition].index.tolist()
-    new_df = behaviour.stop_agents(small_df, indexes)
+    behaviour.stop_agents(small_df, indexes)
     for index in indexes:
-        row = new_df.loc[[index]]
+        row = small_df.loc[[index]]
         vx_is_zero = float(row['vx']) == pytest.approx(0, rel=REL_TOL)
         vy_is_zero = float(row['vy']) == pytest.approx(0, rel=REL_TOL)
         assert vx_is_zero and vy_is_zero
