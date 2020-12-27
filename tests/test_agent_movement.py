@@ -9,7 +9,7 @@ from agents import behaviour
 
 
 # Relative tolerance when comparing numerical data
-REL_TOL =0.99
+REL_TOL = 0.99
 # All combinations of x, y, vx, vy (positive, negative or zero)
 POSITION_X, POSITION_Y, VX, VY = np.array(
     [np.array(values) for values in product([1., 0, -1.], repeat=4)]
