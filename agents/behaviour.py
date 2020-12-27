@@ -12,6 +12,7 @@ def move_agents(df: pd.DataFrame, dt: float) -> pd.DataFrame:
     return aux_df
 
 
+
 def stop_agents(df: pd.DataFrame, indexes: List[int]) -> pd.DataFrame:
     """Sets velocity to zero for specific agents identified by indexes."""
     aux_df = df.copy()
@@ -149,3 +150,9 @@ def bounce(
     else:
         position_0, position_1 = bounce_once(position_0, position_1, x_lim, y_lim)
         return bounce(position_0, position_1, x_lim, y_lim)
+
+
+def correct_agent_positions(
+    df_previous: pd.DataFrame, df_current: pd.DataFrame
+) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    raise NotImplementedError
