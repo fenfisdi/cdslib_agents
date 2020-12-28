@@ -215,7 +215,6 @@ def test_behaviour_intercept_y_lim_error():
 def test_behaviour_position_vector_from_df_series(small_df: pd.DataFrame):
     small_df_copy = small_df.copy()
     for i in range(len(small_df)):
-        print(i)
         row = small_df.loc[i]
         vector = behaviour.position_vector_from_df_series(row)
         expected_vector = np.array([POSITION_X[i], POSITION_Y[i]])
