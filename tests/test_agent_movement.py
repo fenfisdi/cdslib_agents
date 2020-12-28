@@ -63,7 +63,7 @@ def small_df():
     return df
 
 
-@pytest.fixture()
+@pytest.fixture
 def bounce_tests_df():
     x_previous = []
     y_previous = []
@@ -91,6 +91,7 @@ def bounce_tests_df():
     df_expected.loc[:, 'y'] = y_expected
 
     return df_previous, df_current, df_expected
+
 
 def test_behaviour_move_agent(small_df: pd.DataFrame):
     """Test movement of agents using several combinations of positive, negative
@@ -217,6 +218,7 @@ def test_behaviour_intercept_y_lim_error():
 def test_behaviour_position_vector_from_df_series(small_df: pd.DataFrame):
     small_df_copy = small_df.copy()
     for i in range(len(small_df)):
+        print(i)
         row = small_df.loc[i]
         vector = behaviour.position_vector_from_df_series(row)
         expected_vector = np.array([POSITION_X[i], POSITION_Y[i]])
@@ -263,5 +265,5 @@ def test_behaviour_correct_agents_position(
     bounce_tests_df: Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]
 ):
     previous_df, current_df, expected_df = bounce_tests_df
-    behaviour.correct_agent_positions(previous_df, current_df, X_LIM, Y_LIM)
+    behaviour.correct_agents_positions(previous_df, current_df, X_LIM, Y_LIM)
     assert current_df.to_dict() == expected_df.to_dict()

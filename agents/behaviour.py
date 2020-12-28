@@ -34,6 +34,11 @@ def intercept_x_lim(slope: float, point: np.ndarray, x_lim: float):
     np.ndarray
         Point of intercept between line defined by (``slope``, ``position_0``)
         and line ``x = x_lim``.
+    
+    Raises
+    ------
+    ValueError
+        if ``slope == np.inf``, for the two lines would be parallel.
     """
     if slope == np.inf:
         raise ValueError(
@@ -61,6 +66,11 @@ def intercept_y_lim(slope: float, point: np.ndarray, y_lim: float):
     np.ndarray
         Point of intercept between line defined by (``slope``, ``position_0``)
         and line ``y = y_lim``
+    
+    Raises
+    ------
+    ValueError
+        if ``slope == 0``, for the two lines would be parallel.
     """
     if slope == 0:
         raise ValueError(
@@ -70,12 +80,34 @@ def intercept_y_lim(slope: float, point: np.ndarray, y_lim: float):
 
 
 def reflect_x_component(vector: np.ndarray) -> np.ndarray:
-    """Reflected 2d vector across y axis."""
+    """Calculates reflected 2d vector across y axis.
+    
+    Parameters
+    ----------
+    vector : np.ndarray or lis, shape=(2,)
+        Represents a 2d vector.
+
+    Returns
+    -------
+    np.ndarray, shape=(2,)
+        Reflected 2d vector across y axis.
+    """
     return np.array([-vector[0], vector[1]])
 
 
 def reflect_y_component(vector: np.ndarray) -> np.ndarray:
-    """Reflected 2d vector across x axis."""
+    """Calculates reflected 2d vector across x axis.
+    
+    Parameters
+    ----------
+    vector : np.ndarray or lis, shape=(2,)
+        Represents a 2d vector.
+
+    Returns
+    -------
+    np.ndarray, shape=(2,)
+        Reflected 2d vector across x axis.
+    """
     return np.array([vector[0], -vector[1]])
 
 
@@ -85,8 +117,8 @@ def bounce_once(
     """Given a box of limits ``(-x_lim, xlim)`` and ``(-y_lim, y_lim)``, an
     initial position i.e. ``position_0`` inside the box, and a final position
     i.e. ``position_1`` outside the box, calculates the bounce point
-    and the final position after bouncing (independently if the final position
-    is inside or outside the box).
+    and the final position after bouncing off one of the limits (independently
+    if the final position is inside or outside the box).
 
     Parameters
     ----------
@@ -94,10 +126,10 @@ def bounce_once(
         Initial position.
     position_1 : np.ndarray shape=(2,)
         Final position.
-    x_lim : float > 0
-        Defines the limit of the box in the x dimension ``(-x_lim, x_lim)``
-    y_lim : float > 0
-        Defines the limit of the box in the y dimension ``(-y_lim, y_lim)``.
+    x_lim : float
+        Defines the horizontal limits of the box: ``(-x_lim, x_lim)``
+    y_lim : float
+        Defines the vertical limits of the box: ``(-y_lim, y_lim)``
 
     Returns
     -------
@@ -105,6 +137,12 @@ def bounce_once(
         Point where the object bounces.
     final_position : np.ndarray shape=(2,)
         Position after bouncing.
+    
+    Raises
+    ------
+    ValueError
+        Either if ``position_0`` is not inside the box or ``position_1`` is not
+        outside the box.
     """
 
     delta = position_1 - position_0
@@ -139,7 +177,26 @@ def bounce(
     position_0: np.ndarray, position_1: np.ndarray, x_lim: float, y_lim: float
 ) -> np.ndarray:
     """Bounces an agent inside a box of limits ``(-x_lim, xlim)`` and
-    ``(-y_lim, y_lim)``."""
+    ``(-y_lim, y_lim)``.
+    
+    ``position_0`` is assumed to be inside the box and ``position_1`` outside
+    the box. This function returns a new final position calculated as if the
+    agent bounced off the limits of the box up to a total travel distance
+    equivalent to that between ``position_0`` and ``position_1``. This
+    mechanism will be further explained in the documentation (REFERENCE THE
+    DOCUMENTATION HERE).
+
+    Parameters
+    ----------
+    position_0 : np.ndarray, shape=(2,)
+        Initial position (inside the box)
+    position_1 : np.ndarray, shape=(2,)
+        Final position (outside the box)
+    x_lim : float
+        Defines the horizontal limits of the box: ``(-x_lim, x_lim)``
+    y_lim : float
+        Defines the vertical limits of the box: ``(-y_lim, y_lim)``
+    """
     if np.abs(position_1[0]) <= x_lim and np.abs(position_1[1]) <= y_lim:
         return position_1
     else:
@@ -156,16 +213,29 @@ def bounce_apply(
     row_current: pd.Series, df_previous:pd.DataFrame,  x_lim: float, y_lim: float
 ) -> pd.DataFrame:
     """Applies ``bounce`` function to a row of a pandas dataframe (the format
-    of the row will be a pandas.Series).
+    of the row will be a pd.Series).
+
+    Parameters
+    ----------
+    row_current : pd.Series
+        Row containing the information of current iteration of a single agent.
+        The indexes ``'agent'``, ``'x'`` and ``'y'`` must be defined.
+    df_previous : pd.Dataframe
+        Contains information of all agents of previous iteration.
+        Columns ``'agent'``, ``'x'`` and ``'y'`` must be defined.
+    x_lim : float
+        Defines the horizontal limits of the box: ``(-x_lim, x_lim)``
+    y_lim : float
+        Defines the vertical limits of the box: ``(-y_lim, y_lim)``
 
     Note
     ----
-    The values of the column `'agent'` must coincide with the values of
-    ``'index'``.
+    All the values of the column ``'agent'`` must coincide with the values of
+    ``'index'``. These are unique identifiers of the agent.
     """
 
     agent = int(row_current.at['agent'])
-    row_previous = df_previous.loc[agent]
+    row_previous = df_previous.loc[agent].copy()
 
     position_0 = position_vector_from_df_series(row_previous)
     position_1 = position_vector_from_df_series(row_current)
@@ -182,24 +252,39 @@ def bounce_apply(
 
 
 def indexes_agents_out_of_box(df: pd.DataFrame, x_lim: float, y_lim: float):
-    """Returns a list of indexes of agents that are out of the box."""
+    """Returns a list of indexes of agents that are out of the box limited by
+    ``(-x_lim, xlim)`` and ``(-y_lim, y_lim)``. Columns ``'x'`` and ``'y'``
+    must be defined in ``df``."""
     condition = (np.abs(df['x']) > x_lim) | (np.abs(df['y']) > y_lim)
     return df[condition].index.tolist()
 
 
-def correct_agent_positions(
+def correct_agents_positions(
     df_previous: pd.DataFrame, df_current: pd.DataFrame, x_lim: float, y_lim: float
 ):
-    """Fixes the positions of the agents that are out of the box
+    """Fixes the positions of the agents that are out of the box by applying a
+    bounce function.
     
-    Returns
-    -------
-    agents_out_of_box : list
-        list of 
+    Parameters
+    ----------
+    df_previous : pd.Dataframe
+        Contains information of the previous iteration of all agents including
+        columns corresponding to ``'agent'``, ``'x'`` and ``'y'``.
+    df_current : pd.Dataframe
+        Contains information of the current iteration of all agents including
+        columns corresponding to ``'agent'``, ``'x'`` and ``'y'``.
+    x_lim : float
+        Defines the horizontal limits of the box: ``(-x_lim, x_lim)``
+    y_lim : float
+        Defines the vertical limits of the box: ``(-y_lim, y_lim)``
+
+    Note
+    ----
+    The goal of this function is to modify ``df_current`` such that the
+    positions of all the agents will be inside the box.
     """
     agents_out_of_box = indexes_agents_out_of_box(df_current, x_lim, y_lim)
     df_current.loc[agents_out_of_box] = \
         df_current.loc[agents_out_of_box].apply(
             bounce_apply, args=(df_previous, x_lim, y_lim), axis=1
         )
-    return agents_out_of_box
