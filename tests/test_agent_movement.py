@@ -1,5 +1,5 @@
 import pytest
-from typing import Tuple
+from typing import List, Tuple
 from itertools import product
 
 import pandas as pd
@@ -14,35 +14,8 @@ REL_TOL = 0.99
 POSITION_X, POSITION_Y, VX, VY = np.array(
     [np.array(values) for values in product([1., 0, -1.], repeat=4)]
 ).T
-INTERCEPT_X_LIM_TESTS = [
-    (0, np.array([0, 0]), 1, np.array([1, 0])),
-    (0, np.array([-1, 0]), 1, np.array([1, 0])),
-    (0, np.array([1, 0]), 1, np.array([1, 0])),
-    (1, np.array([1, 1]), 1, np.array([1, 1])),
-    (-1, np.array([-2, -2]), 1, np.array([1, -3])),
-    (0.5, np.array([1, 1]), 1, np.array([3, 2])),
-]
-INTERCEPT_Y_LIM_TESTS = [
-    (np.inf, np.array([0, 0]), 1, np.array([0, 1])),
-    (np.inf, np.array([-1, 0]), 1, np.array([-1, 1])),
-    (np.inf, np.array([1, 0]), 1, np.array([1, 1])),
-    (1, np.array([1, 1]), 1, np.array([1, 1])),
-    (-1, np.array([-2, -2]), 1, np.array([-5, 1])),
-    (0.5, np.array([1, 1]), 1, np.array([1, 1])),
-]
 X_LIM = 1
 Y_LIM = 1
-BOUNCE_ONCE_TESTS = [
-    (np.array([0, -1]), np.array([2, 1]), X_LIM, Y_LIM, (np.array([1, 0]), np.array([0, 1]))),
-    (np.array([0, -1]), np.array([3, 2]), X_LIM, Y_LIM, (np.array([1, 0]), np.array([-1, 2]))),
-    (np.array([0, -1]), np.array([0, -2]), X_LIM, Y_LIM, (np.array([0, -1]), np.array([0, 0]))),
-    (np.array([0, 0]), np.array([0, -2]), X_LIM, Y_LIM, (np.array([0, -1]), np.array([0, 0]))),
-    (np.array([0, 0]), np.array([0, -2]), X_LIM, Y_LIM, (np.array([0, -1]), np.array([0, 0]))),
-    (np.array([0, 0]), np.array([4, 2]), X_LIM, Y_LIM, (np.array([1, 0.5]), np.array([-2, 2]))),
-    (np.array([-1, 0]), np.array([1, -2]), X_LIM, Y_LIM, (np.array([0, -1]), np.array([1, 0]))),
-    (np.array([-1, 0]), np.array([1, 2]), X_LIM, Y_LIM, (np.array([0, 1]), np.array([1, 0]))),
-    (np.array([-1, 0]), np.array([2, 3]), X_LIM, Y_LIM, (np.array([0, 1]), np.array([2, -1]))),
-]
 BOUNCE_TESTS = [
     (np.array([0, -1]), np.array([2, 1]), X_LIM, Y_LIM, np.array([0, 1])),
     (np.array([0, -1]), np.array([3, 2]), X_LIM, Y_LIM, np.array([-1, 0])),
@@ -125,7 +98,14 @@ def test_behaviour_stop_agents(small_df: pd.DataFrame):
 
 @pytest.mark.parametrize(
     'slope,point,x_lim,expected_result',
-    INTERCEPT_X_LIM_TESTS
+    [
+        (0, np.array([0, 0]), 1, np.array([1, 0])),
+        (0, np.array([-1, 0]), 1, np.array([1, 0])),
+        (0, np.array([1, 0]), 1, np.array([1, 0])),
+        (1, np.array([1, 1]), 1, np.array([1, 1])),
+        (-1, np.array([-2, -2]), 1, np.array([1, -3])),
+        (0.5, np.array([1, 1]), 1, np.array([3, 2])),
+    ]
 )
 def test_behaviour_intercept_x_lim(
     slope: float, point: np.array, x_lim: float, expected_result: np.array
@@ -136,7 +116,14 @@ def test_behaviour_intercept_x_lim(
 
 @pytest.mark.parametrize(
     'slope,point,y_lim,expected_result',
-    INTERCEPT_Y_LIM_TESTS
+    [
+        (np.inf, np.array([0, 0]), 1, np.array([0, 1])),
+        (np.inf, np.array([-1, 0]), 1, np.array([-1, 1])),
+        (np.inf, np.array([1, 0]), 1, np.array([1, 1])),
+        (1, np.array([1, 1]), 1, np.array([1, 1])),
+        (-1, np.array([-2, -2]), 1, np.array([-5, 1])),
+        (0.5, np.array([1, 1]), 1, np.array([1, 1])),
+    ]
 )
 def test_behaviour_intercept_y_lim(
     slope: float, point: np.array, y_lim: float, expected_result: np.array
@@ -175,7 +162,17 @@ def test_behaviour_reflect_y_component(vector: np.array, expected_result: np.arr
 
 @pytest.mark.parametrize(
     'position_0,position_1,x_lim,y_lim,expected_result',
-    BOUNCE_ONCE_TESTS
+    [
+        (np.array([0, -1]), np.array([2, 1]), X_LIM, Y_LIM, (np.array([1, 0]), np.array([0, 1]))),
+        (np.array([0, -1]), np.array([3, 2]), X_LIM, Y_LIM, (np.array([1, 0]), np.array([-1, 2]))),
+        (np.array([0, -1]), np.array([0, -2]), X_LIM, Y_LIM, (np.array([0, -1]), np.array([0, 0]))),
+        (np.array([0, 0]), np.array([0, -2]), X_LIM, Y_LIM, (np.array([0, -1]), np.array([0, 0]))),
+        (np.array([0, 0]), np.array([0, -2]), X_LIM, Y_LIM, (np.array([0, -1]), np.array([0, 0]))),
+        (np.array([0, 0]), np.array([4, 2]), X_LIM, Y_LIM, (np.array([1, 0.5]), np.array([-2, 2]))),
+        (np.array([-1, 0]), np.array([1, -2]), X_LIM, Y_LIM, (np.array([0, -1]), np.array([1, 0]))),
+        (np.array([-1, 0]), np.array([1, 2]), X_LIM, Y_LIM, (np.array([0, 1]), np.array([1, 0]))),
+        (np.array([-1, 0]), np.array([2, 3]), X_LIM, Y_LIM, (np.array([0, 1]), np.array([2, -1]))),
+    ]
 )
 def test_behaviour_bounce_once(
     position_0: np.ndarray, position_1: np.ndarray, x_lim: float, y_lim: float,
@@ -224,6 +221,24 @@ def test_behaviour_position_vector_from_df_series(small_df: pd.DataFrame):
         expected_vector = np.array([POSITION_X[i], POSITION_Y[i]])
         assert vector == pytest.approx(expected_vector, rel=REL_TOL)
     assert small_df.to_numpy() == pytest.approx(small_df_copy.to_numpy(), rel=REL_TOL)
+
+
+@pytest.mark.parametrize(
+    'position,x_lim,y_lim,expected_result',
+    [
+        ([0.5, 2], X_LIM, Y_LIM, False),
+        ([2, 0.5], X_LIM, Y_LIM, False),
+        ([0, 0], X_LIM, Y_LIM, True),
+        ([-0.5, 0.5], X_LIM, Y_LIM, True),
+        ([0.5, -0.5], X_LIM, Y_LIM, True),
+        ([1, 1], X_LIM, Y_LIM, True),
+        ([-1, -1], X_LIM, Y_LIM, True),
+    ]
+)
+def test_behaviour_is_inside_box(
+    position: List, x_lim: float, y_lim: float, expected_result: bool
+):
+    assert behaviour.is_inside_box(position, x_lim, y_lim) == expected_result
 
 
 @pytest.mark.parametrize(

@@ -34,7 +34,7 @@ def intercept_x_lim(slope: float, point: np.ndarray, x_lim: float):
     np.ndarray
         Point of intercept between line defined by (``slope``, ``position_0``)
         and line ``x = x_lim``.
-    
+
     Raises
     ------
     ValueError
@@ -66,7 +66,7 @@ def intercept_y_lim(slope: float, point: np.ndarray, y_lim: float):
     np.ndarray
         Point of intercept between line defined by (``slope``, ``position_0``)
         and line ``y = y_lim``
-    
+
     Raises
     ------
     ValueError
@@ -81,7 +81,7 @@ def intercept_y_lim(slope: float, point: np.ndarray, y_lim: float):
 
 def reflect_x_component(vector: np.ndarray) -> np.ndarray:
     """Calculates reflected 2d vector across y axis.
-    
+
     Parameters
     ----------
     vector : np.ndarray or lis, shape=(2,)
@@ -97,7 +97,7 @@ def reflect_x_component(vector: np.ndarray) -> np.ndarray:
 
 def reflect_y_component(vector: np.ndarray) -> np.ndarray:
     """Calculates reflected 2d vector across x axis.
-    
+
     Parameters
     ----------
     vector : np.ndarray or lis, shape=(2,)
@@ -109,6 +109,13 @@ def reflect_y_component(vector: np.ndarray) -> np.ndarray:
         Reflected 2d vector across x axis.
     """
     return np.array([vector[0], -vector[1]])
+
+
+def is_inside_box(position: np.ndarray, x_lim: float, y_lim: float) -> bool:
+    """Checks if ``position`` is inside box delimited by ``(-x_lim, xlim)``
+    and ``(-y_lim, y_lim)``.
+    """
+    return np.abs(position[0]) <= x_lim and np.abs(position[1]) <= y_lim
 
 
 def bounce_once(
@@ -137,13 +144,17 @@ def bounce_once(
         Point where the object bounces.
     final_position : np.ndarray shape=(2,)
         Position after bouncing.
-    
+
     Raises
     ------
     ValueError
         Either if ``position_0`` is not inside the box or ``position_1`` is not
         outside the box.
     """
+    if not is_inside_box(position_0, x_lim, y_lim):
+        raise ValueError(
+            "position_0 must be inside of the 'box' defined by x_lim and y_lim."
+        )
 
     delta = position_1 - position_0
     slope = delta[1] / delta[0] if delta[0] != 0. else np.inf
@@ -178,7 +189,7 @@ def bounce(
 ) -> np.ndarray:
     """Bounces an agent inside a box of limits ``(-x_lim, xlim)`` and
     ``(-y_lim, y_lim)``.
-    
+
     ``position_0`` is assumed to be inside the box and ``position_1`` outside
     the box. This function returns a new final position calculated as if the
     agent bounced off the limits of the box up to a total travel distance
@@ -197,7 +208,7 @@ def bounce(
     y_lim : float
         Defines the vertical limits of the box: ``(-y_lim, y_lim)``
     """
-    if np.abs(position_1[0]) <= x_lim and np.abs(position_1[1]) <= y_lim:
+    if is_inside_box(position_1, x_lim, y_lim):
         return position_1
     else:
         position_0, position_1 = bounce_once(position_0, position_1, x_lim, y_lim)
@@ -264,7 +275,7 @@ def correct_agents_positions(
 ):
     """Fixes the positions of the agents that are out of the box by applying a
     bounce function.
-    
+
     Parameters
     ----------
     df_previous : pd.Dataframe
