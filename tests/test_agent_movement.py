@@ -44,7 +44,7 @@ def bounce_tests_df():
     y_current = []
     x_expected = []
     y_expected = []
-    
+
     for data in BOUNCE_TESTS:
         x_previous.append(data[0][0])
         y_previous.append(data[0][1])
@@ -52,7 +52,7 @@ def bounce_tests_df():
         y_current.append(data[1][1])
         x_expected.append(data[-1][0])
         y_expected.append(data[-1][1])
-    
+
     df_previous = pd.DataFrame(data={'x': x_previous, 'y': y_previous})
     df_previous['agent'] = df_previous.index.tolist()
 
