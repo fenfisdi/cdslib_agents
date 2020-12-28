@@ -19,7 +19,7 @@ def stop_agents(df: pd.DataFrame, indexes: List[int]) -> pd.DataFrame:
 def intercept_x_lim(slope: float, point: np.ndarray, x_lim: float):
     """Calculates intercept between line defined by ``slope`` and
     ``position_0`` and line ``x = x_lim``.
-    
+
     Paramters
     ---------
     slope : float
@@ -46,7 +46,7 @@ def intercept_x_lim(slope: float, point: np.ndarray, x_lim: float):
 def intercept_y_lim(slope: float, point: np.ndarray, y_lim: float):
     """Calculates intercept between line defined by ``slope`` and
     ``position_0`` and line ``y = y_lim``.
-    
+
     Paramters
     ---------
     slope : float
@@ -87,7 +87,7 @@ def bounce_once(
     i.e. ``position_1`` outside the box, calculates the bounce point
     and the final position after bouncing (independently if the final position
     is inside or outside the box).
-    
+
     Parameters
     ----------
     position_0 : np.ndarray shape=(2,)
@@ -98,7 +98,7 @@ def bounce_once(
         Defines the limit of the box in the x dimension ``(-x_lim, x_lim)``
     y_lim : float > 0
         Defines the limit of the box in the y dimension ``(-y_lim, y_lim)``.
-    
+
     Returns
     -------
     bounce_point : np.ndarray shape=(2,)
@@ -106,7 +106,7 @@ def bounce_once(
     final_position : np.ndarray shape=(2,)
         Position after bouncing.
     """
-    
+
     delta = position_1 - position_0
     slope = delta[1] / delta[0] if delta[0] != 0. else np.inf
     bounce_x = False
@@ -147,7 +147,59 @@ def bounce(
         return bounce(position_0, position_1, x_lim, y_lim)
 
 
+def position_vector_from_df_series(df: pd.Series) -> np.ndarray:
+    """Get the position vector from a series with indexes 'x' and 'y'."""
+    return np.array([df.at['x'], df.at['y']])
+
+
+def bounce_apply(
+    row_current: pd.Series, df_previous:pd.DataFrame,  x_lim: float, y_lim: float
+) -> pd.DataFrame:
+    """Applies ``bounce`` function to a row of a pandas dataframe (the format
+    of the row will be a pandas.Series).
+
+    Note
+    ----
+    The values of the column `'agent'` must coincide with the values of
+    ``'index'``.
+    """
+
+    agent = int(row_current.at['agent'])
+    row_previous = df_previous.loc[agent]
+
+    position_0 = position_vector_from_df_series(row_previous)
+    position_1 = position_vector_from_df_series(row_current)
+
+    position_1_new = bounce(position_0, position_1, x_lim, y_lim)
+
+    # This one is needed in order to avoid pandas' SettingWithCopyWarning
+    row = row_current.copy()
+
+    row.loc['x'] = position_1_new[0]
+    row.loc['y'] = position_1_new[1]
+
+    return row
+
+
+def indexes_agents_out_of_box(df: pd.DataFrame, x_lim: float, y_lim: float):
+    """Returns a list of indexes of agents that are out of the box."""
+    condition = (np.abs(df['x']) > x_lim) | (np.abs(df['y']) > y_lim)
+    return df[condition].index.tolist()
+
+
 def correct_agent_positions(
-    df_previous: pd.DataFrame, df_current: pd.DataFrame
-) -> Tuple[pd.DataFrame, pd.DataFrame]:
-    raise NotImplementedError
+    df_previous: pd.DataFrame, df_current: pd.DataFrame, x_lim: float, y_lim: float
+):
+    """Fixes the positions of the agents that are out of the box
+    
+    Returns
+    -------
+    agents_out_of_box : list
+        list of 
+    """
+    agents_out_of_box = indexes_agents_out_of_box(df_current, x_lim, y_lim)
+    df_current.loc[agents_out_of_box] = \
+        df_current.loc[agents_out_of_box].apply(
+            bounce_apply, args=(df_previous, x_lim, y_lim), axis=1
+        )
+    return agents_out_of_box
