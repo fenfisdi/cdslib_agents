@@ -3,14 +3,52 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Contagious Disease Simulation Library's documentation!
-=================================================================
+.. _index_page:
+
+=============================================================
+Contagious Disease Simulation Library |version| documentation
+=============================================================
+
+Description
+
+Getting Started
+===============
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Getting Started
+   :hidden:
+
+   start/overview
+   start/install
+
+- :ref:`Overview <start-overview>`
+- :ref:`Install <start-install>`
 
 
+
+API
+===
+
+.. toctree::
+   :maxdepth: 6
+   :caption: API
+   :hidden:
+
+
+Source Code Documentation
+=========================
+
+.. toctree::
+   :maxdepth: 6
+   :caption: Source Code Documentation
+   :hidden:
+
+   code_docs/agents
+
+:mod:`agents`
+
+   :mod:`agents.behaviour`
 
 Indices and tables
 ==================
