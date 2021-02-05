@@ -44,7 +44,7 @@ Source Code Documentation
    :caption: Source Code Documentation
    :hidden:
 
-   code_docs/agents
+   code_docs/agents/agents
 
 :mod:`agents`
 

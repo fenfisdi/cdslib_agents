@@ -1,6 +1,6 @@
-==================
-``agents`` package
-==================
+=====================
+:mod:`agents` package
+=====================
 
 Package contents
 ================
@@ -21,4 +21,4 @@ Submodules
 .. toctree::
    :maxdepth: 1
 
-   agents.behaviour
+   behaviour
