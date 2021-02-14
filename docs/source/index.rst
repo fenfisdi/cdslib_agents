@@ -11,12 +11,12 @@ Contagious Disease Simulation Library |version| documentation
 
 Description
 
-Getting Started
+Getting started
 ===============
 
 .. toctree::
    :maxdepth: 2
-   :caption: Getting Started
+   :caption: Getting started
    :hidden:
 
    start/overview
@@ -24,8 +24,6 @@ Getting Started
 
 - :ref:`Overview <start-overview>`
 - :ref:`Install <start-install>`
-
-
 
 API
 ===
@@ -36,12 +34,12 @@ API
    :hidden:
 
 
-Source Code Documentation
+Source code documentation
 =========================
 
 .. toctree::
    :maxdepth: 6
-   :caption: Source Code Documentation
+   :caption: Source code documentation
    :hidden:
 
    code_docs/agents/agents
@@ -49,6 +47,18 @@ Source Code Documentation
 :mod:`agents`
 
    :mod:`agents.behaviour`
+
+Contribute to this project
+==========================
+
+.. toctree::
+   :maxdepth: 6
+   :caption: Contribute
+   :hidden:
+
+   contribute/documentation
+
+- :ref:`How to document this project <contribute-documentation>`
 
 Indices and tables
 ==================

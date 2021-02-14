@@ -20,7 +20,7 @@ def intercept_x_lim(slope: float, point: np.ndarray, x_lim: float):
     """Calculates intercept between line defined by ``slope`` and
     ``position_0`` and line ``x = x_lim``.
 
-    Paramters
+    Parameters
     ---------
     slope : float
         Slope of the line.
@@ -52,7 +52,7 @@ def intercept_y_lim(slope: float, point: np.ndarray, y_lim: float):
     """Calculates intercept between line defined by ``slope`` and
     ``position_0`` and line ``y = y_lim``.
 
-    Paramters
+    Parameters
     ---------
     slope : float
         Slope of the line.
