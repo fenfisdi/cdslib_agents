@@ -4,8 +4,8 @@
 Documenting this project
 ========================
 
-The documentation of the project is developed using the Sphinx framework. All
-files related to it can be accessed in the ``~/docs`` directory
+The documentation of the project is developed using the `Sphinx framework`_.
+All files related to it can be accessed in the ``~/docs`` directory
 
 Docstring format
 ================
@@ -31,5 +31,5 @@ External references
 
 
 .. _NumPy-SciPy docstrings: https://numpydoc.readthedocs.io/en/latest/format.html
-.. _Sphinx framework: <https://www.sphinx-doc.org/en/master/#>
+.. _Sphinx framework: https://www.sphinx-doc.org/en/master/#
 .. _Documenting Python Code: https://realpython.com/documenting-python-code/
