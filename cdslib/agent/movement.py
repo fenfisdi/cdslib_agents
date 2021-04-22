@@ -1,10 +1,12 @@
+from pandas.core.frame import DataFrame
+
 from cdslib.models.population import BoxSize
 
 
 class AgentMovement:
 
     @classmethod
-    def apply_movement(cls, dataframe, box_size: BoxSize):
+    def apply_movement(cls, dataframe: DataFrame, box_size: BoxSize):
         """
 
         """

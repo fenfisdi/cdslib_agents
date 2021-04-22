@@ -13,7 +13,6 @@ class AgentMovementTestCase(TestCase):
         self.box_size = BoxSize(-50, 50, -30, 30)
 
     def test_movement_function(self):
-
         samples = 50
         iterations = 10
 
