@@ -11,6 +11,7 @@ class AgentMovementTestCase(TestCase):
 
     def setUp(self):
         self.box_size = BoxSize(-50, 50, -30, 30)
+        self.dt = 1
 
     def test_movement_function(self):
         samples = 50
@@ -28,7 +29,8 @@ class AgentMovementTestCase(TestCase):
             df = df.apply(
                 AgentMovement.apply_movement,
                 axis=1,
-                box_size=self.box_size
+                box_size=self.box_size,
+                dt=self.dt
             )
 
         self.assertNotEqual(data.get('x')[0], df['x'][0])
