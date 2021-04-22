@@ -1,3 +1,5 @@
+*.ipynb
+
 # COVID-19_example/pruebas
 COVID-19_example/pruebas
 COVID-19_example/multiprocessing.ipynb
