@@ -1,5 +1,21 @@
 # Created by .ignore support plugin (hsz.mobi)
 ### Python template
+
+# Extra Data
+covid-19-example/*
+
+# Jupyter notebook
+*.ipynb
+
+# Results
+*.sh
+*.tar.gz
+*.csv
+*.pdf
+*.wsl
+*.html
+*.txt
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -143,6 +159,3 @@ cython_debug/
 # Editors
 .idea/
 .vscode/
-
-# Extra Data
-covid-19-example/*
