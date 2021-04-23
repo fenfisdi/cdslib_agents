@@ -10,24 +10,25 @@ class AgentMovement:
         cls, df: DataFrame, box_size: BoxSize, dt: float
     ):
         """
-        Function to apply as transformation in a pandas Dataframe to update
-        coordinates from the agent with its velocities.
+            Function to apply as transformation in a pandas Dataframe to update
+            coordinates from the agent with its velocities.
 
-        Parameters
-        ----------
-        df: DataFrame
-            Dataframe to apply transformation, must have x, y, vx, vy columns.
+            Parameters
+            ----------
+            df: DataFrame
+                Dataframe to apply transformation, must have x, y, vx
+                and vy columns.
 
-        box_size: BoxSize
-            Parameter according to the region coordinates.
+            box_size: BoxSize
+                Parameter according to the region coordinates.
 
-        dt: float
-            Local time step, representing how often to take a measure.
+            dt: float
+                Local time step, representing how often to take a measure.
 
-        Returns
-        -------
-        DataFrame
-            Dataframe with the transformations in columns x and y
+            Returns
+            -------
+            DataFrame
+                Dataframe with the transformations in columns x and y
         """
         try:
             # Update current position of the agent with its velocities
@@ -81,3 +82,11 @@ class AgentMovement:
                     )
 
                 raise ValueError(error_string + check_string)
+
+    @classmethod
+    def apply_stop_agents(df: DataFrame, indexes: list) -> DataFrame:
+        """
+            Sets velocity to zero for specific agents identified by indexes.
+        """
+        df.loc[indexes, 'vx'] = 0
+        df.loc[indexes, 'vy'] = 0
