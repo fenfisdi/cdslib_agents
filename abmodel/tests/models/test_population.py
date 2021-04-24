@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from cdslib.models.population import BoxSize
+from abmodel.models.population import BoxSize
 
 
 class BoxSizeTestCase(TestCase):

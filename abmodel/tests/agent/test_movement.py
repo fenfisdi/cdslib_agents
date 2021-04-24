@@ -3,8 +3,8 @@ from unittest import TestCase
 import numpy as np
 import pandas as pd
 
-from cdslib.agent.movement import AgentMovement
-from cdslib.models.population import BoxSize
+from abmodel.agent.movement import AgentMovement
+from abmodel.models.population import BoxSize
 
 
 class AgentMovementTestCase(TestCase):
@@ -27,7 +27,7 @@ class AgentMovementTestCase(TestCase):
 
         for _ in range(iterations):
             df = df.apply(
-                AgentMovement.apply_movement,
+                AgentMovement.move_agents,
                 axis=1,
                 box_size=self.box_size,
                 dt=self.dt

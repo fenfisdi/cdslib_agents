@@ -1,12 +1,13 @@
 from pandas.core.frame import DataFrame
 
-from cdslib.models.population import BoxSize
+from abmodel.models.population import BoxSize
+from abmodel.utils.utilities import check_column_existance, check_column_errors
 
 
 class AgentMovement:
 
     @classmethod
-    def apply_movement(
+    def move_agents(
         cls, df: DataFrame, box_size: BoxSize, dt: float
     ):
         """
@@ -30,6 +31,7 @@ class AgentMovement:
             DataFrame
                 Dataframe with the transformations in columns x and y
         """
+        check_column_errors(df)
         try:
             # Update current position of the agent with its velocities
             df.x += df.vx * dt
@@ -53,40 +55,25 @@ class AgentMovement:
 
             return df
         except Exception:
-            df_cols = df.columns
-            x_check = 'x' in df_cols
-            y_check = 'y' in df_cols
-            vx_check = 'vx' in df_cols
-            vy_check = 'vy' in df_cols
-
-            if (not x_check or not y_check or not vx_check or not vy_check):
-                check_string = ""
-
-                if not x_check:
-                    check_string += "'x', "
-
-                if not y_check:
-                    check_string += "'y', "
-
-                if not vx_check:
-                    check_string += "'vx', "
-
-                if not vy_check:
-                    check_string += "'vy', "
-
-                check_string += "must be checked."
-
-                error_string = (
-                    "df must contain 'x', 'y', 'vx' "
-                    "and 'vy' columns. "
-                    )
-
-                raise ValueError(error_string + check_string)
+            check_column_existance(df, ['x', 'y', 'vx', 'vy'])
 
     @classmethod
-    def apply_stop_agents(df: DataFrame, indexes: list) -> DataFrame:
+    def stop_agents(cls, df: DataFrame, indexes: list):
         """
-            Sets velocity to zero for specific agents identified by indexes.
+            Set the velocity of a given set of agents to zero.
+
+            Parameters
+            ----------
+            df: DataFrame
+                Dataframe to apply transformation, must have x, y, vx
+                and vy columns.
+
+            indexes: list
+                List containing the index of the agents that need to be
+                stopped
+
         """
-        df.loc[indexes, 'vx'] = 0
-        df.loc[indexes, 'vy'] = 0
+        if check_column_existance(df, [ 'vx', 'vy' ]):
+            df.loc[indexes, 'vx'] = 0
+            df.loc[indexes, 'vy'] = 0
+
