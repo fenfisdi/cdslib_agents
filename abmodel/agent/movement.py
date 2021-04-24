@@ -73,7 +73,6 @@ class AgentMovement:
                 stopped
 
         """
-        if check_column_existance(df, [ 'vx', 'vy' ]):
+        if check_column_existance(df, ['vx', 'vy']):
             df.loc[indexes, 'vx'] = 0
             df.loc[indexes, 'vy'] = 0
-

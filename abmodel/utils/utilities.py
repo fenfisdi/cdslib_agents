@@ -19,9 +19,9 @@ def check_column_existance(df: DataFrame, cols: list) -> bool:
         True:
             If the column validation is passed.
     """
-    set = set(cols)
+    cols_set = set(cols)
     check_cols = []
-    if set.issubset(df.columns):
+    if cols_set.issubset(df.columns):
         return True
     else:
         for col in cols:
@@ -37,8 +37,9 @@ def check_column_existance(df: DataFrame, cols: list) -> bool:
 def check_column_errors(df: DataFrame, debug: bool = False):
     """
         Validate if fields inside a column are correctly set, if the validation
-        fails, raise an error about incorrect initialization, if debug is enabled,
-        the error message contains specific information about the DataFrame.
+        fails, raise an error about incorrect initialization, if debug is
+        enabled, the error message contains specific information about the
+        DataFrame.
 
         Parameters
         ----------
@@ -61,4 +62,3 @@ def check_column_errors(df: DataFrame, debug: bool = False):
                     "To pinpoint especific errors, "
                     "add `debug=True` as a parameter")
             raise ValueError(error_string)
-
