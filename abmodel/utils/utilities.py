@@ -19,9 +19,8 @@ def check_column_existance(df: DataFrame, cols: list) -> bool:
         True:
             If the column validation is passed.
     """
-    cols_set = set(cols)
     check_cols = []
-    if cols_set.issubset(df.columns):
+    if set(cols).issubset(df.columns):
         return True
     else:
         for col in cols:

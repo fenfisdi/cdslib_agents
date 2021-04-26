@@ -1,5 +1,4 @@
-from numpy import random, genfromtxt
-
+from numpy import genfromtxt, random
 from sklearn.neighbors import KernelDensity
 
 
@@ -17,10 +16,7 @@ class Distribution:
                 data = genfromtxt(filename)
                 self.kd_estimator = KernelDensity(**kwargs).fit(data)
             except Exception as error:
-                raise ValueError(
-                    f"Error parsing file: {filename}\n"
-                    + error
-                    )
+                raise ValueError(f"Error parsing file: {filename}\n", error)
         else:
             if dist_type in dir(random):
                 self.distribution = getattr(random, dist_type)
@@ -34,7 +30,8 @@ class Distribution:
         """
         """
         if self.dist_type == "empirical":
-            return self.kd_estimator()
+            return self.kd_estimator.sample(n_samples=1,
+                                            random_state=None)[0][0]
         else:
             # Using numpy.random
             return self.distribution(**self.kwargs)[0]
