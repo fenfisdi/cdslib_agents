@@ -1,4 +1,4 @@
-from numpy import random, genfromtxt
+from numpy import genfromtxt, random
 from sklearn.neighbors import KernelDensity
 
 
@@ -50,8 +50,8 @@ class Distribution:
         """
         if self.dist_type == "empirical":
             # Using KernelDensity estimator from Scikit-learn
-            return self.kd_estimator()
-
+            return self.kd_estimator.sample(n_samples=1,
+                                            random_state=None)[0][0]
         elif self.dist_type == "weights":
             # Using numpy.random.choice
             return random.choice(a=self.xi, p=self.pi)
