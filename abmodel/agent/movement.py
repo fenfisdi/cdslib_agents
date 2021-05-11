@@ -1,4 +1,4 @@
-from numpy import cos, sin
+from numpy import cos, sin, arcsin
 from pandas.core.frame import DataFrame
 
 from abmodel.models.population import BoxSize
@@ -88,18 +88,17 @@ class AgentMovement:
             df.loc[indexes, "vx"] = 0
             df.loc[indexes, "vy"] = 0
 
-    def velocity_angles(df: DataFrame, group_field: str,
-                          group_label: str, distribution: Distribution):
+    def velocity_angles(df: DataFrame):
         """
             Set the velocity of a given set of agents to zero.
 
             Parameters
             ----------
             df : DataFrame
-                Dataframe to apply transformation, must have ...
+                Dataframe to apply transformation, must have `vx` and `vy`
         """
         if check_column_existance(df, ["vx", "vy"]):
-            n_agents = df.loc[df[group_field] == group_label].count()
+            angles = df["vy"]/df["vx"]
 
 
     @classmethod
