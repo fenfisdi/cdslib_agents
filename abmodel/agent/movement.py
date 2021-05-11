@@ -113,7 +113,8 @@ class AgentMovement:
 
     @classmethod
     def update_velocities(cls, df: DataFrame, group_field: str,
-                          group_label: str, distribution: Distribution):
+                          group_label: str, distribution: Distribution,
+                          angle_variance: float):
         """
             Set the velocity of a given set of agents to zero.
 
@@ -129,6 +130,15 @@ class AgentMovement:
             new_velocities = distribution.sample(size=n_agents)
 
             angles = cls.velocity_angles(filtered_df)
+
+            delta_angles = Distribution(
+                dist_type="numpy",
+                distribution="normal",
+                loc=0.0,
+                scale=angle_variance
+                ).sample(size=n_agents)
+
+            angles = angles + delta_angles
 
             df.loc[df[group_field] == group_label, "vx"] = \
                 new_velocities * cos(angles)
