@@ -1,7 +1,8 @@
 from time import time
-from numpy import genfromtxt, random, abs, array
-from sklearn.neighbors import KernelDensity
 from typing import Union
+
+from numpy import abs, genfromtxt, ndarray, random
+from sklearn.neighbors import KernelDensity
 
 
 class Distribution:
@@ -68,8 +69,8 @@ class Distribution:
 
             except Exception as error:
                 raise ValueError(
-                    f"Error parsing file: {self.filename}\n"
-                    + error
+                    f"Error parsing file: {self.filename}\n",
+                    error
                     )
 
             try:
@@ -78,8 +79,8 @@ class Distribution:
                     )
             except Exception as error:
                 raise ValueError(
-                    "Error using KernelDensity: \n"
-                    + error
+                    "Error using KernelDensity: \n",
+                    error
                     )
 
         elif self.dist_type == "weights":
@@ -94,8 +95,8 @@ class Distribution:
 
             except Exception as error:
                 raise ValueError(
-                    f"Error parsing file: {self.filename}\n"
-                    + error
+                    f"Error parsing file: {self.filename}\n",
+                    error
                     )
             else:
                 self.random_number_generator = \
@@ -122,8 +123,8 @@ class Distribution:
                         )
             except Exception as error:
                 raise ValueError(
-                    "Error using numpy.random distributions:\n"
-                    + error
+                    "Error using numpy.random distributions:\n",
+                    error
                     )
 
         else:
@@ -131,7 +132,7 @@ class Distribution:
                 "'dist_type' is not in {'empirical', 'weights', 'numpy'}"
                 )
 
-    def sample(self, size: int = 1) -> Union[int, array]:
+    def sample(self, size: int = 1) -> Union[ndarray, int]:
         """
             Compute random sampling using the defined distribution.
 
@@ -193,7 +194,7 @@ class Distribution:
         else:
             return samples
 
-    def sample_positive(self, size: int = 1):
+    def sample_positive(self, size: int = 1) -> Union[ndarray, int]:
         """
             Compute one random sample using the defined distribution,
             but restrincting output to be strictly positive.
