@@ -23,8 +23,9 @@ class Distribution:
             ----------
             dist_type : {'empirical', 'weights', 'numpy'}
 
-                'empirical' : it builts distribution from data.
-                    It uses Scikit-Learn's Kernel Density Estimation [1]_
+                'empirical' : build distributions from empirical data,
+                estimating the overall shape of the distribution using
+                the KDE approach available via Scikit-Learn
 
                 'weights' : it needs the histogram (xi, pi) data without
                     header in order to generates a random sample from
