@@ -1,4 +1,4 @@
-from numpy import cos, sin, arcsin
+from numpy import cos, sin, arcsin, ndarray
 from pandas.core.frame import DataFrame
 
 from abmodel.models.population import BoxSize
@@ -11,7 +11,7 @@ class AgentMovement:
     @classmethod
     def move_agents(
         cls, df: DataFrame, box_size: BoxSize, dt: float
-    ):
+    ) -> DataFrame:
         """
             Function to apply as transformation in a pandas Dataframe to update
             coordinates from the agent with its velocities.
@@ -70,7 +70,7 @@ class AgentMovement:
             check_column_existance(df, ["x", "y", "vx", "vy"])
 
     @classmethod
-    def stop_agents(cls, df: DataFrame, indexes: list):
+    def stop_agents(cls, df: DataFrame, indexes: list) -> None:
         """
             Set the velocity of a given set of agents to zero.
 
@@ -88,7 +88,15 @@ class AgentMovement:
             df.loc[indexes, "vx"] = 0
             df.loc[indexes, "vy"] = 0
 
-    def velocity_angles(df: DataFrame):
+    def angle(x: float, y: float) -> float:
+        """
+        """
+        try:
+            return arcsin(y/x)
+        except Exception:
+            return 0.0
+
+    def velocity_angles(self, df: DataFrame) -> ndarray:
         """
             Set the velocity of a given set of agents to zero.
 
@@ -98,8 +106,10 @@ class AgentMovement:
                 Dataframe to apply transformation, must have `vx` and `vy`
         """
         if check_column_existance(df, ["vx", "vy"]):
-            angles = df["vy"]/df["vx"]
-
+            return df.apply(
+                lambda row: self.angle(row["x"], row["y"]),
+                axis=1
+                )
 
     @classmethod
     def update_velocities(cls, df: DataFrame, group_field: str,
@@ -113,13 +123,15 @@ class AgentMovement:
                 Dataframe to apply transformation, must have ...
         """
         if check_column_existance(df, [group_field, "vx", "vy"]):
-            n_agents = df.loc[df[group_field] == group_label].count()
+            filtered_df = df.loc[df[group_field] == group_label]
 
-            velocities = distribution.sample(size=n_agents)
+            n_agents = filtered_df.count()
+            new_velocities = distribution.sample(size=n_agents)
 
-            df.loc[df[group_field] == group_label, "vx"] = 0 # TODO
-            df.loc[df[group_field] == group_label, "vy"] = 0 # TODO
+            angles = cls.velocity_angles(filtered_df)
 
+            df.loc[df[group_field] == group_label, "vx"] = \
+                new_velocities * cos(angles)
 
-
-
+            df.loc[df[group_field] == group_label, "vy"] = \
+                new_velocities * sin(angles)
