@@ -38,6 +38,28 @@ def check_column_existance(df: DataFrame, cols: list) -> bool:
         raise ValueError(error_string + check_string)
 
 
+def check_field_existance(df: DataFrame, field: str , col: str) -> bool:
+    """
+        Validate whether the value of a field exists, if the validation
+        fails, raise an error about incorrect initialization of parameters
+
+        Parameters
+        ----------
+        df : DataFrame
+            Data containing the fields to verify
+
+        Raises
+        ------
+        ValueError
+            If one or more of the given fields don't exists
+    """
+    if field in df[col].values:
+        return True
+    else:
+        error_string = "The field could not be found"
+        raise ValueError(error_string)
+
+
 def check_column_errors(df: DataFrame, debug: bool = False):
     """
         Validate if fields inside a column are correctly set, if the validation
@@ -53,7 +75,7 @@ def check_column_errors(df: DataFrame, debug: bool = False):
         debug : Boolean
             Flag used to tell if extensive explorations over the DataFrame are
             needed
-        
+
         Raises
         ------
         ValueError
