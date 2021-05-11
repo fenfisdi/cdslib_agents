@@ -16,20 +16,30 @@ class AgentMovement:
 
             Parameters
             ----------
-            df: DataFrame
-                Dataframe to apply transformation, must have x, y, vx
-                and vy columns.
+            df : DataFrame
+                Dataframe to apply transformation, must have `x`, `y`, `vx`
+                and `vy` columns.
 
-            box_size: BoxSize
+            box_size : BoxSize
                 Parameter according to the region coordinates.
 
-            dt: float
+            dt : float
                 Local time step, representing how often to take a measure.
 
             Returns
             -------
-            DataFrame
-                Dataframe with the transformations in columns x and y
+            df: DataFrame
+                Dataframe with the transformations in columns `x` and `y`
+
+            Notes
+            -----
+            ... TODO: include mathematical description and explanatory
+            image
+
+            Examples
+            --------
+            ... TODO
+
         """
         check_column_errors(df)
         try:
@@ -55,7 +65,7 @@ class AgentMovement:
 
             return df
         except Exception:
-            check_column_existance(df, ['x', 'y', 'vx', 'vy'])
+            check_column_existance(df, ["x", "y", "vx", "vy"])
 
     @classmethod
     def stop_agents(cls, df: DataFrame, indexes: list):
@@ -64,15 +74,15 @@ class AgentMovement:
 
             Parameters
             ----------
-            df: DataFrame
-                Dataframe to apply transformation, must have x, y, vx
-                and vy columns.
+            df : DataFrame
+                Dataframe to apply transformation, must have `x`, `y`, `vx`
+                and `vy` columns.
 
-            indexes: list
+            indexes : list
                 List containing the index of the agents that need to be
                 stopped
 
         """
-        if check_column_existance(df, ['vx', 'vy']):
-            df.loc[indexes, 'vx'] = 0
-            df.loc[indexes, 'vy'] = 0
+        if check_column_existance(df, ["vx", "vy"]):
+            df.loc[indexes, "vx"] = 0
+            df.loc[indexes, "vy"] = 0
