@@ -1,7 +1,9 @@
+from numpy import cos, sin
 from pandas.core.frame import DataFrame
 
 from abmodel.models.population import BoxSize
 from abmodel.utils.utilities import check_column_existance, check_column_errors
+from abmodel.utils.distributions import Distribution
 
 
 class AgentMovement:
@@ -81,8 +83,44 @@ class AgentMovement:
             indexes : list
                 List containing the index of the agents that need to be
                 stopped
-
         """
         if check_column_existance(df, ["vx", "vy"]):
             df.loc[indexes, "vx"] = 0
             df.loc[indexes, "vy"] = 0
+
+    def velocity_angles(df: DataFrame, group_field: str,
+                          group_label: str, distribution: Distribution):
+        """
+            Set the velocity of a given set of agents to zero.
+
+            Parameters
+            ----------
+            df : DataFrame
+                Dataframe to apply transformation, must have ...
+        """
+        if check_column_existance(df, ["vx", "vy"]):
+            n_agents = df.loc[df[group_field] == group_label].count()
+
+
+    @classmethod
+    def update_velocities(cls, df: DataFrame, group_field: str,
+                          group_label: str, distribution: Distribution):
+        """
+            Set the velocity of a given set of agents to zero.
+
+            Parameters
+            ----------
+            df : DataFrame
+                Dataframe to apply transformation, must have ...
+        """
+        if check_column_existance(df, [group_field, "vx", "vy"]):
+            n_agents = df.loc[df[group_field] == group_label].count()
+
+            velocities = distribution.sample(size=n_agents)
+
+            df.loc[df[group_field] == group_label, "vx"] = 0 # TODO
+            df.loc[df[group_field] == group_label, "vy"] = 0 # TODO
+
+
+
+

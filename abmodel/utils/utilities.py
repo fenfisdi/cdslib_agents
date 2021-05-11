@@ -53,7 +53,7 @@ def check_column_errors(df: DataFrame, debug: bool = False):
         debug : Boolean
             Flag used to tell if extensive explorations over the DataFrame are
             needed
-        
+
         Raises
         ------
         ValueError
