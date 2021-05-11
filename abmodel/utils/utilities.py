@@ -8,20 +8,24 @@ def check_column_existance(df: DataFrame, cols: list) -> bool:
 
         Parameters
         ----------
-        df: DataFrame
+        df : DataFrame
             Data frame containing the positional information about the agents
 
-        cols: list
+        cols : list
             A list containing the columns to validate
 
         Returns
         -------
         True:
             If the column validation is passed.
+
+        Raises
+        ------
+        ValueError
+            If at least one of the columns to validate is missing.
     """
-    cols_set = set(cols)
     check_cols = []
-    if cols_set.issubset(df.columns):
+    if set(cols).issubset(df.columns):
         return True
     else:
         for col in cols:
@@ -43,12 +47,17 @@ def check_column_errors(df: DataFrame, debug: bool = False):
 
         Parameters
         ----------
-        df: DataFrame
+        df : DataFrame
             Data frame containing the positional information about the agents
 
-        debug: Boolean
+        debug : Boolean
             Flag used to tell if extensive explorations over the DataFrame are
             needed
+        
+        Raises
+        ------
+        ValueError
+            If ... TODO
     """
     if df.isna().values.any():
         if debug:
