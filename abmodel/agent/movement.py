@@ -1,11 +1,11 @@
-from numpy import cos, sin, arcsin
-from pandas.core.frame import DataFrame
 from typing import Any
 
+from numpy import arcsin, cos, sin
+from pandas.core.frame import DataFrame
+
 from abmodel.models.population import BoxSize
-from abmodel.utils.utilities import (check_field_existance,
-                                     check_field_errors)
 from abmodel.utils.distributions import Distribution
+from abmodel.utils.utilities import check_field_errors, check_field_existance
 
 
 class AgentMovement:
