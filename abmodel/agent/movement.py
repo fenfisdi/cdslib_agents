@@ -112,9 +112,9 @@ class AgentMovement:
                 )
 
     @classmethod
-    def update_velocities(cls, df: DataFrame, group_field: str,
-                          group_label: str, distribution: Distribution,
-                          angle_variance: float) -> None:
+    def update_velocities(cls, df: DataFrame, distribution: Distribution,
+                          angle_variance: float, group_field: str = "",
+                          group_label: str = "") -> None:
         """
             Set the velocity of a given set of agents to zero.
 
@@ -123,28 +123,34 @@ class AgentMovement:
             df : DataFrame
                 Dataframe to apply transformation, must have ...
         """
-        if check_field_existance(df, [group_field, "vx", "vy"]):
-            if group_label in df[group_field].values:
-                filtered_df = df.loc[df[group_field] == group_label]
+        def change_velocities(df):
+            """
+            """
+            n_agents = len(df.index)
+            new_velocities = distribution.sample(size=n_agents)
 
-                n_agents = len(filtered_df.index)
-                new_velocities = distribution.sample(size=n_agents)
+            angles = cls.velocity_angles(df)
 
-                angles = cls.velocity_angles(filtered_df)
+            delta_angles = Distribution(
+                dist_type="numpy",
+                distribution="normal",
+                loc=0.0,
+                scale=angle_variance
+                ).sample(size=n_agents)
 
-                delta_angles = Distribution(
-                    dist_type="numpy",
-                    distribution="normal",
-                    loc=0.0,
-                    scale=angle_variance
-                    ).sample(size=n_agents)
+            angles = angles + delta_angles
 
-                angles = angles + delta_angles
+            df.loc["vx"] = new_velocities * cos(angles)
 
-                df.loc[df[group_field] == group_label, "vx"] = \
-                    new_velocities * cos(angles)
+            df.loc["vy"] = new_velocities * sin(angles)
 
-                df.loc[df[group_field] == group_label, "vy"] = \
-                    new_velocities * sin(angles)
-            else:
-                pass
+        if check_field_existance(df, ["vx", "vy"]) and group_field == "":
+            change_velocities(df)
+
+        if group_field != "":
+            if check_field_existance(df, [group_field, "vx", "vy"]):
+                if group_label in df[group_field].values:
+                    filtered_df = df.loc[df[group_field] == group_label]
+                    change_velocities(filtered_df)
+                else:
+                    pass
