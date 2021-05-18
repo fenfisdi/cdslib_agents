@@ -1,7 +1,7 @@
 from typing import Any
 
-from numpy import arcsin, cos, sin
-from pandas.core.frame import DataFrame
+from numpy import arctan, cos, sin, pi, sqrt
+from pandas.core.frame import DataFrame, Series
 
 from abmodel.models.population import BoxSize
 from abmodel.utils.distributions import Distribution
@@ -90,24 +90,24 @@ class AgentMovement:
             df.loc[indexes, "vy"] = 0
 
     @classmethod
-    def velocity_angles(cls, df: DataFrame) -> Any:
+    def vector_angles(cls, df: DataFrame, components: list) -> Any:
         """
-            Set the velocity of a given set of agents to zero.
+            Set the direction of a given set of agents to zero.
 
             Parameters
             ----------
             df : DataFrame
-                Dataframe to apply transformation, must have `vx` and `vy`
+                Dataframe to apply transformation
         """
         def angle(x: float, y: float) -> float:
             try:
-                return arcsin(y/x)
+                return arctan(y/x)
             except Exception:
                 return 0.0
 
-        if check_field_existance(df, ["vx", "vy"]):
+        if check_field_existance(df, components):
             return df.apply(
-                lambda row: angle(row["x"], row["y"]),
+                lambda row: angle(row[components[0]], row[components[1]]),
                 axis=1
                 )
 
@@ -129,7 +129,7 @@ class AgentMovement:
             n_agents = len(df.index)
             new_velocities = distribution.sample(size=n_agents)
 
-            angles = cls.velocity_angles(df)
+            angles = cls.vector_angles(df, ["vx", "vy"])
 
             delta_angles = Distribution(
                 dist_type="numpy",
@@ -154,3 +154,80 @@ class AgentMovement:
                     change_velocities(filtered_df)
                 else:
                     pass
+
+        @classmethod
+        def avoid_agents(cls, df: DataFrame, df_to_avoid: DataFrame) -> None:
+            """
+            """
+            def deviation_angle(grouped_serie: Series) -> float:
+                """
+                """
+                sorted_serie = \
+                    grouped_serie["relative_angle"].sort_values().copy()
+
+                consecutive_angle = sorted_serie.diff().shift(periods=-1)
+                consecutive_angle.iloc[-1] = \
+                    2*pi + (sorted_serie.iloc[-1] - sorted_serie.iloc[0])
+
+                sorted_df = DataFrame()
+                sorted_df["relative_angle"] = sorted_serie
+                sorted_df["consecutive_angle"] = consecutive_angle
+
+                greatest_angle_to_avoid = sorted_df.loc[
+                    sorted_df["consecutive_angle"] == sorted_df["consecutive_angle"].max()
+                    ]
+
+                return (greatest_angle_to_avoid["relative_angle"].iloc[0] +
+                        greatest_angle_to_avoid["consecutive_angle"].iloc[0]/2) % 2*pi
+
+            def replace_velocities(row, new_angles):
+                if row["agent"] in new_angles.index:
+                    velocity_norm = sqrt(row["vx"]**2 + row["vy"]**2)
+                    row["vx"] = velocity_norm * cos(new_angles[row["agent"]])
+                    row["vy"] = velocity_norm * sin(new_angles[row["agent"]])
+                return row
+
+            if check_field_existance(df, ["agent", "x", "y", "vx", "vy"]):
+                df_copy = df.copy()
+
+                scared_agents = df_copy.loc(
+                        df_copy["agent"].equals(df_to_avoid["agent"].unique())
+                        )[["agent", "x", "y", "vx", "vy"]]
+
+                scary_agents = scared_agents.merge(
+                            df_to_avoid, how="inner", on="agent"
+                            ).merge(
+                                df_copy.rename(
+                                    columns={
+                                        "agent": "agent_to_avoid",
+                                        "x": "x_to_avoid",
+                                        "y": "y_to_avoid"
+                                        })[["agent_to_avoid", "x_to_avoid", "y_to_avoid"]],
+                                how="inner",
+                                on="agent_to_avoid"
+                                )
+                scary_agents["x_relative"] = scary_agents.apply(
+                        lambda row: row["x_to_avoid"] - row["x"], axis=1
+                        )
+
+                scary_agents["y_relative"] = scary_agents.apply(
+                        lambda row: row["y_to_avoid"] - row["y"], axis=1
+                        )
+
+                scary_agents["relative_angle"] = cls.vector_angles(
+                    scary_agents,
+                    ["x_relative", "y_relative"]
+                    )
+
+                scary_agents["relative_angle"] = \
+                    scary_agents["relative_angle"].apply(
+                        lambda x: (x + 2*pi) % (2*pi)
+                        )
+
+                new_angles = scary_agents[["agent", "relative_angle"]] \
+                    .groupby("agent").apply(deviation_angle)
+
+                df = df.apply(
+                    lambda row: replace_velocities(row, new_angles),
+                    axis=1
+                    )
