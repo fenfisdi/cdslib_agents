@@ -26,11 +26,6 @@ class AgentMovementTestCase(TestCase):
         df = pd.DataFrame(data)
 
         for _ in range(iterations):
-            df = df.apply(
-                AgentMovement.move_agents,
-                axis=1,
-                box_size=self.box_size,
-                dt=self.dt
-            )
+            AgentMovement.move_agents(df, self.box_size, self.dt)
 
         self.assertNotEqual(data.get('x')[0], df['x'][0])
