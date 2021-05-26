@@ -47,9 +47,9 @@ class Distribution:
             **kwargs : dict, optional
                 Extra arguments that must to be passed to the
                 Scikit-Learn's Kernel Density constructor [1]_ or
-                to the Numpy Random Distributions [3]_. In the latter
-                case, keyword argument must not be passed since it is used
-                directly in the sampling methods.
+                to the Numpy Random Distributions [3]_, except the parameter
+                `size`. In the latter case, keyword argument must not be
+                passed since it is used directly in the sampling methods.
 
             References
             ----------
