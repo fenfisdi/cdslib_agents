@@ -45,10 +45,19 @@ class AgentMovement:
             ... TODO
 
         """
+
         def move_individual_agent():
+
+        print('paso 1')
+        check_column_errors(df)
+        print('paso 2')
+        try:
+            "Analizando función de movimiento
             # Update current position of the agent with its velocities
             df.x += df.vx * dt
+            print('le sume en x')
             df.y += df.vy * dt
+            print('le sume en y')
 
             # Verify if coordinates are out of the box
             # then return to the box limit
