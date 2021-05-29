@@ -1,6 +1,6 @@
 from typing import Any
 
-from numpy import arctan, cos, sin, pi, sqrt
+from numpy import arctan2, cos, sin, pi, sqrt
 from pandas.core.frame import DataFrame, Series
 
 from abmodel.models.population import BoxSize
@@ -46,18 +46,13 @@ class AgentMovement:
 
         """
 
-        def move_individual_agent():
+        def move_individual_agent(df):
 
-        print('paso 1')
-        check_column_errors(df)
-        print('paso 2')
-        try:
-            "Analizando función de movimiento
-            # Update current position of the agent with its velocities
+                #Analizando función de movimiento
+                
+                # Update current position of the agent with its velocities
             df.x += df.vx * dt
-            print('le sume en x')
             df.y += df.vy * dt
-            print('le sume en y')
 
             # Verify if coordinates are out of the box
             # then return to the box limit
@@ -74,12 +69,18 @@ class AgentMovement:
             if df.y > box_size.top:
                 df.vy = -df.vy
                 df.y = box_size.top
+            
+            return df
 
         check_field_errors(df)
         try:
+            #print('fefsa')
             df = df.apply(move_individual_agent, axis=1,)
+            #print('fgbfj')
         except Exception:
             check_field_existance(df, ["x", "y", "vx", "vy"])
+            
+        return df
 
     @classmethod
     def stop_agents(cls, df: DataFrame, indexes: list) -> None:
@@ -99,6 +100,8 @@ class AgentMovement:
         if check_field_existance(df, ["vx", "vy"]):
             df.loc[indexes, "vx"] = 0
             df.loc[indexes, "vy"] = 0
+            
+        return df
 
     @classmethod
     def vector_angles(cls, df: DataFrame, components: list) -> Any:
@@ -109,10 +112,14 @@ class AgentMovement:
             ----------
             df : DataFrame
                 Dataframe to apply transformation
+        
+            Components: list ??????????????????????? vel or pos
+            ----------
         """
         def angle(x: float, y: float) -> float:
             try:
-                return arctan(y/x)
+                #return arctan(y/x)
+                return arctan2(y, x)          #####mejor usar arctan2 para que no devuelva ángulo envuelto
             except Exception:
                 return 0.0
 
@@ -122,6 +129,8 @@ class AgentMovement:
                 axis=1
                 )
 
+        return df
+    
     @classmethod
     def update_velocities(cls, df: DataFrame, distribution: Distribution,
                           angle_variance: float, group_field: str = "",
@@ -134,6 +143,8 @@ class AgentMovement:
             df : DataFrame
                 Dataframe to apply transformation, must have ...
         """
+        
+        
         def change_velocities(df):
             """
             """
@@ -154,9 +165,13 @@ class AgentMovement:
             df.loc["vx"] = new_velocities * cos(angles)
 
             df.loc["vy"] = new_velocities * sin(angles)
+            print('cambio vel')
+            return df
 
+        print('entra a if')
         if check_field_existance(df, ["vx", "vy"]) and group_field == "":
-            change_velocities(df)
+            print('entrando a change vel')
+            df = change_velocities(df)
 
         if group_field != "":
             if check_field_existance(df, [group_field, "vx", "vy"]):
@@ -165,7 +180,9 @@ class AgentMovement:
                     change_velocities(filtered_df)
                 else:
                     pass
+        return df
 
+       
     @classmethod
     def avoid_agents(cls, df: DataFrame, df_to_avoid: DataFrame) -> None:
         """
