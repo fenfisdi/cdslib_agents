@@ -156,15 +156,15 @@ class AgentMovement:
 
             angles = angles + delta_angles
 
-            df.loc["vx"] = new_velocities_norm * cos(angles)
+            df.loc[df.index,"vx"] = new_velocities_norm * cos(angles)
 
-            df.loc["vy"] = new_velocities_norm * sin(angles)
+            df.loc[df.index,"vy"] = new_velocities_norm * sin(angles)
 
-            return df
+            return df, delta_angles
 
         if check_field_existance(df, ["vx", "vy"]) and group_field == "":
-            df = change_velocities(df, angle_variance)
-
+            #df = change_velocities(df, angle_variance)
+            df, delta_angles = change_velocities(df, angle_variance)
         if group_field != "":
             if check_field_existance(df, [group_field, "vx", "vy"]):
                 if group_label in df[group_field].values:
@@ -173,7 +173,7 @@ class AgentMovement:
                     df.update(change_velocities(filtered_df, angle_variance))
                 else:
                     pass
-        return df
+        return df, delta_angles
 
     @classmethod
     def avoid_agents(cls, df: DataFrame, df_to_avoid: DataFrame) -> DataFrame:
