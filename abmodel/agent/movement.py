@@ -1,5 +1,4 @@
-from typing import Any
-
+from math import fmod
 from numpy import arctan2, cos, sin, pi, sqrt
 from pandas.core.frame import DataFrame, Series
 
@@ -9,7 +8,8 @@ from abmodel.utils.utilities import check_field_errors, check_field_existance
 
 
 class AgentMovement:
-
+    """
+    """
     @classmethod
     def move_agents(
         cls, df: DataFrame, box_size: BoxSize, dt: float
@@ -77,8 +77,8 @@ class AgentMovement:
             df = df.apply(move_individual_agent, axis=1)
         except Exception:
             check_field_existance(df, ["x", "y", "vx", "vy"])
-
-        return df
+        else:
+            return df
 
     @classmethod
     def stop_agents(cls, df: DataFrame, indexes: list) -> DataFrame:
@@ -95,11 +95,30 @@ class AgentMovement:
                 List containing the index of the agents that need to be
                 stopped
         """
-        if check_field_existance(df, ["vx", "vy"]):
+        try:
             df.loc[indexes, "vx"] = 0
             df.loc[indexes, "vy"] = 0
+        except Exception:
+            check_field_existance(df, ["vx", "vy"])
+        else:
+            return df
 
-        return df
+    @classmethod
+    def standardize_angle(cls, angle: float) -> float:
+        """
+            Standardize angles to be in the interval [-pi, pi]
+
+            Parameters
+            ----------
+            angle : float
+                The angle to be standardized
+
+            Returns
+            -------
+            standardized_angle : float
+                The standardized angle
+        """
+        return fmod(angle + 2*pi, 2*pi)
 
     @classmethod
     def vector_angles(cls, df: DataFrame, components: list) -> DataFrame:
@@ -112,20 +131,26 @@ class AgentMovement:
                 Dataframe to apply transformation
 
             Components: list ??????????????????????? vel or pos
-            ----------
+
+            Returns
+            -------
+            angles : Dataframe or Series ??? --> TODO
         """
         def angle(x: float, y: float) -> float:
-            try:
-                return arctan2(y, x)
-            except Exception:
-                return 0.0
+            """
+            """
+            # Standardize angles on the interval [0, 2*pi]
+            return cls.standardize_angle(arctan2(y, x))
 
-        if check_field_existance(df, components):
-            return df.apply(
+        try:
+            angles = df.apply(
                 lambda row: angle(row[components[0]], row[components[1]]),
                 axis=1
                 )
-        return df
+        except Exception:
+            check_field_existance(df, components)
+        else:
+            return angles
 
     @classmethod
     def update_velocities(cls, df: DataFrame, distribution: Distribution,
@@ -156,24 +181,36 @@ class AgentMovement:
 
             angles = angles + delta_angles
 
-            df.loc[df.index,"vx"] = new_velocities_norm * cos(angles)
+            # Standardize angles on the interval [0, 2*pi]
+            angles = angles.apply(lambda angle: cls.standardize_angle(angle))
 
-            df.loc[df.index,"vy"] = new_velocities_norm * sin(angles)
+            df.loc[df.index, "vx"] = new_velocities_norm * cos(angles)
 
-            return df, delta_angles
+            df.loc[df.index, "vy"] = new_velocities_norm * sin(angles)
 
-        if check_field_existance(df, ["vx", "vy"]) and group_field == "":
-            #df = change_velocities(df, angle_variance)
-            df, delta_angles = change_velocities(df, angle_variance)
+            return df
+
+        if group_field == "":
+            try:
+                # Change velocities for all the agents in df
+                df = change_velocities(df, angle_variance)
+            except Exception:
+                check_field_existance(df, ["vx", "vy"])
+            else:
+                return df
+
         if group_field != "":
-            if check_field_existance(df, [group_field, "vx", "vy"]):
+            try:
                 if group_label in df[group_field].values:
                     filtered_df = df.loc[df[group_field] == group_label]
+
+                    # Change velocities only for the filtered_df
                     # Update df using filtered_df
                     df.update(change_velocities(filtered_df, angle_variance))
-                else:
-                    pass
-        return df, delta_angles
+            except Exception:
+                check_field_existance(df, [group_field, "vx", "vy"])
+            else:
+                return df
 
     @classmethod
     def avoid_agents(cls, df: DataFrame, df_to_avoid: DataFrame) -> DataFrame:
@@ -197,8 +234,10 @@ class AgentMovement:
                 sorted_df["consecutive_angle"] == sorted_df["consecutive_angle"].max()
                 ]
 
-            return (greatest_angle_to_avoid["relative_angle"].iloc[0] +
-                    greatest_angle_to_avoid["consecutive_angle"].iloc[0]/2) % 2*pi
+            # Standardize angles on the interval [0, 2*pi]
+            return cls.standardize_angle(
+                greatest_angle_to_avoid["relative_angle"].iloc[0]
+                + greatest_angle_to_avoid["consecutive_angle"].iloc[0]/2)
 
         def replace_velocities(row, new_angles):
             if row.agent in new_angles.index:
@@ -240,9 +279,7 @@ class AgentMovement:
                 )
 
             scary_agents["relative_angle"] = \
-                scary_agents["relative_angle"].apply(
-                    lambda x: (x + 2*pi) % (2*pi)
-                    )
+                scary_agents["relative_angle"].apply(cls.standardize_angle)
 
             new_angles = scary_agents[["agent", "relative_angle"]] \
                 .groupby("agent").apply(deviation_angle)

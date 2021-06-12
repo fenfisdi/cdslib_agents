@@ -2,13 +2,12 @@ from unittest import TestCase
 
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-
 
 from abmodel.agent.movement import AgentMovement
 from abmodel.models.population import BoxSize
 from abmodel.utils.distributions import Distribution
 from scipy.stats import kstest
+
 
 class AgentMovementTestCase(TestCase):
     """
@@ -19,34 +18,12 @@ class AgentMovementTestCase(TestCase):
         self.box_size = BoxSize(-50, 50, -30, 30)
         self.dt = 1.0
 
-    # def test_movement_function_1(self):
-    #     """
-    #     """
-    #     print("\n")
-    #     print("Test #1: Change all agents' positions")
-    
-    #     samples = 50
-    #     iterations = 10
-
-    #     data = {
-    #         'x': np.random.randint(-20, 20, samples),
-    #         'y': np.random.randint(-20, 20, samples),
-    #         'vx': -20 * np.random.random(samples) + 10,
-    #         'vy': -20 * np.random.random(samples) + 10,
-    #     }
-    #     df = pd.DataFrame(data)
-
-    #     for _ in range(iterations):
-    #         df = AgentMovement.move_agents(df, self.box_size, self.dt)
-
-    #     self.assertNotEqual(data.get('x')[0], df['x'][0])
-
     def test_movement_function(self):
         """
         """
         print("\n")
         print("Test #1: Change just one agent position")
-    
+
         data = {
             'x': np.array([0]),
             'y': np.array([0]),
@@ -56,14 +33,12 @@ class AgentMovementTestCase(TestCase):
         print('Test before movement')
         df = pd.DataFrame(data)
         print(df)
-    
+
         print('Test after movement')
         df = AgentMovement.move_agents(df, self.box_size, self.dt)
         print(df)
-        
-        self.assertAlmostEqual(1.0, df['x'][0])
-    
 
+        self.assertAlmostEqual(1.0, df['x'][0])
 
     def test_crash_with_boundaries(self):
         """
@@ -75,7 +50,7 @@ class AgentMovementTestCase(TestCase):
         data = {
             'x': np.array([49, 0, -49, 0]),
             'y': np.array([0, 29, 0, -29]),
-            'vx': np.array([2.0, 2.0, -2.0, 2.0 ]),
+            'vx': np.array([2.0, 2.0, -2.0, 2.0]),
             'vy': np.array([2.0, 2.0, 2.0, -2.0]),
             }
         print('Test before movement')
@@ -85,20 +60,19 @@ class AgentMovementTestCase(TestCase):
         print('Test after movement')
         df = AgentMovement.move_agents(df, self.box_size, self.dt)
         print(df)
-        
+
         cond1 = np.all(df['x'] == np.array([50.0, 2.0, -50.0, 2.0]))
         cond2 = np.all(df['y'] == np.array([2.0, 30.0, 2.0, -30.0]))
         cond3 = np.all(df['vx'] == np.array([-2.0, 2.0, 2.0, 2.0]))
         cond4 = np.all(df['vy'] == np.array([2.0, -2.0, 2.0, 2.0]))
-        
+
         good_crash_walls = np.all([cond1, cond2, cond3, cond4])
-        
-        
+
         print("Crash with a corners")
         data = {
             'x': np.array([49, -49, -49, 49]),
             'y': np.array([29, 29, -29, -29]),
-            'vx': np.array([2.0, -2.0, -2.0, 2.0 ]),
+            'vx': np.array([2.0, -2.0, -2.0, 2.0]),
             'vy': np.array([2.0, 2.0, -2.0, -2.0]),
             }
         print('Test before movement')
@@ -108,15 +82,14 @@ class AgentMovementTestCase(TestCase):
         print('Test after movement')
         df = AgentMovement.move_agents(df, self.box_size, self.dt)
         print(df)
-        
+
         cond1 = np.all(df['x'] == np.array([50.0, -50.0, -50.0, 50.0]))
         cond2 = np.all(df['y'] == np.array([30.0, 30.0, -30.0, -30.0]))
         cond3 = np.all(df['vx'] == np.array([-2.0, 2.0, 2.0, -2.0]))
         cond4 = np.all(df['vy'] == np.array([-2.0, -2.0, 2.0, 2.0]))
         good_crash_corners = np.all([cond1, cond2, cond3, cond4])
-        
+
         self.assertTrue(good_crash_walls and good_crash_corners)
-        
 
     def test_stop_agents(self):
         """
@@ -177,7 +150,7 @@ class AgentMovementTestCase(TestCase):
             'vx': -20 * np.random.random(samples) + 10,
             'vy': -20 * np.random.random(samples) + 10,
         }
-        
+
         df = pd.DataFrame(data)
 
         distrib = Distribution(
@@ -186,18 +159,19 @@ class AgentMovementTestCase(TestCase):
             loc=10.0,
             scale=0.1
             )
-        
+
         angles_before = AgentMovement.vector_angles(df, ['vx', 'vy'])
         print(angles_before[26])
-        
+
         df = AgentMovement.update_velocities(df, distrib, 0.0)
-        
+
         angles_after = AgentMovement.vector_angles(df, ['vx', 'vy'])
         print(angles_after[26])
-        
-        not_angle_variation = round(angles_before[26] - angles_after[26], 7) == 0
-        
-        self.assertTrue(not_angle_variation)        
+
+        not_angle_variation = \
+            round(angles_before[26] - angles_after[26], 7) == 0
+
+        self.assertTrue(not_angle_variation)
 
     def test_update_velocities_2(self):
         """
@@ -210,32 +184,30 @@ class AgentMovementTestCase(TestCase):
             'vx': -20 * np.random.random(samples) + 10,
             'vy': -20 * np.random.random(samples) + 10,
         }
-                
-        
+
         distrib = Distribution(
             dist_type="numpy",
             distribution="normal",
             loc=10.0,
             scale=1.0
             )
-           
+
         df = pd.DataFrame(data)
-        
+
         df = AgentMovement.update_velocities(df, distrib, 0.0)
-        
+
         velocities_magnitude = np.sqrt(df['vx']**2 + df['vy']**2)
         print(velocities_magnitude.values)
-        
+
         k, p = kstest(velocities_magnitude.values - 10, 'norm')
         print(p)
         if p > 0.05:
             velocity_distrib = True
-        
         else:
-             velocity_distrib = False
-             
+            velocity_distrib = False
+
         self.assertTrue(velocity_distrib)
-        
+
     def test_update_velocities_3(self):
         """
         """
@@ -247,9 +219,9 @@ class AgentMovementTestCase(TestCase):
             'vx': -20 * np.random.random(samples) + 10,
             'vy': -20 * np.random.random(samples) + 10,
         }
-                
+
         angle_variance = 0.1
-        
+
         distrib = Distribution(
             dist_type="numpy",
             distribution="normal",
@@ -261,40 +233,40 @@ class AgentMovementTestCase(TestCase):
             dist_type="numpy",
             distribution="normal",
             loc=0.0,
-            scale=angle_variance           
+            scale=angle_variance
             ).sample(size=samples)
-        
+
         df = pd.DataFrame(data)
-        
+
         angles_before = AgentMovement.vector_angles(df, ['vx', 'vy'])
-        np.savetxt('Data angles_before.csv', angles_before)  
-        
-        df, delta_angles_0 = AgentMovement.update_velocities(df, distrib, angle_variance)
+        np.savetxt('Data angles_before.csv', angles_before)
+
+        df, delta_angles_0 = AgentMovement.update_velocities(
+            df, distrib, angle_variance
+            )
         print(np.mean(delta_angles_0), np.std(delta_angles_0))
         np.savetxt('Data delta_angles_0.csv', delta_angles_0)
-    
+
         print(delta_angles_0[0])
         angles_after = AgentMovement.vector_angles(df, ['vx', 'vy'])
-        #print(angles_after[0])
-        np.savetxt('Data angles_after.csv', angles_after)        
-        
-        
+        # print(angles_after[0])
+        np.savetxt('Data angles_after.csv', angles_after)
+
         angle_variation = angles_after - angles_before
         print(angle_variation[0])
         print(np.mean(angle_variation))
         print(np.std(angle_variation))
         np.savetxt('Data angle_variation.csv', angle_variation)
- 
+
         k, p = kstest(angle_variation.values, delta_angles)
         print(p)
         if p > 0.05:
             angle_variation = True
-        
         else:
-             angle_variation = False  
-            
-        self.assertTrue(angle_variation)            
-            
+            angle_variation = False
+
+        self.assertTrue(angle_variation)
+
     def test_update_velocities_4(self):
         """
         """
