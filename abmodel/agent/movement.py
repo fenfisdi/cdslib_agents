@@ -1,6 +1,5 @@
-from typing import Any
-
-from numpy import arctan, cos, sin, pi, sqrt
+from math import fmod
+from numpy import arctan2, cos, sin, pi, sqrt
 from pandas.core.frame import DataFrame, Series
 
 from abmodel.models.population import BoxSize
@@ -9,11 +8,12 @@ from abmodel.utils.utilities import check_field_errors, check_field_existance
 
 
 class AgentMovement:
-
+    """
+    """
     @classmethod
     def move_agents(
         cls, df: DataFrame, box_size: BoxSize, dt: float
-    ) -> None:
+    ) -> DataFrame:
         """
             Function to apply as transformation in a pandas Dataframe to update
             coordinates from the agent with its velocities.
@@ -45,35 +45,45 @@ class AgentMovement:
             ... TODO
 
         """
-        def move_individual_agent():
+
+        def move_individual_agent(row):
+            """
+            A row represents an agent
+            """
             # Update current position of the agent with its velocities
-            df.x += df.vx * dt
-            df.y += df.vy * dt
+            row.x += row.vx * dt
+            row.y += row.vy * dt
 
             # Verify if coordinates are out of the box
             # then return to the box limit
-            if df.x < box_size.left:
-                df.vx = -df.vx
-                df.x = box_size.left
-            if df.x > box_size.right:
-                df.vx = -df.vx
-                df.x = box_size.right
+            if row.x < box_size.left:
+                row.vx = -row.vx
+                row.x = box_size.left
+            if row.x > box_size.right:
+                row.vx = -row.vx
+                row.x = box_size.right
 
-            if df.y < box_size.bottom:
-                df.vy = -df.vy
-                df.y = box_size.bottom
-            if df.y > box_size.top:
-                df.vy = -df.vy
-                df.y = box_size.top
+            if row.y < box_size.bottom:
+                row.vy = -row.vy
+                row.y = box_size.bottom
+            if row.y > box_size.top:
+                row.vy = -row.vy
+                row.y = box_size.top
+
+            return row
 
         check_field_errors(df)
         try:
-            df = df.apply(move_individual_agent, axis=1,)
+            df = df.apply(move_individual_agent, axis=1)
         except Exception:
             check_field_existance(df, ["x", "y", "vx", "vy"])
+        else:
+            return df
+
+        return df
 
     @classmethod
-    def stop_agents(cls, df: DataFrame, indexes: list) -> None:
+    def stop_agents(cls, df: DataFrame, indexes: list) -> DataFrame:
         """
             Set the velocity of a given set of agents to zero.
 
@@ -87,36 +97,67 @@ class AgentMovement:
                 List containing the index of the agents that need to be
                 stopped
         """
-        if check_field_existance(df, ["vx", "vy"]):
+        try:
             df.loc[indexes, "vx"] = 0
             df.loc[indexes, "vy"] = 0
+        except Exception:
+            check_field_existance(df, ["vx", "vy"])
+        else:
+            return df
 
     @classmethod
-    def vector_angles(cls, df: DataFrame, components: list) -> Any:
+    def standardize_angle(cls, angle: float) -> float:
         """
-            Set the direction of a given set of agents to zero.
+            Standardize angles to be in the interval [-pi, pi]
+
+            Parameters
+            ----------
+            angle : float
+                The angle to be standardized
+
+            Returns
+            -------
+            standardized_angle : float
+                The standardized angle
+        """
+        return fmod(angle + 2*pi, 2*pi)
+
+    @classmethod
+    def vector_angles(cls, df: DataFrame, components: list) -> DataFrame:
+        """
+            Set ... TODO
 
             Parameters
             ----------
             df : DataFrame
                 Dataframe to apply transformation
+
+            Components: list ??????????????????????? vel or pos
+
+            Returns
+            -------
+            angles : Dataframe or Series ??? --> TODO
         """
         def angle(x: float, y: float) -> float:
-            try:
-                return arctan(y/x)
-            except Exception:
-                return 0.0
+            """
+            """
+            # Standardize angles on the interval [0, 2*pi]
+            return cls.standardize_angle(arctan2(y, x))
 
-        if check_field_existance(df, components):
-            return df.apply(
+        try:
+            angles = df.apply(
                 lambda row: angle(row[components[0]], row[components[1]]),
                 axis=1
                 )
+        except Exception:
+            check_field_existance(df, components)
+        else:
+            return angles
 
     @classmethod
     def update_velocities(cls, df: DataFrame, distribution: Distribution,
                           angle_variance: float, group_field: str = "",
-                          group_label: str = "") -> None:
+                          group_label: str = "") -> DataFrame:
         """
             Set the velocity of a given set of agents to zero.
 
@@ -125,11 +166,11 @@ class AgentMovement:
             df : DataFrame
                 Dataframe to apply transformation, must have ...
         """
-        def change_velocities(df):
+        def change_velocities(df, angle_variance):
             """
             """
             n_agents = len(df.index)
-            new_velocities = distribution.sample(size=n_agents)
+            new_velocities_norm = distribution.sample(size=n_agents)
 
             angles = cls.vector_angles(df, ["vx", "vy"])
 
@@ -142,23 +183,39 @@ class AgentMovement:
 
             angles = angles + delta_angles
 
-            df.loc["vx"] = new_velocities * cos(angles)
+            # Standardize angles on the interval [0, 2*pi]
+            angles = angles.apply(lambda angle: cls.standardize_angle(angle))
 
-            df.loc["vy"] = new_velocities * sin(angles)
+            df.loc[df.index, "vx"] = new_velocities_norm * cos(angles)
 
-        if check_field_existance(df, ["vx", "vy"]) and group_field == "":
-            change_velocities(df)
+            df.loc[df.index, "vy"] = new_velocities_norm * sin(angles)
+
+            return df
+
+        if group_field == "":
+            try:
+                # Change velocities for all the agents in df
+                df = change_velocities(df, angle_variance)
+            except Exception:
+                check_field_existance(df, ["vx", "vy"])
+            else:
+                return df
 
         if group_field != "":
-            if check_field_existance(df, [group_field, "vx", "vy"]):
+            try:
                 if group_label in df[group_field].values:
                     filtered_df = df.loc[df[group_field] == group_label]
-                    change_velocities(filtered_df)
-                else:
-                    pass
+
+                    # Change velocities only for the filtered_df
+                    # Update df using filtered_df
+                    df.update(change_velocities(filtered_df, angle_variance))
+            except Exception:
+                check_field_existance(df, [group_field, "vx", "vy"])
+            else:
+                return df
 
     @classmethod
-    def avoid_agents(cls, df: DataFrame, df_to_avoid: DataFrame) -> None:
+    def avoid_agents(cls, df: DataFrame, df_to_avoid: DataFrame) -> DataFrame:
         """
         """
         def deviation_angle(grouped_serie: Series) -> float:
@@ -179,14 +236,16 @@ class AgentMovement:
                 sorted_df["consecutive_angle"] == sorted_df["consecutive_angle"].max()
                 ]
 
-            return (greatest_angle_to_avoid["relative_angle"].iloc[0] +
-                    greatest_angle_to_avoid["consecutive_angle"].iloc[0]/2) % 2*pi
+            # Standardize angles on the interval [0, 2*pi]
+            return cls.standardize_angle(
+                greatest_angle_to_avoid["relative_angle"].iloc[0]
+                + greatest_angle_to_avoid["consecutive_angle"].iloc[0]/2)
 
         def replace_velocities(row, new_angles):
-            if row["agent"] in new_angles.index:
-                velocity_norm = sqrt(row["vx"]**2 + row["vy"]**2)
-                row["vx"] = velocity_norm * cos(new_angles[row["agent"]])
-                row["vy"] = velocity_norm * sin(new_angles[row["agent"]])
+            if row.agent in new_angles.index:
+                velocity_norm = sqrt(row.vx**2 + row.vy**2)
+                row.vx = velocity_norm * cos(new_angles[row.agent])
+                row.vy = velocity_norm * sin(new_angles[row.agent])
             return row
 
         if check_field_existance(df, ["agent", "x", "y", "vx", "vy"]):
@@ -209,11 +268,11 @@ class AgentMovement:
                             on="agent_to_avoid"
                             )
             scary_agents["x_relative"] = scary_agents.apply(
-                    lambda row: row["x_to_avoid"] - row["x"], axis=1
+                    lambda row: row.x_to_avoid - row.x, axis=1
                     )
 
             scary_agents["y_relative"] = scary_agents.apply(
-                    lambda row: row["y_to_avoid"] - row["y"], axis=1
+                    lambda row: row.y_to_avoid - row.y, axis=1
                     )
 
             scary_agents["relative_angle"] = cls.vector_angles(
@@ -222,14 +281,12 @@ class AgentMovement:
                 )
 
             scary_agents["relative_angle"] = \
-                scary_agents["relative_angle"].apply(
-                    lambda x: (x + 2*pi) % (2*pi)
-                    )
+                scary_agents["relative_angle"].apply(cls.standardize_angle)
 
             new_angles = scary_agents[["agent", "relative_angle"]] \
                 .groupby("agent").apply(deviation_angle)
 
-            df = df.apply(
+            return df.apply(
                 lambda row: replace_velocities(row, new_angles),
                 axis=1
                 )
