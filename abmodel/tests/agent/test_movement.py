@@ -69,6 +69,7 @@ class AgentMovementTestCase(TestCase):
         good_crash_walls = np.all([cond1, cond2, cond3, cond4])
 
         print("Crash with a corners")
+
         data = {
             'x': np.array([49, -49, -49, 49]),
             'y': np.array([29, 29, -29, -29]),
@@ -239,27 +240,19 @@ class AgentMovementTestCase(TestCase):
         df = pd.DataFrame(data)
 
         angles_before = AgentMovement.vector_angles(df, ['vx', 'vy'])
-        np.savetxt('Data angles_before.csv', angles_before)
 
-        df, delta_angles_0 = AgentMovement.update_velocities(
+        df = AgentMovement.update_velocities(
             df, distrib, angle_variance
             )
-        print(np.mean(delta_angles_0), np.std(delta_angles_0))
-        np.savetxt('Data delta_angles_0.csv', delta_angles_0)
 
-        print(delta_angles_0[0])
         angles_after = AgentMovement.vector_angles(df, ['vx', 'vy'])
-        # print(angles_after[0])
+
         np.savetxt('Data angles_after.csv', angles_after)
 
         angle_variation = angles_after - angles_before
-        print(angle_variation[0])
-        print(np.mean(angle_variation))
-        print(np.std(angle_variation))
-        np.savetxt('Data angle_variation.csv', angle_variation)
 
         k, p = kstest(angle_variation.values, delta_angles)
-        print(p)
+        print(f'p-value: {p}')
         if p > 0.05:
             angle_variation = True
         else:
@@ -278,32 +271,30 @@ class AgentMovementTestCase(TestCase):
             'vx': -20 * np.random.random(samples) + 10,
             'vy': -20 * np.random.random(samples) + 10,
         }
-                  
-        
+
         distrib = Distribution(
             dist_type="numpy",
             distribution="normal",
             loc=10.0,
             scale=1.0
             )
-        
+
         data = {
-            'Campo': np.array([0,1]),
+            'Campo': np.array([0, 1]),
             'vx': np.array([1.0, 2.0]),
             'vy': np.array([0, 2.0]),
             }
-        
+
         df = pd.DataFrame(data)
         print(df)
 
-        df = AgentMovement.update_velocities(df, distrib, 1.0, 
-                                              group_field = 'Campo',
-                                              group_label= 1)
+        df = AgentMovement.update_velocities(
+            df, distrib, 1.0,
+            group_field='Campo',
+            group_label=1
+            )
         print(df)
-        
-        velocities_field = df['vx'][1] != 2.0
-        
-        self.assertTrue(velocities_field)
-        
-        
 
+        velocities_field = df['vx'][1] != 2.0
+
+        self.assertTrue(velocities_field)

@@ -80,6 +80,8 @@ class AgentMovement:
         else:
             return df
 
+        return df
+
     @classmethod
     def stop_agents(cls, df: DataFrame, indexes: list) -> DataFrame:
         """
