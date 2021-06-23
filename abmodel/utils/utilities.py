@@ -48,7 +48,7 @@ def check_field_errors(df: DataFrame, debug: bool = False):
         Parameters
         ----------
         df : DataFrame
-            Data frame containing the positional information about the agents
+            Dataframe containing the positional information about the agents
 
         debug : Boolean
             Flag used to tell if extensive explorations over the DataFrame are
@@ -57,7 +57,7 @@ def check_field_errors(df: DataFrame, debug: bool = False):
         Raises
         ------
         ValueError
-            If ... TODO
+            If the dataframe contains some any column with null values
     """
     if df.isna().values.any():
         if debug:
