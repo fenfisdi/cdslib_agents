@@ -1,7 +1,7 @@
 from time import time
 from typing import Union
 
-from numpy import abs, genfromtxt, ndarray, random
+from numpy import abs, genfromtxt, ndarray, random, ones
 from sklearn.neighbors import KernelDensity
 
 
@@ -11,7 +11,7 @@ class Distribution:
 
         It computes random numbers from a probability density distribution.
     """
-    def __init__(self, dist_type: str, filename: str = "",
+    def __init__(self, dist_type: str, constant: float = 0.0, filename: str = "",
                  distribution: str = "", **kwargs):
         """
             Constructor of Distribution class.
@@ -21,7 +21,11 @@ class Distribution:
 
             Parameters
             ----------
-            dist_type : {'empirical', 'weights', 'numpy'}
+            dist_type : {'constant', 'empirical', 'weights', 'numpy'}
+
+                'constant': it numerically implements a "Dirac delta" function,
+                    i.e. all points will have the same value specified
+                    by the parameter `constant`
 
                 'empirical' : build distributions from empirical data,
                 estimating the overall shape of the distribution using
@@ -34,6 +38,10 @@ class Distribution:
 
                 'numpy' : it uses the distributions implemented in
                     Numpy Random Distributions [3]_
+
+            constant : float, optional
+                It specifies the constant value to which all point are
+                mapped.
 
             filename : str, optional
                 It specifies the path for the required data in order to build
@@ -61,6 +69,16 @@ class Distribution:
         self.seed = int(time())
 
         if self.dist_type == "empirical":
+            # "Dirac delta"-like function
+            try:
+                self.constant = constant
+            except Exception as error:
+                raise ValueError(
+                    "Error initializing constant distribution\n",
+                    error
+                    )
+
+        elif self.dist_type == "empirical":
             # Using KernelDensity estimator from Scikit-learn
             try:
                 self.filename = filename
@@ -153,7 +171,10 @@ class Distribution:
             .. [2] [Numpy Random Choice](https://numpy.org/doc/stable/reference/random/generated/numpy.random.Generator.choice.html#numpy.random.Generator.choice)
             .. [3] [Numpy Random Distributions](https://numpy.org/doc/stable/reference/random/generator.html#distributions)
         """
-        if self.dist_type == "empirical":
+        if self.dist_type == "constant":
+            # "Dirac delta"-like function
+            samples = self.constant*ones(size)
+        elif self.dist_type == "empirical":
             # Using KernelDensity estimator from Scikit-learn
             try:
                 samples = self.kd_estimator.sample(
@@ -187,7 +208,7 @@ class Distribution:
 
         else:
             raise TypeError(
-                "'dist_type' is not in {'empirical', 'weights', 'numpy'}"
+                "'dist_type' is not in {'constant', 'empirical', 'weights', 'numpy'}"
                 )
 
         if size == 1:
