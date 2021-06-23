@@ -68,14 +68,14 @@ class Distribution:
         self.dist_type = dist_type
         self.seed = int(time())
 
-        if self.dist_type == "empirical":
+        if self.dist_type == "constant":
             # "Dirac delta"-like function
             try:
                 self.constant = constant
             except Exception as error:
-                raise ValueError(
-                    "Error initializing constant distribution\n",
-                    error
+                self.manage_exception(
+                    exception=error,
+                    message="Error initializing constant distribution."
                     )
 
         elif self.dist_type == "empirical":
@@ -86,19 +86,17 @@ class Distribution:
 
                 data = genfromtxt(self.filename)
 
-            except Exception as error:
-                raise ValueError(
-                    f"Error parsing file: {self.filename}\n",
-                    error
-                    )
-
-            try:
                 self.kd_estimator = KernelDensity(**self.kwargs).fit(
                     data.reshape(-1, 1)
                     )
+
             except Exception as error:
+                self.manage_exception(
+                    exception=error,
+                    message="Error using KernelDensity estimator."
+                    )
                 raise ValueError(
-                    "Error using KernelDensity: \n",
+                    f"Error parsing file: {self.filename}\n",
                     error
                     )
 
@@ -113,9 +111,9 @@ class Distribution:
                 self.pi = data[:, 1]
 
             except Exception as error:
-                raise ValueError(
-                    f"Error parsing file: {self.filename}\n",
-                    error
+                self.manage_exception(
+                    exception=error,
+                    message=f"Error parsing file: {self.filename}."
                     )
             else:
                 self.random_number_generator = \
@@ -141,14 +139,14 @@ class Distribution:
                         "https://numpy.org/doc/stable/reference/random/generator.html#distributions"
                         )
             except Exception as error:
-                raise ValueError(
-                    "Error using numpy.random distributions:\n",
-                    error
+                self.manage_exception(
+                    exception=error,
+                    message="Error using numpy.random distributions."
                     )
-
         else:
-            raise TypeError(
-                "'dist_type' is not in {'empirical', 'weights', 'numpy'}"
+            raise ValueError(
+                "'dist_type' is not in "
+                "{'constant', 'empirical', 'weights', 'numpy'}"
                 )
 
     def sample(self, size: int = 1) -> Union[ndarray, int]:
@@ -180,20 +178,19 @@ class Distribution:
                 samples = self.kd_estimator.sample(
                     n_samples=size, random_state=self.seed).flatten()
             except Exception as error:
-                raise Exception(
-                    "Exception with Kernel Density Estimation. "
-                    f"Error: {error}"
+                self.manage_exception(
+                    exception=error,
+                    message="Error using KernelDensity estimator."
                     )
-
         elif self.dist_type == "weights":
             # Using numpy.random.choice
             try:
                 samples = self.random_number_generator.choice(
                     a=self.xi, p=self.pi, size=size)
             except Exception as error:
-                raise Exception(
-                    "Exception with numpy random choice. "
-                    f"Error: {error}"
+                self.manage_exception(
+                    exception=error,
+                    message="Exception with numpy random choice."
                     )
 
         elif self.dist_type == "numpy":
@@ -201,14 +198,15 @@ class Distribution:
             try:
                 samples = self.distribution(**self.kwargs, size=size)
             except Exception as error:
-                raise Exception(
-                    "Exception with numpy random distributions. "
-                    f"Error: {error}"
+                self.manage_exception(
+                    exception=error,
+                    message="Exception with numpy random distributions."
                     )
 
         else:
-            raise TypeError(
-                "'dist_type' is not in {'constant', 'empirical', 'weights', 'numpy'}"
+            raise ValueError(
+                "'dist_type' is not in "
+                "{'constant', 'empirical', 'weights', 'numpy'}"
                 )
 
         if size == 1:
@@ -230,3 +228,9 @@ class Distribution:
             sample
         """
         return abs(self.sample(size))
+
+    def manage_exception(exception: Exception, message: str):
+        """
+            Internal function for managing exceptions
+        """
+        raise SystemError(f"{message}\nError: {exception}")
