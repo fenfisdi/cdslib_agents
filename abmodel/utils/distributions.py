@@ -12,7 +12,7 @@ class Distribution:
         It computes random numbers from a probability density distribution.
     """
     def __init__(self, dist_type: str, constant: float = 0.0, filename: str = "",
-                 distribution: str = "", **kwargs):
+                 dist_name: str = "", **kwargs):
         """
             Constructor of Distribution class.
 
@@ -48,7 +48,7 @@ class Distribution:
                 a distribution from this data. It is required by
                 `dist_type = 'empirical'` or `dist_type = 'weights'`.
 
-            distribution : str, optional
+            dist_name : str, optional
                 It specifies the distribution to use from numpy when
                 `dist_type = 'numpy'`.
 
@@ -68,19 +68,13 @@ class Distribution:
         self.dist_type = dist_type
         self.seed = int(time())
 
-        if self.dist_type == "constant":
-            # "Dirac delta"-like function
-            try:
+        try:
+            if self.dist_type == "constant":
+                # "Dirac delta"-like function
                 self.constant = constant
-            except Exception as error:
-                self.manage_exception(
-                    exception=error,
-                    message="Error initializing constant distribution."
-                    )
 
-        elif self.dist_type == "empirical":
-            # Using KernelDensity estimator from Scikit-learn
-            try:
+            elif self.dist_type == "empirical":
+                # Using KernelDensity estimator from Scikit-learn
                 self.filename = filename
                 self.kwargs = kwargs
 
@@ -90,19 +84,8 @@ class Distribution:
                     data.reshape(-1, 1)
                     )
 
-            except Exception as error:
-                self.manage_exception(
-                    exception=error,
-                    message="Error using KernelDensity estimator."
-                    )
-                raise ValueError(
-                    f"Error parsing file: {self.filename}\n",
-                    error
-                    )
-
-        elif self.dist_type == "weights":
-            # Using numpy.random.choice
-            try:
+            elif self.dist_type == "weights":
+                # Using numpy.random.choice
                 self.filename = filename
 
                 data = genfromtxt(self.filename, delimiter=",")
@@ -110,43 +93,37 @@ class Distribution:
                 self.xi = data[:, 0]
                 self.pi = data[:, 1]
 
-            except Exception as error:
-                self.manage_exception(
-                    exception=error,
-                    message=f"Error parsing file: {self.filename}."
-                    )
-            else:
                 self.random_number_generator = \
                     random.default_rng(seed=self.seed)
 
-        elif self.dist_type == "numpy":
-            # Using numpy.random
-            try:
+            elif self.dist_type == "numpy":
+                # Using numpy.random
                 self.kwargs = kwargs
 
                 self.random_number_generator = \
                     random.default_rng(seed=self.seed)
 
-                if distribution in dir(random):
-                    self.distribution = getattr(
+                if dist_name in dir(random):
+                    self.numpy_distribution = getattr(
                         self.random_number_generator,
-                        distribution
+                        dist_name
                         )
                 else:
                     raise ValueError(
-                        "'distribution' is not implemented in "
+                        f"Distribution '{dist_name}' is not implemented in "
                         "numpy.random. See: "
                         "https://numpy.org/doc/stable/reference/random/generator.html#distributions"
                         )
-            except Exception as error:
-                self.manage_exception(
-                    exception=error,
-                    message="Error using numpy.random distributions."
+            else:
+                raise ValueError(
+                    "'dist_type' is not in "
+                    "{'constant', 'empirical', 'weights', 'numpy'}"
                     )
-        else:
-            raise ValueError(
-                "'dist_type' is not in "
-                "{'constant', 'empirical', 'weights', 'numpy'}"
+
+        except Exception as error:
+            self.manage_exception(
+                exception=error,
+                message="Error initializing distribution."
                 )
 
     def sample(self, size: int = 1) -> Union[ndarray, int]:
@@ -196,7 +173,7 @@ class Distribution:
         elif self.dist_type == "numpy":
             # Using numpy.random
             try:
-                samples = self.distribution(**self.kwargs, size=size)
+                samples = self.numpy_distribution(**self.kwargs, size=size)
             except Exception as error:
                 self.manage_exception(
                     exception=error,
@@ -229,7 +206,7 @@ class Distribution:
         """
         return abs(self.sample(size))
 
-    def manage_exception(exception: Exception, message: str):
+    def manage_exception(self, exception: Exception, message: str):
         """
             Internal function for managing exceptions
         """
