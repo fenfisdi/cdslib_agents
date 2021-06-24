@@ -59,6 +59,10 @@ class Distribution:
                 `size`. In the latter case, keyword argument must not be
                 passed since it is used directly in the sampling methods.
 
+            Raises
+            ------
+            SystemError
+
             References
             ----------
             .. [1] [Scikit-learn: Kernel Density Estimation](https://scikit-learn.org/stable/modules/density.html#kernel-density)
@@ -140,11 +144,9 @@ class Distribution:
             samples : int or numpy.array
                 Samples generated.
 
-            References
-            ----------
-            .. [1] [Scikit-learn: Kernel Density Estimation](https://scikit-learn.org/stable/modules/density.html#kernel-density)
-            .. [2] [Numpy Random Choice](https://numpy.org/doc/stable/reference/random/generated/numpy.random.Generator.choice.html#numpy.random.Generator.choice)
-            .. [3] [Numpy Random Distributions](https://numpy.org/doc/stable/reference/random/generator.html#distributions)
+            Raises
+            ------
+            SystemError
         """
         if self.dist_type == "constant":
             # "Dirac delta"-like function
@@ -209,5 +211,17 @@ class Distribution:
     def manage_exception(self, exception: Exception, message: str):
         """
             Internal function for managing exceptions
+
+            Parameters
+            ----------
+            exception : Exception
+                Exception raised by the workflow.
+
+            message : str
+                String with the error message.
+
+            Raises
+            ------
+            SystemError
         """
         raise SystemError(f"{message}\nError: {exception}")
