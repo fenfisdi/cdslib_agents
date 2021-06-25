@@ -9,6 +9,7 @@ from abmodel.utils.utilities import check_field_errors, check_field_existance
 
 class AgentMovement:
     """
+        ... TODO
     """
     @classmethod
     def move_agents(
@@ -230,6 +231,8 @@ class AgentMovement:
             follows a normal distribution with mean :math: `\mu = 0.0`
             and standard deviation equals to `angle_variance`.
 
+            ... TODO: insert explanatory image
+
         """
         def change_velocities(df, angle_variance):
             """
@@ -282,9 +285,11 @@ class AgentMovement:
     @classmethod
     def avoid_agents(cls, df: DataFrame, df_to_avoid: DataFrame) -> DataFrame:
         """
+            ... TODO
         """
         def deviation_angle(grouped_serie: Series) -> float:
             """
+                ... TODO
             """
             sorted_serie = \
                 grouped_serie["relative_angle"].sort_values().copy()
