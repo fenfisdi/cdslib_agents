@@ -21,11 +21,11 @@ class AgentMovement:
             Parameters
             ----------
             df : DataFrame
-                Dataframe to apply transformation, must have `x`, `y`, `vx`
-                and `vy` columns.
+                Dataframe to apply transformation.
+                Must have `x`, `y`, `vx` and `vy` columns.
 
             box_size : BoxSize
-                Parameter according to the region coordinates.
+                Parameter with the region coordinates.
 
             dt : float
                 Local time step, representing how often to take a measure.
@@ -35,6 +35,12 @@ class AgentMovement:
             df: DataFrame
                 Dataframe with the transformations in columns `x` and `y`
 
+            Raises
+            ------
+            ValueError
+                If the dataframe `df` doesn't have `x`, `y`, `vx`
+                and `vy` columns.
+
             Notes
             -----
             ... TODO: include mathematical description and explanatory
@@ -43,9 +49,7 @@ class AgentMovement:
             Examples
             --------
             ... TODO
-
         """
-
         def move_individual_agent(row):
             """
             A row represents an agent
@@ -90,12 +94,23 @@ class AgentMovement:
             Parameters
             ----------
             df : DataFrame
-                Dataframe to apply transformation, must have `x`, `y`, `vx`
-                and `vy` columns.
+                Dataframe to apply transformation.
+                Must have `vx` and `vy` columns.
 
             indexes : list
                 List containing the index of the agents that need to be
                 stopped
+
+            Returns
+            -------
+            df : DataFrame
+                Dataframe with the transformations in columns `vx` and `vy`
+
+            Raises
+            ------
+            ValueError
+                If the dataframe `df` doesn't have `vx`
+                and `vy` columns.
         """
         try:
             df.loc[indexes, "vx"] = 0
@@ -125,21 +140,35 @@ class AgentMovement:
     @classmethod
     def vector_angles(cls, df: DataFrame, components: list) -> DataFrame:
         """
-            Set ... TODO
+            Calculates vector angles from their euclidean components
 
             Parameters
             ----------
             df : DataFrame
-                Dataframe to apply transformation
+                Dataframe with vector components to calculate the
+                corresponding angles
 
-            Components: list ??????????????????????? vel or pos
+            components: list
+                Vector components names.
+                If the vectors corresponds to positions, then
+                `components = ['x', 'y']`.
+                If the vectors corresponds to velocities, then
+                `components = ['vx', 'vy']`.
 
             Returns
             -------
-            angles : Dataframe or Series ??? --> TODO
+            angles : Series
+                Serie with the computed angles.
+
+            Raises
+            ------
+            ValueError
+                If the dataframe `df` doesn't have the columns
+                specified by `components`.
         """
         def angle(x: float, y: float) -> float:
             """
+                Returns the standardized angle.
             """
             # Standardize angles on the interval [0, 2*pi]
             return cls.standardize_angle(arctan2(y, x))
@@ -159,12 +188,48 @@ class AgentMovement:
                           angle_variance: float, group_field: str = "",
                           group_label: str = "") -> DataFrame:
         """
-            Set the velocity of a given set of agents to zero.
+            Update the velocity of a given set of agents from a given
+            mobility profile (i.e. a velocity distribution) and
+            deviating the resulting angles using a normal distribution
+            with a standard deviation equal to `angle_variance`.
 
             Parameters
             ----------
             df : DataFrame
-                Dataframe to apply transformation, must have ...
+                Dataframe to apply transformation.
+                Must have `vx` and `vy` columns.
+
+            distribution : Distribution
+                Mobility profile. This is the velocity distribution
+                to use for updating the population velocities each
+                time step.
+
+            angle_variation : float
+                Standard deviation of the normal distribution
+                used for changing the direction of the velocity
+                from its initial value
+
+            group_field : str, optional
+                The field over which to filter the set of agents.
+                If not provided, then the set of agents used is
+                going to be the whole set of agents.
+
+            group_label : str, optional
+                The value of the `group_filed` used to filter
+                the set of agents. If `group_field` is not provided,
+                then this parameter is ignored.
+
+            Notes
+            -----
+            The velocity direction change is calculated as:
+
+            .. math::
+                \theta_{new} = \theta_{former} + \Delta \theta
+
+            Where :math: `\Delta \theta` is a random variable which
+            follows a normal distribution with mean :math: `\mu = 0.0`
+            and standard deviation equals to `angle_variance`.
+
         """
         def change_velocities(df, angle_variance):
             """

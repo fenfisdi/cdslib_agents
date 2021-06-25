@@ -11,8 +11,8 @@ class Distribution:
 
         It computes random numbers from a probability density distribution.
     """
-    def __init__(self, dist_type: str, constant: float = 0.0, filename: str = "",
-                 dist_name: str = "", **kwargs):
+    def __init__(self, dist_type: str, constant: float = 0.0,
+                 filename: str = "", dist_name: str = "", **kwargs):
         """
             Constructor of Distribution class.
 

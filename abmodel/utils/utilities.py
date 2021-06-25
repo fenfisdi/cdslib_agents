@@ -50,7 +50,7 @@ def check_field_errors(df: DataFrame, debug: bool = False):
         df : DataFrame
             Dataframe containing the positional information about the agents
 
-        debug : Boolean
+        debug : Boolean, optional
             Flag used to tell if extensive explorations over the DataFrame are
             needed
 
