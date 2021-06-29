@@ -5,42 +5,6 @@ from numpy import abs, genfromtxt, ndarray, random, ones
 from sklearn.neighbors import KernelDensity
 
 
-def initialize_distribution(dist: dict):
-    """
-        Parameters
-        ----------
-        dist : dict
-            Dictionary with the required information
-            in order to initialize the distribution.
-    """
-    if dist["distribution_type"] == "constant":
-        return Distribution(
-            dist_type=dist["distribution_type"],
-            constant=dist["constant"]
-            )
-    elif dist["distribution_type"] == "empirical":
-        return Distribution(
-            dist_type=dist["distribution_type"],
-            filename=dist["distribution_filename"],
-            **dist["distribution_extra_arguments"]
-            )
-    elif dist["distribution_type"] == "weights":
-        return Distribution(
-            dist_type=dist["distribution_type"],
-            filename=dist["distribution_filename"]
-            )
-    elif dist["distribution_type"] == "numpy":
-        return Distribution(
-            dist_type=dist["distribution_type"],
-            dist_name=dist["distribution_name"],
-            **dist["distribution_extra_arguments"]
-            )
-    else:
-        return Distribution(
-            dist_type=dist["distribution_type"]
-            )
-
-
 class Distribution:
     """
         Distribution class

@@ -3,7 +3,7 @@
 
 # Extra Data
 covid-19-example/*
-test.py
+test_*.py
 
 # Jupyter notebook
 *.ipynb
