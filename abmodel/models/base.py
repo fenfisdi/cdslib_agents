@@ -1,5 +1,6 @@
 from typing import Union, Any
 from dataclasses import dataclass, field
+from copy import deepcopy
 
 from abmodel.utils.distributions import Distribution
 from abmodel.utils.helpers.distributions import init_distribution
@@ -102,3 +103,146 @@ class SimpleDistGroups:
             single_group["name"]: DistributionGroup(**single_group)
             for single_group in self.group_info
         }
+
+    def single_dist_title_validation(self, expected_dist_title):
+        """
+            Validates `dist_title` to be equal to
+            `expected_dist_title`.
+
+            Raises
+            ------
+            ValueError
+                If `dist_title` is not equal to `expected_dist_title`
+                If `dist_title` is the same for all the groups
+                If `dist_title` for all the groups is equal to
+                `expected_dist_title`
+        """
+        # Assess if dist_title == expected_dist_title
+        condition = self.dist_title == expected_dist_title
+        assert condition, ValueError(
+            "'dist_title' is not equal to "
+            f"'{expected_dist_title}'"
+            )
+
+        # Retrieve dist_title list from all group's single dist_title
+        dist_title_list = [
+            group['dist_info']['dist_title']
+            for group in self.group_info
+            ]
+
+        # Assess if dist_title is the same for all the groups
+        condition = len(set(dist_title_list)) == 1
+        assert condition, ValueError(
+            f"The list of dist_title in the group is: {dist_title_list}"
+            "\n"
+            "All of them must be the same and equal to "
+            f"'{expected_dist_title}'"
+        )
+
+        # Assess if dist_title for all the groups is equal to
+        # expected_dist_title
+        condition = dist_title_list[0] == expected_dist_title
+        assert condition, ValueError(
+            f"The dist_title for each group is: {dist_title_list[0]}"
+            "\n"
+            f"It must be equal to '{expected_dist_title}'"
+        )
+
+
+@dataclass
+class ComplexDistGroups:
+    """
+        This dataclass wraps a set of DistributionGroup
+        in a dictionary in order to make easier
+        their retrieval.
+
+        Attributes
+        ----------
+        group_info : list[dict]
+            The list of different single group
+            information required to instantiate
+            a DistributionGroup.
+
+        labels : list
+            Labels apart from `dist`.
+
+        items : dict
+            The dictionary created from the list `group_info`.
+            Each key of this dictionary corresponds to a single
+            group name.
+
+        See Also
+        --------
+        DistributionGroup : Single Distribution group
+    """
+    group_info: list[dict]
+    labels: list = field(init=False)
+    items: dict = field(init=False)
+
+    def __post_init__(self):
+        """
+            This method performs `items` dictionary
+            assignment from `group_info` list.
+        """
+        # Copy self.group_info in order to avoid
+        # that it gets modified
+        group_info = deepcopy(self.group_info)
+
+        self.items = {
+            single_group["name"]: {
+                label: single_group.pop(label)
+                for label in self.labels
+                }
+            for single_group in group_info
+        }
+
+        for single_group in group_info:
+            self.items[
+                single_group["name"]
+                ]['dist'] = deepcopy(
+                    DistributionGroup(**single_group).dist
+                )
+
+    def compound_dist_title_validation(self, expected_dist_title):
+        """
+            Validates `dist_title` to be equal to
+            `expected_dist_title`.
+
+            Raises
+            ------
+            ValueError
+                If `dist_title` is not equal to `expected_dist_title`
+                If `dist_title` is the same for all the groups
+                If `dist_title` for all the groups is equal to
+                `expected_dist_title`
+        """
+        # Assess if dist_title == expected_dist_title
+        condition = self.dist_title == expected_dist_title
+        assert condition, ValueError(
+            "'dist_title' is not equal to "
+            f"'{expected_dist_title}'"
+            )
+
+        # Retrieve dist_title list from all group's single dist_title
+        dist_title_list = [
+            group['dist_info']['dist_title']
+            for group in self.group_info
+            ]
+
+        # Assess if dist_title is the same for all the groups
+        condition = len(set(dist_title_list)) == 1
+        assert condition, ValueError(
+            f"The list of dist_title in the group is: {dist_title_list}"
+            "\n"
+            "All of them must be the same and equal to "
+            f"'{expected_dist_title}'"
+        )
+
+        # Assess if dist_title for all the groups is equal to
+        # expected_dist_title
+        condition = dist_title_list[0] == expected_dist_title
+        assert condition, ValueError(
+            f"The dist_title for each group is: {dist_title_list[0]}"
+            "\n"
+            f"It must be equal to '{expected_dist_title}'"
+        )

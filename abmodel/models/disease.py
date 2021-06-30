@@ -1,7 +1,7 @@
 from enum import Enum
 from dataclasses import dataclass
 
-from abmodel.models.base import SimpleDistGroups
+from abmodel.models.base import SimpleDistGroups, ComplexDistGroups
 
 
 # ============================================================================
@@ -72,12 +72,12 @@ class SusceptibilityGroups(SimpleDistGroups):
     def __post_init__(self):
         """
             Validates `dist_title` to be equal to
-            `DistTitles.susceptibility`
+            `DistTitles.susceptibility` and then
+            performs `items` dictionary
+            assignment from `group_info` list.
         """
-        condition = self.dist_title == DistTitles.susceptibility.value
-        assert condition, ValueError(
-            "'dist_title' is not equal to "
-            f"'{DistTitles.susceptibility.value}'"
+        self.single_dist_title_validation(
+            expected_dist_title=DistTitles.susceptibility.value
             )
         super().__post_init__()
 
@@ -114,11 +114,34 @@ class MobilityGroups(SimpleDistGroups):
     def __post_init__(self):
         """
             Validates `dist_title` to be equal to
-            `SimpleDistTitles.mobility`
+            `DistTitles.mobility` and then
+            performs `items` dictionary
+            assignment from `group_info` list.
         """
-        condition = self.dist_title == DistTitles.mobility.value
-        assert condition, ValueError(
-            "'dist_title' is not equal to "
-            f"'{DistTitles.mobility.value}'"
+        self.single_dist_title_validation(
+            expected_dist_title=DistTitles.mobility.value
             )
+        super().__post_init__()
+
+
+@dataclass
+class DiseaseStates(ComplexDistGroups):
+    """
+    """
+    dist_title: list[str]
+
+    def __post_init__(self):
+        """
+            This method performs `items` dictionary
+            assignment from `group_info` list.
+        """
+        self.labels = [
+            "can_infected",
+            "is_infected",
+            "can_spread",
+            "spread_radius",
+            "spread_radius_unit",
+            "spread_probability",
+            "is_dead"
+        ]
         super().__post_init__()
