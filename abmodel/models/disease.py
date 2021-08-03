@@ -38,6 +38,10 @@ class DistTitles(Enum):
     """
     susceptibility = "susceptibility_dist"
     mobility = "mobility_profile"
+    diagnosis = "diagnosis_prob"
+    isolation_days = "isolation_days"
+    hospitalization = "hospitalization_prob"
+    icu_prob = "ICU_prob"
 
 
 @dataclass
@@ -51,7 +55,7 @@ class SusceptibilityGroups(SimpleDistGroups):
             Distribution title. It must be equal to
             `DistTitles.susceptibility`
 
-        group_info : list[dict]
+        group_info : list of dict
             The list of different single group
             information required to instantiate
             a DistributionGroup.
@@ -67,8 +71,6 @@ class SusceptibilityGroups(SimpleDistGroups):
 
         abmodel.models.base.SimpleDistGroups : Simple Distribution groups class
     """
-    dist_title: str
-
     def __post_init__(self):
         """
             Validates `dist_title` to be equal to
@@ -93,7 +95,7 @@ class MobilityGroups(SimpleDistGroups):
             Distribution title. It must be equal to
             `DistTitles.mobility`
 
-        group_info : list[dict]
+        group_info : list of dict
             The list of different single group
             information required to instantiate
             a DistributionGroup.
@@ -109,8 +111,6 @@ class MobilityGroups(SimpleDistGroups):
 
         abmodel.models.base.SimpleDistGroups : Simple Distribution groups class
     """
-    dist_title: str
-
     def __post_init__(self):
         """
             Validates `dist_title` to be equal to
@@ -128,15 +128,13 @@ class MobilityGroups(SimpleDistGroups):
 class DiseaseStates(ComplexDistGroups):
     """
     """
-    dist_title: list[str]
-
     def __post_init__(self):
         """
             This method performs `items` dictionary
             assignment from `group_info` list.
         """
         self.labels = [
-            "can_infected",
+            "can_get_infected",
             "is_infected",
             "can_spread",
             "spread_radius",

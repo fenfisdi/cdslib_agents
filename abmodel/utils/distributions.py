@@ -23,9 +23,9 @@ class Distribution:
             ----------
             dist_type : {'constant', 'empirical', 'weights', 'numpy'}
 
-                'constant': it numerically implements a "Dirac delta" function,
-                    i.e. all points will have the same value specified
-                    by the parameter `constant`
+                'constant' : it numerically implements a "Dirac delta"
+                    function, i.e. all points will have the same value
+                    specified by the parameter `constant`
 
                 'empirical' : build distributions from empirical data,
                 estimating the overall shape of the distribution using
