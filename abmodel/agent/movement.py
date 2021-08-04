@@ -244,7 +244,7 @@ class AgentMovement:
 
             delta_angles = Distribution(
                 dist_type="numpy",
-                distribution="normal",
+                dist_name="normal",
                 loc=0.0,
                 scale=angle_variance
                 ).sample(size=n_agents)
@@ -321,9 +321,13 @@ class AgentMovement:
         if check_field_existance(df, ["agent", "x", "y", "vx", "vy"]):
             df_copy = df.copy()
 
-            scared_agents = df_copy.loc(
-                    df_copy["agent"].equals(df_to_avoid["agent"].unique())
-                    )[["agent", "x", "y", "vx", "vy"]]
+            # scared_agents = df_copy.loc(
+            #           df_copy["agent"].equals(df_to_avoid["agent"].unique())
+            #           )[["agent", "x", "y", "vx", "vy"]]
+            
+            scared_agents = df_copy.loc[df_copy.agent.isin(
+                df_to_avoid["agent"].unique()
+                )]
 
             scary_agents = scared_agents.merge(
                         df_to_avoid, how="inner", on="agent"
