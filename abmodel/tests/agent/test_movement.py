@@ -156,7 +156,7 @@ class AgentMovementTestCase(TestCase):
 
         distrib = Distribution(
             dist_type="numpy",
-            distribution="normal",
+            dist_name="normal",
             loc=10.0,
             scale=0.1
             )
@@ -188,7 +188,7 @@ class AgentMovementTestCase(TestCase):
 
         distrib = Distribution(
             dist_type="numpy",
-            distribution="normal",
+            dist_name="normal",
             loc=10.0,
             scale=1.0
             )
@@ -225,14 +225,14 @@ class AgentMovementTestCase(TestCase):
 
         distrib = Distribution(
             dist_type="numpy",
-            distribution="normal",
+            dist_name="normal",
             loc=10.0,
             scale=1.0
             )
 
         delta_angles = Distribution(
             dist_type="numpy",
-            distribution="normal",
+            dist_name="normal",
             loc=0.0,
             scale=angle_variance
             ).sample(size=samples)
@@ -274,7 +274,7 @@ class AgentMovementTestCase(TestCase):
 
         distrib = Distribution(
             dist_type="numpy",
-            distribution="normal",
+            dist_name="normal",
             loc=10.0,
             scale=1.0
             )
@@ -298,3 +298,34 @@ class AgentMovementTestCase(TestCase):
         velocities_field = df['vx'][1] != 2.0
 
         self.assertTrue(velocities_field)
+    
+    def test_avoid_agents(self):
+
+        data = {
+            'agent': np.array([1, 2, 3]),
+            'x': np.array([0, 1, 1]),
+            'y':np.array([0, 1, -1]),
+            'vx': np.array([1.0, 2.0, 0]),
+            'vy': np.array([0, 2.0, 0]),
+            }
+        
+        df = pd.DataFrame(data)
+        print(df)
+
+        data = {
+            'agent': np.array([1,1]),
+            'agent_to_avoid': np.array([2, 3])
+            }
+        
+        df_to_avoid = pd.DataFrame(data)
+        print(df_to_avoid)
+        
+        new_df = AgentMovement.avoid_agents(df, df_to_avoid)
+        
+        print(new_df)
+        
+        condition = round(new_df.vx[new_df.agent == 1][0] - -1.0, 7) == 0 \
+            and round(new_df.vy[new_df.agent == 1][0] - 0, 7) == 0
+            
+        self.assertTrue(condition)
+        
