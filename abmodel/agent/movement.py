@@ -287,16 +287,16 @@ class AgentMovement:
         """
             ... TODO
         """
-        def deviation_angle(grouped_serie: Series) -> float:
+        def deviation_angle(grouped_df: DataFrame) -> float:
             """
                 ... TODO
             """
             sorted_serie = \
-                grouped_serie["relative_angle"].sort_values().copy()
+                grouped_df["relative_angle"].sort_values().copy()
 
             consecutive_angle = sorted_serie.diff().shift(periods=-1)
             consecutive_angle.iloc[-1] = \
-                2*pi + (sorted_serie.iloc[-1] - sorted_serie.iloc[0])
+                (2*pi - sorted_serie.iloc[-1]) + sorted_serie.iloc[0]
 
             sorted_df = DataFrame()
             sorted_df["relative_angle"] = sorted_serie
