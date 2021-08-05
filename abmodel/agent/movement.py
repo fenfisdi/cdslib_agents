@@ -320,7 +320,7 @@ class AgentMovement:
 
         if check_field_existance(df, ["agent", "x", "y", "vx", "vy"]):
             df_copy = df.copy()
-            
+
             scared_agents = df_copy.loc[df_copy.agent.isin(
                 df_to_avoid["agent"].unique()
                 )][["agent", "x", "y", "vx", "vy"]]
@@ -355,9 +355,10 @@ class AgentMovement:
 
             new_angles = scary_agents[["agent", "relative_angle"]] \
                 .groupby("agent").apply(deviation_angle)
-                
+
+            # TODO: remove this print
             print(new_angles)
-            
+
             return df.apply(
                 lambda row: replace_velocities(row, new_angles),
                 axis=1
