@@ -73,6 +73,9 @@ class DistributionGroup:
                 prepare_dict_field(dist_dict)
         else:
             # TODO
+            # include a way that dist = None
+            # when dist_info (or dist_dict) is null
+            # TODO
             raise ValueError("TODO")
 
 
