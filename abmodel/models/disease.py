@@ -9,28 +9,6 @@ from abmodel.models.base import SimpleDistGroups, ComplexDistGroups
 # Groups with distributions in their attributes
 # ============================================================================
 
-@dataclass
-class SimpleGroups:
-    """
-        This dataclasss is best suited for supporting
-        groups for which only their names are needed
-        in the simulation.
-
-        In this version of the library, it is used for:
-        `age_groups`, `vulnerability_groups` and
-        `quarantine_groups`.
-
-        Attributes
-        ----------
-        names : list
-    """
-    names: list
-
-
-# ============================================================================
-# Groups with distributions in their attributes
-# ============================================================================
-
 class DistTitles(Enum):
     """
         This class enumerates some fundamental
@@ -131,6 +109,7 @@ class MobilityGroups(SimpleDistGroups):
 @dataclass
 class DiseaseStates(ComplexDistGroups):
     """
+        TODO
     """
     def __post_init__(self):
         """
@@ -181,6 +160,7 @@ class Transitions(ComplexDistGroups):
 @dataclass
 class NaturalHistory(ComplexDistGroups):
     """
+        TODO
     """
     def __post_init__(self):
         """
