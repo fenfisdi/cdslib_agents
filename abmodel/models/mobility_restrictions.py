@@ -1,7 +1,6 @@
 from enum import Enum
 from typing import Optional, Any
 from pydantic import BaseModel, root_validator
-from pydantic.dataclasses import dataclass
 
 from abmodel.models.base import SimpleGroups
 
@@ -45,6 +44,7 @@ class MRTracing(BaseModel):
     mr_stop_level: Optional[int]
     mr_length: Optional[int]
     mr_length_units: Optional[MRTLengthUnits]
+    mr_groups: SimpleGroups
     target_groups: list[str]
 
     @root_validator(pre=True)
@@ -56,6 +56,7 @@ class MRTracing(BaseModel):
             TODO
         """
         mode = v.get("mr_stop_mode")
+
         if mode == MRTStopModes.level_number:
             if not v.get("mr_stop_level"):
                 raise ValueError(
@@ -87,12 +88,19 @@ class MRTracing(BaseModel):
                         So, `mr_stop_level` should not be provided.
                     """
                     )
-        # TODO: validate target_groups
-        # if v.get("target_groups")
+        # Check if all elements of `target_groups` are in `mr_groups`
+        mr_groups = v.get("mr_groups").names
+        target_groups = v.get("target_groups")
+        if not all(elem in mr_groups for elem in target_groups):
+            raise ValueError(
+                f"""
+                    All `target_groups` must be in
+                    `mr_groups = {mr_groups}`.
+                """
+                )
         return v
 
 
-@dataclass
 class MRTPolicies(BaseModel):
     """
         TODO

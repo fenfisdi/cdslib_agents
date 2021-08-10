@@ -3,6 +3,8 @@ from dataclasses import dataclass, field
 from copy import deepcopy
 from munch import Munch
 
+from pydantic import BaseModel
+
 from abmodel.utils.distributions import Distribution
 from abmodel.utils.helpers.distributions import init_distribution
 
@@ -11,8 +13,7 @@ from abmodel.utils.helpers.distributions import init_distribution
 # Groups with only names in their attributes
 # ============================================================================
 
-@dataclass
-class SimpleGroups:
+class SimpleGroups(BaseModel):
     """
         This dataclasss is best suited for supporting
         groups for which only their names are needed
@@ -20,7 +21,7 @@ class SimpleGroups:
 
         In this version of the library, it is used for:
         `age_groups`, `vulnerability_groups` and
-        `quarantine_groups`.
+        `mr_groups` (i.e. mobility restrictions groups).
 
         Attributes
         ----------
