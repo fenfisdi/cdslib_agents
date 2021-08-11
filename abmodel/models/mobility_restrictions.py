@@ -130,24 +130,22 @@ class GlobalCyclicMR(BaseModel):
         """
         mode = v.get("unrestricted_time_mode")
 
-        if mode == CyclicMRModes.random:
-            if v.get("unrestricted_time"):
-                raise ValueError(
-                    f"""
-                        `unrestricted_time_mode` was set to
-                        `{CyclicMRModes.random}`.
-                        So, `unrestricted_time` should not be provided.
-                    """
-                    )
-        if mode == CyclicMRModes.fixed:
-            if not v.get("unrestricted_time"):
-                raise ValueError(
-                    f"""
-                        `unrestricted_time_mode` was set to
-                        `{CyclicMRModes.fixed}`.
-                        So, `unrestricted_time` should be provided.
-                    """
-                    )
+        if mode == CyclicMRModes.random and v.get("unrestricted_time"):
+            raise ValueError(
+                f"""
+                    `unrestricted_time_mode` was set to
+                    `{CyclicMRModes.random}`.
+                    So, `unrestricted_time` should not be provided.
+                """
+                )
+        if mode == CyclicMRModes.fixed and not v.get("unrestricted_time"):
+            raise ValueError(
+                f"""
+                    `unrestricted_time_mode` was set to
+                    `{CyclicMRModes.fixed}`.
+                    So, `unrestricted_time` should be provided.
+                """
+                )
         return v
 
 
