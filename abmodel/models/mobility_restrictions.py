@@ -1,5 +1,6 @@
 from enum import Enum
 from typing import Optional, Any
+from datetime import datetime
 from pydantic import BaseModel, root_validator
 
 from abmodel.models.base import SimpleGroups
@@ -28,7 +29,7 @@ class MRTStopModes(Enum):
     length = "length"
 
 
-class MRTLengthUnits(Enum):
+class MRTimeUnits(Enum):
     days = "days"
     weeks = "weeks"
     months = "months"
@@ -43,11 +44,11 @@ class MRTracing(BaseModel):
     mr_stop_mode: MRTStopModes
     mr_stop_level: Optional[int]
     mr_length: Optional[int]
-    mr_length_units: Optional[MRTLengthUnits]
+    mr_length_units: Optional[MRTimeUnits]
     mr_groups: SimpleGroups
     target_groups: list[str]
 
-    @root_validator(pre=True)
+    @root_validator
     def validate(
         cls,
         v: dict[str, Any]
@@ -101,13 +102,61 @@ class MRTracing(BaseModel):
         return v
 
 
-class MRTPolicies(BaseModel):
-    """
-        TODO
-    """
-    policies: dict[InterestVariables, MRTracing]
+# ============================================================================
+# Cyclic mobility restrictions (hereinafter abbreviated as CyclicMR)
+# ============================================================================
+
+class CyclicMRModes(Enum):
+    random = "random"
+    fixed = "fixed"
 
 
-# ============================================================================
-# Cyclic mobility restrictions (hereinafter abbreviated as CMR)
-# ============================================================================
+class GlobalCyclicMR(BaseModel):
+    enabled: bool
+    grace_time: datetime
+    global_mr_length: int
+    global_mr_length_units: MRTimeUnits
+    unrestricted_time_mode: CyclicMRModes
+    unrestricted_time: Optional[int]
+    unrestricted_time_units: MRTimeUnits
+
+    @root_validator
+    def validate(
+        cls,
+        v: dict[str, Any]
+    ) -> dict[str, Any]:
+        """
+            TODO
+        """
+        mode = v.get("unrestricted_time_mode")
+
+        if mode == CyclicMRModes.random:
+            if v.get("unrestricted_time"):
+                raise ValueError(
+                    f"""
+                        `unrestricted_time_mode` was set to
+                        `{CyclicMRModes.random}`.
+                        So, `unrestricted_time` should not be provided.
+                    """
+                    )
+        if mode == CyclicMRModes.fixed:
+            if not v.get("unrestricted_time"):
+                raise ValueError(
+                    f"""
+                        `unrestricted_time_mode` was set to
+                        `{CyclicMRModes.fixed}`.
+                        So, `unrestricted_time` should be provided.
+                    """
+                    )
+        return v
+
+
+class CyclicMRGroups(BaseModel):
+    mr_groups: SimpleGroups
+    target_group: str
+    delay: int
+    delay_units: MRTimeUnits
+    mr_length: int
+    mr_length_units: MRTimeUnits
+    time_without_restrictions: int
+    time_without_restrictions_units: MRTimeUnits
