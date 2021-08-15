@@ -25,11 +25,17 @@ class InterestVariables(Enum):
 
 
 class MRTStopModes(Enum):
+    """
+        TODO
+    """
     level_number = "level_number"
     length = "length"
 
 
 class MRTimeUnits(Enum):
+    """
+        TODO
+    """
     days = "days"
     weeks = "weeks"
     months = "months"
@@ -107,11 +113,17 @@ class MRTracing(BaseModel):
 # ============================================================================
 
 class CyclicMRModes(Enum):
+    """
+        TODO
+    """
     random = "random"
     fixed = "fixed"
 
 
 class GlobalCyclicMR(BaseModel):
+    """
+        TODO
+    """
     enabled: bool
     grace_time: datetime
     global_mr_length: int
@@ -150,6 +162,9 @@ class GlobalCyclicMR(BaseModel):
 
 
 class CyclicMRGroups(BaseModel):
+    """
+        TODO
+    """
     mr_groups: SimpleGroups
     target_group: str
     delay: int

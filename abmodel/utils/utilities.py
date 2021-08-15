@@ -71,3 +71,10 @@ def check_field_errors(df: DataFrame, debug: bool = False):
                     "To pinpoint especific errors, "
                     "add `debug=True` as a parameter")
             raise ValueError(error_string)
+
+
+def std_str_join_cols(col1: str, col2: str) -> str:
+    """
+        TODO
+    """
+    return "-".join([col1, col2])

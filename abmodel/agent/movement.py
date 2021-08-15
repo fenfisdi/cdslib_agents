@@ -1,6 +1,6 @@
 from math import fmod
 from numpy import arctan2, cos, sin, pi, sqrt
-from pandas.core.frame import DataFrame, Series
+from pandas.core.frame import DataFrame
 
 from abmodel.models.population import BoxSize
 from abmodel.utils.distributions import Distribution
@@ -84,8 +84,6 @@ class AgentMovement:
             check_field_existance(df, ["x", "y", "vx", "vy"])
         else:
             return df
-
-        return df
 
     @classmethod
     def stop_agents(cls, df: DataFrame, indexes: list) -> DataFrame:
@@ -302,8 +300,10 @@ class AgentMovement:
             sorted_df["relative_angle"] = sorted_serie
             sorted_df["consecutive_angle"] = consecutive_angle
 
+            max_angle = sorted_df["consecutive_angle"].max()
+
             greatest_angle_to_avoid = sorted_df.loc[
-                sorted_df["consecutive_angle"] == sorted_df["consecutive_angle"].max()
+                sorted_df["consecutive_angle"] == max_angle
                 ]
 
             # Standardize angles on the interval [0, 2*pi]
@@ -328,15 +328,15 @@ class AgentMovement:
             scary_agents = scared_agents.merge(
                         df_to_avoid, how="inner", on="agent"
                         ).merge(
-                            df_copy.rename(
-                                columns={
-                                    "agent": "agent_to_avoid",
-                                    "x": "x_to_avoid",
-                                    "y": "y_to_avoid"
-                                    })[["agent_to_avoid", "x_to_avoid", "y_to_avoid"]],
-                            how="inner",
-                            on="agent_to_avoid"
-                            )
+                    df_copy.rename(
+                        columns={
+                            "agent": "agent_to_avoid",
+                            "x": "x_to_avoid",
+                            "y": "y_to_avoid"
+                            })[["agent_to_avoid", "x_to_avoid", "y_to_avoid"]],
+                    how="inner",
+                    on="agent_to_avoid"
+                    )
             scary_agents["x_relative"] = scary_agents.apply(
                     lambda row: row.x_to_avoid - row.x, axis=1
                     )
@@ -355,9 +355,6 @@ class AgentMovement:
 
             new_angles = scary_agents[["agent", "relative_angle"]] \
                 .groupby("agent").apply(deviation_angle)
-
-            # TODO: remove this print
-            print(new_angles)
 
             return df.apply(
                 lambda row: replace_velocities(row, new_angles),
