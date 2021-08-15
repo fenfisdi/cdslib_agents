@@ -1,8 +1,25 @@
 from time import time
+from enum import Enum
 from typing import Union
 
 from numpy import abs, genfromtxt, ndarray, random, ones
 from sklearn.neighbors import KernelDensity
+
+
+class DistTypes(Enum):
+    """
+        This class enumerates the available `Distribution`
+        types: `dist_type`.
+
+        See Also
+        --------
+        Distribution
+    """
+    null = "null"
+    constant = "constant"
+    empirical = "empirical"
+    weights = "weights"
+    numpy = "numpy"
 
 
 class Distribution:
@@ -130,7 +147,7 @@ class Distribution:
                 message="Error initializing distribution."
                 )
 
-    def sample(self, size: int = 1) -> Union[ndarray, int]:
+    def sample(self, size: int = 1) -> Union[ndarray, int, float]:
         """
             Compute random sampling using the defined distribution.
 

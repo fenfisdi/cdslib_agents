@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from copy import deepcopy
 
 from abmodel.models.base import SimpleDistGroups, ComplexDistGroups
+from abmodel.utils.utilities import std_str_join_cols
 
 
 # ============================================================================
@@ -180,8 +181,8 @@ class NaturalHistory(ComplexDistGroups):
         for single_group in self.group_info:
             vulnerability_group = single_group.pop("vulnerability_group")
             disease_group = single_group.pop("disease_group")
-            single_group["name"] = "-".join(
-                [vulnerability_group, disease_group]
+            single_group["name"] = std_str_join_cols(
+                vulnerability_group, disease_group
                 )
 
             self.transitions[single_group["name"]] = Transitions(

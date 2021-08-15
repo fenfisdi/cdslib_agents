@@ -1,62 +1,62 @@
-from pandas.core.frame import DataFrame, Series
+from typing import Union
+
+from pandas.core.frame import DataFrame
 
 from abmodel.utils.distributions import Distribution
 from abmodel.utils.utilities import check_field_errors, check_field_existance
-
-
-
+from abmodel.utils.utilities import std_str_join_cols
+from abmodel.models.disease import NaturalHistory, DistTitles
 
 
 class AgentDisease:
     """
         ... TODO
     """
-    def __init__(
-        self,
-        vulnerability_groups
-        disease_states
-        natural_history_params: dict,
-    ):
-        """
-            ...TODO
-
-            Parameters
-            ----------
-            natural_history_params : dict
-                Dictionary with the disease natural history
-                parameters
-
-        """
-        self.vulnerability_groups = 
-        self.disease_states =
-
-        {vulnerability_group: {disease_state: 0 for disease_state in disease_states} for vulnerability_group in vulnerability_groups}
-
-        self.disease_state_time_distributions =
-        
-
     @classmethod
-    def determine_disease_state_time(
-        cls, df: DataFrame
-        ) -> DataFrame:
+    def determine_disease_state_max_time(
+        cls, df: DataFrame, natural_history: NaturalHistory
+    ) -> DataFrame:
         """
+            TODO
         """
-        if self.__disease_states_time_functions[
-            self.vulnerability_group][self.disease_state]['time_function']:
+        def calculate_max_time(row) -> Union[int, float]:
+            """
+                TODO
+            """
+            key = std_str_join_cols(
+                row["vulnerability_group"],
+                row["disease_state"]
+                )
+            return natural_history.items[key].dist[DistTitles.time].sample()
 
-            self.disease_state_max_time = \
-                self.__disease_states_time_functions[
-                self.vulnerability_group][self.disease_state]['time_function']()
-
+        try:
+            df = df.apply(calculate_max_time, axis=1)
+        except Exception:
+            validation_list = ["disease_state_max_time", "disease_state",
+                               "vulnerability_group"]
+            check_field_existance(df, validation_list)
         else:
-            self.disease_state_max_time = None
+            return df
 
     @classmethod
     def disease_state_transition(
         cls, df: DataFrame, dt: float
     ) -> DataFrame:
-    """
-    """
+        """
+        """
+        def transition_function() -> None:
+            """
+            """
+            return 0
+
+        try:
+            df = df.apply(transition_function, axis=1)
+        except Exception:
+            validation_list = ["disease_state_time"]
+            check_field_existance(df, validation_list)
+        else:
+            return df
+
     def disease_state_transition(
         self,
         dt: int,
