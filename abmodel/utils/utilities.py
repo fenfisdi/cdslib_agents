@@ -1,4 +1,8 @@
+from typing import Union
+
+from pydantic import validate_arguments
 from pandas.core.frame import DataFrame
+from pandas.core.series import Series
 
 
 def check_field_existance(df: DataFrame, cols: list) -> bool:
@@ -73,8 +77,22 @@ def check_field_errors(df: DataFrame, debug: bool = False):
             raise ValueError(error_string)
 
 
-def std_str_join_cols(col1: str, col2: str) -> str:
+@validate_arguments(config={"arbitrary_types_allowed": True})
+def std_str_join_cols(
+    col1: Union[str, Series],
+    col2: Union[str, Series],
+    separator: str = "-"
+) -> Union[str, list[str]]:
     """
         TODO
     """
-    return "-".join([col1, col2])
+    if type(col1) == str and type(col2) == str:
+        return separator.join([col1, col2])
+    elif type(col1) == Series and type(col2) == Series:
+        return col1.astype(str) + separator + col2.astype(str)
+    else:
+        error_string = (
+                "`col1` or `col2` might be provided incorrectly.\n"
+                "Both `col1` and `col2` should have the same type"
+                "corresponding to `str` or `pandas Series`")
+        raise ValueError(error_string)
