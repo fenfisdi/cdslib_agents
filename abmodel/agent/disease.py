@@ -1,6 +1,6 @@
 from typing import Union
 
-from numpy.random import choice
+from numpy.random import choice, random_sample
 from pandas.core.frame import DataFrame
 from pandas.core.series import Series
 
@@ -46,6 +46,66 @@ class AgentDisease:
             return df
 
     @classmethod
+    def init_disease_state_max_time(
+        cls, df: DataFrame, natural_history: NaturalHistory,
+        execmode: ExecutionModes = ExecutionModes.pandas
+    ) -> DataFrame:
+        """
+        """
+        # =====================================================================
+        def init_calculate_max_time(
+            key,
+            natural_history,
+            execmode
+        ) -> Union[bool, Series]:
+            """
+            """
+            if execmode == ExecutionModes.pandas:
+                dist_type = natural_history.items[key] \
+                    .dist[DistTitles.time.value].dist_type
+                return False if dist_type is None else True
+
+            if execmode == ExecutionModes.vectorized:
+                return list(map(
+                    lambda single_key: False if natural_history
+                    .items[single_key]
+                    .dist[DistTitles.time.value].dist_type is None else True,
+                    key
+                ))
+
+        # =====================================================================
+        try:
+            if execmode == ExecutionModes.pandas:
+                df["do_calculate_max_time"] = df.apply(
+                    lambda row: init_calculate_max_time(
+                        row["key"],
+                        natural_history,
+                        execmode
+                        ),
+                    axis=1
+                    )
+            elif execmode == ExecutionModes.vectorized:
+                df["do_calculate_max_time"] = init_calculate_max_time(
+                    df["key"],
+                    natural_history,
+                    execmode
+                    )
+            else:
+                raise NotImplementedError(
+                    f"`execmode = {execmode}` is still not implemented yet"
+                    )
+        except Exception:
+            validation_list = ["key", "do_calculate_max_time"]
+            check_field_existance(df, validation_list)
+        else:
+            # Call determine_disease_state_max_time function in order
+            # to calculate it for those agents who are infected
+            df = cls.determine_disease_state_max_time(
+                df, natural_history, execmode
+            )
+            return df
+
+    @classmethod
     def determine_disease_state_max_time(
         cls, df: DataFrame, natural_history: NaturalHistory,
         execmode: ExecutionModes = ExecutionModes.pandas
@@ -53,6 +113,7 @@ class AgentDisease:
         """
             TODO
         """
+        # =====================================================================
         def calculate_max_time(
             key,
             do_calculate_max_time,
@@ -65,7 +126,8 @@ class AgentDisease:
             """
             if execmode == ExecutionModes.pandas:
                 if do_calculate_max_time:
-                    return natural_history.items[key].dist[DistTitles.time] \
+                    return natural_history.items[key] \
+                        .dist[DistTitles.time.value] \
                         .sample()
                 else:
                     return disease_state_max_time
@@ -74,11 +136,12 @@ class AgentDisease:
                 return list(map(
                     lambda single_key, cond, time_value: natural_history
                     .items[single_key]
-                    .dist[DistTitles.time]
+                    .dist[DistTitles.time.value]
                     .sample() if cond else time_value,
                     zip(key, do_calculate_max_time, disease_state_max_time)
                 ))
 
+        # =====================================================================
         try:
             if execmode == ExecutionModes.pandas:
                 df["disease_state_max_time"] = df.apply(
@@ -118,13 +181,18 @@ class AgentDisease:
         """
             TODO
         """
+        # =====================================================================
         def transition_function(
             disease_state_time,
             disease_state_max_time,
             key,
             natural_history,
             execmode
-        ) -> str:
+        ) -> tuple[
+            Union[str, Series],
+            Union[float, Series],
+            Union[bool, Series]
+        ]:
             """
                 TODO
             """
@@ -149,7 +217,7 @@ class AgentDisease:
                 if disease_state_max_time is not None:
                     if disease_state_time >= disease_state_max_time:
                         # disease state must change
-                        # Verify: becomes into ? ... Throw the dice
+                        # Verify: becomes into? ... Throw the dice
                         disease_state = choice(
                             disease_states,
                             p=probabilities
@@ -165,6 +233,7 @@ class AgentDisease:
 
                 return disease_state, disease_state_time, do_calculate_max_time
 
+        # =====================================================================
         try:
             # Update disease state time
             df["disease_state_time"] = list(map(
@@ -204,14 +273,164 @@ class AgentDisease:
             return df
 
     @classmethod
-    def to_diagnose(
-        cls, df: DataFrame, disease_states: DiseaseStates,
+    def to_diagnose_agents(
+        cls, df: DataFrame, disease_groups: DiseaseStates,
         execmode: ExecutionModes = ExecutionModes.pandas
     ) -> DataFrame:
         """
             TODO
         """
-        pass
+        # =====================================================================
+        def diagnosis_function(
+            disease_state,
+            is_diagnosed,
+            disease_groups,
+            execmode
+        ):
+            """
+                TODO
+            """
+            if execmode == ExecutionModes.pandas:
+                if is_diagnosed:
+                    # is_diagnosed = True
+                    return is_diagnosed
+                else:
+                    # it is not diagnosed
+                    is_infected = disease_groups \
+                        .items[disease_state].is_infected
+                    if is_infected:
+                        # Agent can be diagnosed
+                        # Verify: is going to be diagnosed? ... Throw the dice
+                        dice = random_sample()
+
+                        be_diagnosed_prob = disease_groups \
+                            .items[disease_state] \
+                            .dist[DistTitles.diagnosis.value] \
+                            .sample()
+
+                        if dice <= be_diagnosed_prob:
+                            # Agent was diagnosed !!!
+                            is_diagnosed = True
+                            return is_diagnosed
+                    else:
+                        is_diagnosed = False
+                        return is_diagnosed
+
+        # =====================================================================
+        try:
+            if execmode == ExecutionModes.pandas:
+                df["is_diagnosed"] = df.apply(
+                    lambda row: diagnosis_function(
+                        row["disease_state"],
+                        row["is_diagnosed"],
+                        disease_groups,
+                        execmode
+                        ),
+                    axis=1
+                    )
+            else:
+                raise NotImplementedError(
+                    f"`execmode = {execmode}` is still not implemented yet"
+                    )
+        except Exception:
+            validation_list = ["disease_state", "is_diagnosed"]
+            check_field_existance(df, validation_list)
+        else:
+            return df
+
+    @classmethod
+    def to_isolate_agents(
+        cls, df: DataFrame, dt: float, disease_groups: DiseaseStates,
+        execmode: ExecutionModes = ExecutionModes.pandas
+    ) -> DataFrame:
+        """
+            TODO
+        """
+        # =====================================================================
+        def isolation_function(
+            disease_state,
+            is_diagnosed,
+            is_isolated,
+            isolation_time,
+            isolation_max_time,
+            disease_groups,
+            execmode
+        ):
+            """
+                TODO
+            """
+            # TODO
+            # Should we change positions for an isolated agent?
+            if execmode == ExecutionModes.pandas:
+                if not is_diagnosed:
+                    # is_diagnosed = False
+                    # do nothing
+                    return (is_diagnosed, is_isolated,
+                            isolation_time, isolation_max_time)
+                else:
+                    # it is diagnosed
+                    if is_isolated:
+                        # it is isolated
+                        if isolation_time >= isolation_max_time:
+                            # isolation must end
+                            isolation_time = None
+                            isolation_max_time = None
+                            is_isolated = False
+                            is_diagnosed = False
+
+                            return (is_diagnosed, is_isolated,
+                                    isolation_time, isolation_max_time)
+                        else:
+                            # do nothing
+                            return (is_diagnosed, is_isolated,
+                                    isolation_time, isolation_max_time)
+                    else:
+                        # How much time is going to be isolated?
+                        # ... Throw the dice
+                        isolation_days = disease_groups \
+                            .items[disease_state] \
+                            .dist[DistTitles.isolation_days.value] \
+                            .sample()
+
+                        # TODO
+                        # isolation_days --> isolation_time
+                        isolation_time = isolation_days
+
+                        return (is_diagnosed, is_isolated,
+                                isolation_time, isolation_max_time)
+
+        # =====================================================================
+        try:
+            # Update isolation time
+            df["isolation_time"] = list(map(
+                lambda t: t + df if t is not None else None,
+                df["isolation_time"]
+            ))
+
+            if execmode == ExecutionModes.pandas:
+                df[["is_diagnosed", "is_isolated", "isolation_time",
+                   "isolation_max_time"]] = df.apply(
+                    lambda row: isolation_function(
+                        row["disease_state"],
+                        row["is_diagnosed"],
+                        row["is_isolated"],
+                        row["isolation_time"],
+                        row["isolation_max_time"],
+                        disease_groups,
+                        execmode
+                        ),
+                    axis=1
+                    )
+            else:
+                raise NotImplementedError(
+                    f"`execmode = {execmode}` is still not implemented yet"
+                    )
+        except Exception:
+            validation_list = ["disease_state", "is_isolated", "is_diagnosed"
+                               "isolation_time", "isolation_max_time"]
+            check_field_existance(df, validation_list)
+        else:
+            return df
 
     # def update_hospitalization_state
 
@@ -223,10 +442,6 @@ class AgentDisease:
 
     # def update_alertness_state
 
-    # def quarantine_by_diagnosis
-
     # def quarantine_by_government_decrees
 
     # def init_columns
-
-    # def init_do_calculate_max_time
