@@ -18,6 +18,7 @@ class DistTitles(Enum):
     """
     susceptibility = "susceptibility_dist"
     mobility = "mobility_profile"
+    adherence = "adherence_prob"
     diagnosis = "diagnosis_prob"
     isolation_days = "isolation_days"
     hospitalization = "hospitalization_prob"
@@ -103,6 +104,46 @@ class MobilityGroups(SimpleDistGroups):
         """
         self.single_dist_title_validation(
             expected_dist_title=DistTitles.mobility.value
+            )
+        super().__post_init__()
+
+
+@dataclass
+class IsolationAdherenceGroups(SimpleDistGroups):
+    """
+        Dataclass used for wrapping Adherence groups
+
+        Attributes
+        ----------
+        dist_title : str
+            Distribution title. It must be equal to
+            `DistTitles.adherence`
+
+        group_info : list of dict
+            The list of different single group
+            information required to instantiate
+            a DistributionGroup.
+
+        items : dict
+            The dictionary created from the list `group_info`.
+            Each key of this dictionary corresponds to a single
+            group name.
+
+        See Also
+        --------
+        DistTitles : fundamental distribution titles
+
+        abmodel.models.base.SimpleDistGroups : Simple Distribution groups class
+    """
+    def __post_init__(self):
+        """
+            Validates `dist_title` to be equal to
+            `DistTitles.adherence` and then
+            performs `items` dictionary
+            assignment from `group_info` list.
+        """
+        self.single_dist_title_validation(
+            expected_dist_title=DistTitles.adherence.value
             )
         super().__post_init__()
 

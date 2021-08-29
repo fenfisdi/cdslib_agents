@@ -6,7 +6,8 @@ from pandas.core.series import Series
 
 from abmodel.utils.utilities import check_field_existance
 from abmodel.utils.utilities import std_str_join_cols
-from abmodel.models.disease import NaturalHistory, DiseaseStates, DistTitles
+from abmodel.models.disease import NaturalHistory, DiseaseStates
+from abmodel.models.disease import IsolationAdherenceGroups, DistTitles
 from abmodel.agent.execution_modes import ExecutionModes
 
 
@@ -235,13 +236,13 @@ class AgentDisease:
 
         # =====================================================================
         try:
-            # Update disease state time
-            df["disease_state_time"] = list(map(
-                lambda t: t + df if t is not None else None,
-                df["disease_state_time"]
-            ))
-
             if execmode == ExecutionModes.pandas:
+                # Update disease state time
+                df["disease_state_time"] = list(map(
+                    lambda t: t + df if t is not None else None,
+                    df["disease_state_time"]
+                ))
+
                 df[["disease_state", "disease_state_time",
                     "do_calculate_max_time"]] = df.apply(
                     lambda row: transition_function(
@@ -293,7 +294,8 @@ class AgentDisease:
             if execmode == ExecutionModes.pandas:
                 if is_diagnosed:
                     # is_diagnosed = True
-                    return is_diagnosed
+                    # do nothing
+                    pass
                 else:
                     # it is not diagnosed
                     is_infected = disease_groups \
@@ -311,10 +313,13 @@ class AgentDisease:
                         if dice <= be_diagnosed_prob:
                             # Agent was diagnosed !!!
                             is_diagnosed = True
-                            return is_diagnosed
+                        else:
+                            # Agent was not diagnosed
+                            # do nothing
+                            pass
                     else:
                         is_diagnosed = False
-                        return is_diagnosed
+                return is_diagnosed
 
         # =====================================================================
         try:
@@ -341,6 +346,8 @@ class AgentDisease:
     @classmethod
     def to_isolate_agents(
         cls, df: DataFrame, dt: float, disease_groups: DiseaseStates,
+        isolation_adherence_groups: Union[
+            IsolationAdherenceGroups, None] = None,
         execmode: ExecutionModes = ExecutionModes.pandas
     ) -> DataFrame:
         """
@@ -349,24 +356,49 @@ class AgentDisease:
         # =====================================================================
         def isolation_function(
             disease_state,
-            is_diagnosed,
-            is_isolated,
-            isolation_time,
-            isolation_max_time,
             disease_groups,
             execmode
         ):
             """
                 TODO
             """
-            # TODO
-            # Should we change positions for an isolated agent?
+            if execmode == ExecutionModes.pandas:
+                # How much time is going to be isolated?
+                # ... Throw the dice
+                isolation_days = disease_groups \
+                    .items[disease_state] \
+                    .dist[DistTitles.isolation_days.value] \
+                    .sample()
+
+                # TODO
+                # isolation_days --> isolation_time
+                isolation_max_time = isolation_days
+
+                isolation_time = 0.0
+                is_isolated = True
+
+            return is_isolated, isolation_time, isolation_max_time
+
+        # =====================================================================
+        def isolation_handler(
+            disease_state,
+            isolation_adherence_group,
+            is_diagnosed,
+            is_isolated,
+            isolation_time,
+            isolation_max_time,
+            disease_groups,
+            isolation_adherence_groups,
+            execmode
+        ):
+            """
+                TODO
+            """
             if execmode == ExecutionModes.pandas:
                 if not is_diagnosed:
                     # is_diagnosed = False
                     # do nothing
-                    return (is_diagnosed, is_isolated,
-                            isolation_time, isolation_max_time)
+                    pass
                 else:
                     # it is diagnosed
                     if is_isolated:
@@ -377,46 +409,72 @@ class AgentDisease:
                             isolation_max_time = None
                             is_isolated = False
                             is_diagnosed = False
-
-                            return (is_diagnosed, is_isolated,
-                                    isolation_time, isolation_max_time)
                         else:
+                            # isolation has not finished yet
                             # do nothing
-                            return (is_diagnosed, is_isolated,
-                                    isolation_time, isolation_max_time)
+                            pass
                     else:
-                        # How much time is going to be isolated?
-                        # ... Throw the dice
-                        isolation_days = disease_groups \
-                            .items[disease_state] \
-                            .dist[DistTitles.isolation_days.value] \
-                            .sample()
+                        # it is not isolated
+                        if isolation_adherence_groups is None:
+                            (is_isolated, isolation_time,
+                             isolation_max_time) = isolation_function(
+                                disease_state,
+                                disease_groups,
+                                execmode
+                            )
+                        else:
+                            # isolation_adherence_groups is not None
 
-                        # TODO
-                        # isolation_days --> isolation_time
-                        isolation_time = isolation_days
+                            # Does agent adhere to be isolated?
+                            # ... Throw the dice
+                            dice = random_sample()
 
-                        return (is_diagnosed, is_isolated,
-                                isolation_time, isolation_max_time)
+                            adherence_prob = isolation_adherence_groups.items[
+                                isolation_adherence_group
+                                ].dist[
+                                    DistTitles.adherence.value
+                                    ].sample()
+
+                            if dice <= adherence_prob:
+                                # Agent adheres to be isolated
+                                (is_isolated, isolation_time,
+                                 isolation_max_time) = isolation_function(
+                                    disease_state,
+                                    disease_groups,
+                                    execmode
+                                )
+                            else:
+                                # Agent doesn't adhere to be isolated
+                                # do nothing
+                                pass
+
+                return (is_diagnosed, is_isolated, isolation_time,
+                        isolation_max_time)
 
         # =====================================================================
         try:
-            # Update isolation time
-            df["isolation_time"] = list(map(
-                lambda t: t + df if t is not None else None,
-                df["isolation_time"]
-            ))
+            # TODO
+            # Should we change positions for an isolated agent?
 
             if execmode == ExecutionModes.pandas:
+                # Update isolation time
+                df["isolation_time"] = list(map(
+                    lambda t: t + df if t is not None else None,
+                    df["isolation_time"]
+                ))
+
                 df[["is_diagnosed", "is_isolated", "isolation_time",
                    "isolation_max_time"]] = df.apply(
-                    lambda row: isolation_function(
+                    lambda row: isolation_handler(
                         row["disease_state"],
+                        row["isolation_adherence_group"],
+                        row["isolation_adherence_group"],
                         row["is_diagnosed"],
                         row["is_isolated"],
                         row["isolation_time"],
                         row["isolation_max_time"],
                         disease_groups,
+                        isolation_adherence_groups,
                         execmode
                         ),
                     axis=1
@@ -426,13 +484,53 @@ class AgentDisease:
                     f"`execmode = {execmode}` is still not implemented yet"
                     )
         except Exception:
-            validation_list = ["disease_state", "is_isolated", "is_diagnosed"
-                               "isolation_time", "isolation_max_time"]
+            validation_list = ["disease_state", "isolation_adherence_group",
+                               "is_isolated", "is_diagnosed", "isolation_time",
+                               "isolation_max_time"]
             check_field_existance(df, validation_list)
         else:
             return df
 
-    # def update_hospitalization_state
+    @classmethod
+    def to_hospitalize_agents(
+        cls, df: DataFrame, dt: float, disease_groups: DiseaseStates,
+        execmode: ExecutionModes = ExecutionModes.pandas
+    ) -> DataFrame:
+        """
+            TODO
+        """
+        # =====================================================================
+        def hospitalization_function(
+
+        ):
+            """
+                TODO
+            """
+            # step 1: no is_hospitalized and disease_state has probability to
+            # be hospitalized
+
+            # step 2: is_hospitalized ... No matter if disease states changes
+            # or not ... Throw dice to see if agent still hospitalized
+
+            # step 3: if one agent cannot be hospitalized, see if it dies
+            # because of disease
+            pass
+
+        # =====================================================================
+        try:
+            if execmode == ExecutionModes.pandas:
+                pass
+            else:
+                raise NotImplementedError(
+                    f"`execmode = {execmode}` is still not implemented yet"
+                    )
+        except Exception:
+            validation_list = ["disease_state", "isolation_adherence_group",
+                               "is_isolated", "is_diagnosed", "isolation_time",
+                               "isolation_max_time"]
+            check_field_existance(df, validation_list)
+        else:
+            return df
 
     # def update_immunization_level
 

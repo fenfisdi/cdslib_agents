@@ -1,8 +1,8 @@
 from typing import Union, Any
 from dataclasses import dataclass, field
 from copy import deepcopy
-from munch import Munch
 
+from munch import Munch
 from pydantic import BaseModel
 
 from abmodel.utils.distributions import Distribution
