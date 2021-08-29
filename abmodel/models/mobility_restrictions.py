@@ -1,6 +1,7 @@
 from enum import Enum
 from typing import Optional, Any
 from datetime import datetime
+
 from pydantic import BaseModel, root_validator
 
 from abmodel.models.base import SimpleGroups

@@ -230,7 +230,6 @@ class AgentMovement:
             and standard deviation equals to `angle_variance`.
 
             ... TODO: insert explanatory image
-
         """
         def change_velocities(df, angle_variance):
             """

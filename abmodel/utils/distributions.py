@@ -1,25 +1,9 @@
 from time import time
-from enum import Enum
-from typing import Union
+from typing import Union, Literal
 
-from numpy import abs, genfromtxt, ndarray, random, ones
+from pydantic import validate_arguments
+from numpy import abs, genfromtxt, ndarray, random, ones, full
 from sklearn.neighbors import KernelDensity
-
-
-class DistTypes(Enum):
-    """
-        This class enumerates the available `Distribution`
-        types: `dist_type`.
-
-        See Also
-        --------
-        Distribution
-    """
-    null = "null"
-    constant = "constant"
-    empirical = "empirical"
-    weights = "weights"
-    numpy = "numpy"
 
 
 class Distribution:
@@ -28,7 +12,11 @@ class Distribution:
 
         It computes random numbers from a probability density distribution.
     """
-    def __init__(self, dist_type: str, constant: float = 0.0,
+    @validate_arguments
+    def __init__(self,
+                 dist_type: Literal[None, 'constant', 'empirical', 'weights',
+                                    'numpy'],
+                 constant: float = 0.0,
                  filename: str = "", dist_name: str = "", **kwargs):
         """
             Constructor of Distribution class.
@@ -38,7 +26,10 @@ class Distribution:
 
             Parameters
             ----------
-            dist_type : {'constant', 'empirical', 'weights', 'numpy'}
+            dist_type : {None, 'constant', 'empirical', 'weights', 'numpy'}
+
+                None : it allows a `Distribution` object to be set in such
+                        way that it always return None.
 
                 'constant' : it numerically implements a "Dirac delta"
                     function, i.e. all points will have the same value
@@ -90,7 +81,11 @@ class Distribution:
         self.seed = int(time())
 
         try:
-            if self.dist_type == "constant":
+            if self.dist_type is None:
+                # Allows a `Distribution` object set to None
+                self.constant = None
+
+            elif self.dist_type == "constant":
                 # "Dirac delta"-like function
                 self.constant = constant
 
@@ -138,7 +133,7 @@ class Distribution:
             else:
                 raise ValueError(
                     "'dist_type' is not in "
-                    "{'constant', 'empirical', 'weights', 'numpy'}"
+                    "{None, 'constant', 'empirical', 'weights', 'numpy'}"
                     )
 
         except Exception as error:
@@ -147,6 +142,7 @@ class Distribution:
                 message="Error initializing distribution."
                 )
 
+    @validate_arguments
     def sample(self, size: int = 1) -> Union[ndarray, int, float]:
         """
             Compute random sampling using the defined distribution.
@@ -165,7 +161,11 @@ class Distribution:
             ------
             SystemError
         """
-        if self.dist_type == "constant":
+        if self.dist_type is None:
+            # Always return None
+            samples = full(size, self.constant)
+
+        elif self.dist_type == "constant":
             # "Dirac delta"-like function
             samples = self.constant*ones(size)
         elif self.dist_type == "empirical":
@@ -210,6 +210,7 @@ class Distribution:
         else:
             return samples
 
+    @validate_arguments
     def sample_positive(self, size: int = 1) -> Union[ndarray, int]:
         """
             Compute one random sample using the defined distribution,
@@ -225,6 +226,7 @@ class Distribution:
         """
         return abs(self.sample(size))
 
+    @validate_arguments(config={"arbitrary_types_allowed": True})
     def manage_exception(self, exception: Exception, message: str):
         """
             Internal function for managing exceptions
