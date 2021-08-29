@@ -1,35 +1,48 @@
 # CDSLib - Agents
 
-Welcome to the Agent Based Model of the Contagious Disease Simulation Library
+Welcome to **CDSLib - Agents** package.
 
 ![repo_logo](./images/CDSLib_agents_white-background.png "CDSLib - Agents Logo")
 
 ## Description
 
-The model consists of a heterogeneous population of agents following rules of behavior that determine their movement and the evolution of their infectious and clinical states.
+As part of the **Contagious Disease Simulation Library**, the
+**CDSLib - Agents** package is intended to be used for modelling and simulating
+contagious diseases using Agent-Based Models and it has been used for the development
+of the [Contagious Disease Simulation Laboratory](https://github.com/fenfisdi/cdslab).
 
-Agents are able to move in a bidemensional space following a distribution of velocities based on population data. Every agent is in one out of many infective and clinical states set by the user, they may be as simple as susceptible, infected and recovered or, more states may be added according to user specification i.e. hospitalized, severe, latent, etc.
+The package consists of different implementations of a heterogeneous population
+of agents following rules of behavior that determine their movement and the evolution
+of their infectious and clinical states.
 
-## Features
+The current implementation allows Agents to move in a bidemensional space following
+a distribution of velocities based on population data. This can be achieved thanks to
+the inclusion Distribution module which is a wrapper for different tools that provides
+distribution-like function support.
 
-### Agent heterogeneity
+In regards to the disease states, the current implementation also allows the user to
+add as much states as preferred, and to create custom natural history of the disease
+(i.e. the design a custom graph for evolution of disease states).
 
-Agents represent a population of individuals with different age and comorbidity
-
-### Agent motion and velocity
-The initial position of agents in space is randomly distributed. Initial velocity is set according to a distribution of velocities based on population data. In every time step, agent velocity changes according to a function that assigns high probability to velocities neighboring initial velocity 
-
-### Clinical states
-
-
-
-
-## Running the model
-
-## Deployment
+For more information, please refer to the official documentation of the project.
 
 ## Contributors
 
-We want to give special thanks to Camilo Hincapié and Lina Ruiz who has been working on this model continuously. Partial results has been presented in the Americans' Network for Chronic Disease Surveillance (AMNET)
+We want to give special thanks to
+[Camilo Hincapié](https://www.linkedin.com/in/camilo-hincapie-gutierrez/)
+and [Ian Mejía](https://www.linkedin.com/in/ian-mejia-61aaa220b/) for their constant
+work on this project, and [Carolina Rojas Duque](https://github.com/carolinarojasd)
+for her colaboration on tests development.
 
-## License (?)
+Finally, we want to thank Lina Ruiz for the conceptual suggestions she provided in
+order to help to specify the package.
+
+## Contact us
+
+For any suggestion on the development of this type of models, please our official
+channels of [dicussions](https://github.com/fenfisdi/cdslib_agents/discussions)
+provided by GitHub.
+
+## License
+
+[GNU General Public License v3 (GPLv3)](./LICENSE)
