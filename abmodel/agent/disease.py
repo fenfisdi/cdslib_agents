@@ -468,7 +468,6 @@ class AgentDisease:
                     lambda row: isolation_handler(
                         row["disease_state"],
                         row["isolation_adherence_group"],
-                        row["isolation_adherence_group"],
                         row["is_diagnosed"],
                         row["is_isolated"],
                         row["isolation_time"],
