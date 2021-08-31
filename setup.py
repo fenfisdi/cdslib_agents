@@ -13,6 +13,7 @@ setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/fenfisdi/cdslib_agents',
+    download_url='https://github.com/fenfisdi/cdslib_agents/archive/refs/tags/0.1.0-pre-alpha.tar.gz',
     author='Camilo Hincapié Gutiérrez',
     author_email='camilo.hincapie@udea.edu.co',
     license='GNU General Public License v3 (GPLv3)',
