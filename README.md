@@ -2,7 +2,7 @@
 
 Welcome to **CDSLib - Agents** package.
 
-![repo_logo](https://github.com/fenfisdi/cdslib_agents/blob/dev/images/CDSLib_agents_white-background.png "CDSLib - Agents Logo")
+![repo_logo](https://raw.githubusercontent.com/fenfisdi/cdslib_agents/dev/images/CDSLib_agents_white-background.png "CDSLib - Agents Logo")
 
 ## Description
 
