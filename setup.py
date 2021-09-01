@@ -18,9 +18,9 @@ setup(
     author_email='camilo.hincapie@udea.edu.co',
     license='GNU General Public License v3 (GPLv3)',
     classifiers=[
-        'Development Status :: 1 - Planning',
-        'Framework :: CDSLib',
+        'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Science/Research',
+        'Intended Audience :: Healthcare Industry',
         'Intended Audience :: Education',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
@@ -31,7 +31,7 @@ setup(
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: Implementation :: CPython',
         'Topic :: Education',
-        'Topic :: Scientific/Engineering :: Medical Science Apps',
+        'Topic :: Scientific/Engineering :: Medical Science Apps.',
         'Topic :: Software Development',
         'Topic :: Software Development :: Libraries'
         ],
@@ -48,9 +48,10 @@ setup(
     install_requires=[
         'numpy>=1.20.2',
         'pandas>=1.2.4',
-        'sklearn>=0.24.2',
+        'scikit-learn>=0.24.2',
         'pydantic>=1.8.2',
         'munch>=2.5.0'
         ],
+    setup_requires=['wheel'],
     zip_safe=False
     )
