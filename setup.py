@@ -6,14 +6,14 @@ with open('README.md', 'r') as readme_file:
 
 setup(
     name='cdslib_agents',
-    version='0.0.2-prealpha',
+    version='0.0.2-pre1',
     maintainer='Developers of the CDS team of FEnFiSDi group',
     maintainer_email='camilo.hincapie@udea.edu.co',
     description='Contagious diseases simulation using Agent-Based Models',
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/fenfisdi/cdslib_agents',
-    download_url='https://github.com/fenfisdi/cdslib_agents/archive/refs/tags/0.1.0-pre-alpha.tar.gz',
+    download_url='https://github.com/fenfisdi/cdslib_agents/archive/refs/tags/0.0.2-pre1.tar.gz',
     author='Camilo Hincapié Gutiérrez',
     author_email='camilo.hincapie@udea.edu.co',
     license='GNU General Public License v3 (GPLv3)',
