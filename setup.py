@@ -6,7 +6,7 @@ with open('README.md', 'r') as readme_file:
 
 setup(
     name='cdslib_agents',
-    version='0.0.2-prealpha',
+    version='0.0.2-pre1',
     maintainer='Developers of the CDS team of FEnFiSDi group',
     maintainer_email='camilo.hincapie@udea.edu.co',
     description='Contagious diseases simulation using Agent-Based Models',
