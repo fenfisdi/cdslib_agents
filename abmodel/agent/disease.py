@@ -1,5 +1,7 @@
 from typing import Union
+from copy import deepcopy
 
+from numpy import where, full, ndarray
 from numpy.random import choice, random_sample
 from pandas.core.frame import DataFrame
 from pandas.core.series import Series
@@ -8,6 +10,7 @@ from abmodel.utils.utilities import check_field_existance
 from abmodel.utils.utilities import std_str_join_cols
 from abmodel.models.disease import NaturalHistory, DiseaseStates
 from abmodel.models.disease import IsolationAdherenceGroups, DistTitles
+from abmodel.models.health_system import HealthSystem
 from abmodel.agent.execution_modes import ExecutionModes
 
 
@@ -493,31 +496,69 @@ class AgentDisease:
     @classmethod
     def to_hospitalize_agents(
         cls, df: DataFrame, dt: float, disease_groups: DiseaseStates,
+        health_system: HealthSystem,
         execmode: ExecutionModes = ExecutionModes.pandas
     ) -> DataFrame:
         """
             TODO
         """
         # =====================================================================
-        def hospitalization_function(
-
+        def hospitalization_vectorized(
+            disease_states_vec,
+            is_hospitalized_vec: ndarray,
+            health_system
         ):
             """
-                TODO
+                # step 1: no is_hospitalized and disease_state has probability to
+                # be hospitalized
+
+                # step 2: is_hospitalized ... No matter if disease states changes
+                # or not ... Throw dice to see if agent still hospitalized
+
+                # step 3: if one agent cannot be hospitalized, see if it dies
+                # because of disease
             """
-            # step 1: no is_hospitalized and disease_state has probability to
-            # be hospitalized
+            # Get former is_hospitalized info
+            agents_number = len(is_hospitalized_vec)
 
-            # step 2: is_hospitalized ... No matter if disease states changes
-            # or not ... Throw dice to see if agent still hospitalized
+            former_is_hospitalized = deepcopy(is_hospitalized_vec)
 
-            # step 3: if one agent cannot be hospitalized, see if it dies
-            # because of disease
-            pass
+            former_hospitalized_number = len(
+                where(is_hospitalized_vec == False)[0]
+                )
+
+            # Verify: is going to be hospitalized? ... Throw the dice
+            # Do it for all the agents
+            dice = random_sample(agents_number)
+
+            hospitalization_prob = [
+                disease_groups
+                .items[disease_state]
+                .dist[DistTitles.hospitalization.value]
+                .sample()
+                for disease_state in disease_states_vec
+                ]
+
+            # if dice <= hospitalization_prob
+            # agent should be hospitalized
+            is_hospitalized_vec = where(
+                dice <= hospitalization_prob,
+                full(len(is_hospitalized_vec, True)),
+                full(len(is_hospitalized_vec, False)),
+            )
+
+            new_hospitalized_number = len(
+                where(is_hospitalized_vec == False)[0]
+                )
+
+            if new_hospitalized_number <= health_system.hospital_capacity:
+                return is_hospitalized_vec
+            else:
+                pass
 
         # =====================================================================
         try:
-            if execmode == ExecutionModes.pandas:
+            if execmode == ExecutionModes.vectorized:
                 pass
             else:
                 raise NotImplementedError(
