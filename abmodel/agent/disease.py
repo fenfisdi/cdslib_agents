@@ -1,7 +1,7 @@
 from typing import Union
 from copy import deepcopy
 
-from numpy import where, full, ndarray
+from numpy import where, full, ndarray, isin, concatenate
 from numpy.random import choice, random_sample
 from pandas.core.frame import DataFrame
 from pandas.core.series import Series
@@ -504,31 +504,103 @@ class AgentDisease:
         """
         # =====================================================================
         def hospitalization_vectorized(
-            disease_states_vec,
-            is_hospitalized_vec: ndarray,
-            health_system
+            disease_states: ndarray,
+            is_hospitalized: ndarray,
+            is_in_ICU: ndarray,
+            health_system: HealthSystem
         ):
             """
-                # step 1: no is_hospitalized and disease_state has probability to
-                # be hospitalized
+                # step 1: no is_hospitalized and disease_state has probability
+                # to be hospitalized
 
-                # step 2: is_hospitalized ... No matter if disease states changes
-                # or not ... Throw dice to see if agent still hospitalized
+                # step 2: is_hospitalized ... No matter if disease states
+                # changes or not ... Throw dice to see if agent still
+                # hospitalized
 
                 # step 3: if one agent cannot be hospitalized, see if it dies
                 # because of disease
             """
             # Get former is_hospitalized info
-            agents_number = len(is_hospitalized_vec)
+            agents_number = len(is_hospitalized)
 
-            former_is_hospitalized = deepcopy(is_hospitalized_vec)
+            # Please be aware that if an agent is in ICU, then it must be
+            # hospitalized too
+            former_is_hospitalized = deepcopy(is_hospitalized)
+            former_is_in_ICU = deepcopy(is_in_ICU)
 
-            former_hospitalized_number = len(
-                where(is_hospitalized_vec == False)[0]
+            # ICU state has higher priority
+            # Verify: is going to be in ICU or remains in ICU?
+            # ... Throw the dice ... Do it for all the agents
+            dice = random_sample(agents_number)
+
+            ICU_prob = [
+                disease_groups
+                .items[disease_state]
+                .dist[DistTitles.icu_prob.value]
+                .sample()
+                for disease_state in disease_states
+                ]
+
+            # if dice <= ICU_prob
+            # agent should be in ICU
+            is_in_ICU = where(
+                dice <= ICU_prob,
+                full(agents_number, True),
+                full(agents_number, False)
                 )
 
-            # Verify: is going to be hospitalized? ... Throw the dice
-            # Do it for all the agents
+            new_in_ICU_number = len(
+                where(is_in_ICU == False)[0]
+                )
+
+            if new_in_ICU_number > health_system.ICU_capacity:
+                # Health system got overloaded in ICU
+                # Some agents are susceptible to die
+                # 1. Those agents that were in ICU before, should remain in ICU
+                # 2. New agents in ICU, must throw the dice to see who dies
+                # or who survives.
+
+                # NOTE: if on the contrary, health system still having
+                # ICU capacity, then this ICU vacancy can be used for
+                # hospitalization if the health system gets overloaded
+                # for hospitalization, in other words, hospitalization
+                # vacancy includes ICU vancacy, but the contrary doesn't hold.
+                # This is simulated enabling that those in ICU are also
+                # hospitalized
+
+                completely_new_in_ICU = where(
+                    (is_in_ICU == True) & (former_is_in_ICU == False)
+                    )[0]
+
+                must_die_number = new_in_ICU_number \
+                    - health_system.ICU_capacity
+
+                # Update new_in_ICU_number
+                new_in_ICU_number = health_system.ICU_capacity
+
+                must_die = choice(
+                    completely_new_in_ICU,
+                    sice=must_die_number,
+                    replace=False
+                    )
+
+                # Update disease state of those that died
+                # TODO
+
+                is_in_ICU_False = where(is_in_ICU == False)[0]
+                is_in_ICU_True = where(is_in_ICU == True)[0]
+
+                new_is_in_ICU_False = concatenate([is_in_ICU_False, must_die])
+                mask = isin(is_in_ICU_True, must_die, invert=True)
+                new_is_in_ICU_True = is_in_ICU_True[mask]
+
+                # Update values
+                is_in_ICU[new_is_in_ICU_False] = False
+                is_in_ICU[new_is_in_ICU_True] = True
+
+            # Next step is to change hospitalization state
+            # Verify: is going to be hospitalized or remains hospitalized?
+            # ... Throw the dice ... Do it for all the agents
             dice = random_sample(agents_number)
 
             hospitalization_prob = [
@@ -536,25 +608,98 @@ class AgentDisease:
                 .items[disease_state]
                 .dist[DistTitles.hospitalization.value]
                 .sample()
-                for disease_state in disease_states_vec
+                for disease_state in disease_states
                 ]
 
             # if dice <= hospitalization_prob
             # agent should be hospitalized
-            is_hospitalized_vec = where(
+            is_hospitalized = where(
                 dice <= hospitalization_prob,
-                full(len(is_hospitalized_vec, True)),
-                full(len(is_hospitalized_vec, False)),
-            )
-
-            new_hospitalized_number = len(
-                where(is_hospitalized_vec == False)[0]
+                full(agents_number, True),
+                full(agents_number, False)
                 )
 
-            if new_hospitalized_number <= health_system.hospital_capacity:
-                return is_hospitalized_vec
-            else:
-                pass
+            # Merge this new is_hospitalized with those
+            # new hospitalized due to ICU
+            # Remember that those in ICU are also hospitalized
+            is_hospitalized = where(
+                (is_hospitalized == False) & (is_in_ICU == True),
+                full(agents_number, True),
+                is_hospitalized
+                )
+
+            new_hospitalized_number = len(
+                where(is_hospitalized == False)[0]
+                )
+
+            if new_hospitalized_number > health_system.hospital_capacity:
+                # Health system got overloaded in hospital vacancy
+                # Some agents are susceptible to die
+                # 1. ICU has higher priority. Those agents that are in ICU,
+                # should remain in ICU
+                # 2. New hospitalized agents, that are not in ICU, must throw
+                # the dice to see who dies or who survives.
+                completely_new_hospitalized_not_in_ICU = where(
+                    (is_hospitalized == True) & (is_in_ICU == False)
+                    & (former_is_hospitalized == False)
+                    )[0]
+
+                susceptible_to_die_number = len(
+                    completely_new_hospitalized_not_in_ICU
+                    )
+
+                must_die_number = new_hospitalized_number \
+                    - health_system.hospital_capacity
+
+                if must_die_number < susceptible_to_die_number:
+                    must_die = choice(
+                        completely_new_hospitalized_not_in_ICU,
+                        sice=must_die_number,
+                        replace=False
+                        )
+                elif susceptible_to_die_number == must_die_number:
+                    must_die = completely_new_hospitalized_not_in_ICU
+                else:
+                    # must_die_number > susceptible_to_die_number
+                    # The surplus of must die number forces us to include the
+                    # possibility that some former hospitalized not in UCI have
+                    # died
+                    must_die_number_surplus = must_die_number \
+                        - susceptible_to_die_number
+
+                    remain_hospitalized_but_not_in_ICU = where(
+                        (is_hospitalized == True) & (is_in_ICU == False)
+                        & (former_is_hospitalized == True)
+                        )[0]
+
+                    must_die_surplus = choice(
+                        remain_hospitalized_but_not_in_ICU,
+                        sice=must_die_number_surplus,
+                        replace=False
+                        )
+
+                    must_die = concatenate([
+                        must_die_surplus,
+                        completely_new_hospitalized_not_in_ICU
+                    ])
+
+                    # Update disease state of those that died
+                    # TODO
+
+                    is_hospitalized_False = where(is_hospitalized == False)[0]
+                    is_hospitalized_True = where(is_hospitalized == True)[0]
+
+                    new_is_hospitalized_False = concatenate([
+                        is_hospitalized_False, must_die
+                        ])
+                    mask = isin(is_hospitalized_True, must_die, invert=True)
+                    new_is_hospitalized_True = is_hospitalized_True[mask]
+
+                    # Update values
+                    is_hospitalized[new_is_hospitalized_False] = False
+                    is_hospitalized[new_is_hospitalized_True] = True
+
+            return is_hospitalized, is_in_ICU, disease_states
 
         # =====================================================================
         try:
