@@ -1,7 +1,7 @@
 from typing import Union
 from copy import deepcopy
 
-from numpy import where, full, ndarray, isin, concatenate
+from numpy import where, full, ndarray, isin, concatenate, setdiff1d
 from numpy.random import choice, random_sample
 from pandas.core.frame import DataFrame
 from pandas.core.series import Series
@@ -275,6 +275,94 @@ class AgentDisease:
             check_field_existance(df, validation_list)
         else:
             return df
+
+    @classmethod
+    def disease_state_transition_by_contagion(
+        cls, df: DataFrame, dt: float, natural_history: NaturalHistory, step: int,
+        disease_states: DiseaseStates,
+        execmode: ExecutionModes = ExecutionModes.pandas
+    ) -> DataFrame:
+
+        def transition_function(
+            key,
+            natural_history,
+            execmode,
+            spatial_trees_by_disease_state,
+            agents_indices_by_disease_state
+        ) -> tuple[
+            Union[str, Series],
+            Union[float, Series],
+            Union[bool, Series]:
+        ]:
+            if execmode == ExecutionModes.pandas:
+                # Set False the flag that forces to calculate
+                # disease state max time. It is going to be change to True
+                # if disease state changes
+                do_calculate_max_time = False
+    
+           
+            if disease_states.labels['can_get_infected']:
+                """
+                # Retrieve agent location
+                # List to save who infected the agent
+                TODO
+                """
+                agent_location=[]
+                infected_by = []
+
+                for disease_state in disease_states.labels:
+
+                    if (disease_state['can_spread'] 
+                    and spatial_trees_by_disease_state[disease_state]):
+
+                        points_inside_radius = \
+                        spatial_trees_by_disease_state[disease_state].query_ball_point(
+                            agent_location, disease_state['spread_radius']
+                            )
+
+                        spreaders_indices_inside_radius = \
+                            agents_indices_by_disease_state[
+                                disease_state][points_inside_radius]   
+
+                        # If self.agent in spreaders_indices_inside_radius,
+                        # then remove it
+                        if cls.agent in spreaders_indices_inside_radius:
+                            
+                            spreaders_indices_inside_radius = setdiff1d(
+                            spreaders_indices_inside_radius,
+                            cls.agent
+                            )
+                        joint_probability = \
+                        (1.0 - cls.immunization_level) \
+                        * cls.contagion_probabilities_by_susceptibility_groups[
+                            cls.susceptibility_group] \
+                        * disease_states['spread_probability']
+
+                        for spreader_agent_index in spreaders_indices_inside_radius:
+
+                            dice = random_sample()
+
+                            if dice <= joint_probability:
+                                # Got infected !!!
+                                # Save who infected the agent
+                                infected_by.append(spreader_agent_index)
+
+                    if len(infected_by) is not 0:
+
+                        infected_by = infected_by
+                        infected_in_step = step
+                        cls.infected_info[step] = infected_by
+
+                        dice = random_sample()
+
+                        cummulative_probability = 0. + cls.immunization_level
+
+                            
+
+
+
+
+            
 
     @classmethod
     def to_diagnose_agents(
@@ -717,6 +805,7 @@ class AgentDisease:
         else:
             return df
 
+    
     # def update_immunization_level
 
     # def disease_state_transition_by_contagion
