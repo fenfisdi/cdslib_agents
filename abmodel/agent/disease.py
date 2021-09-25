@@ -822,51 +822,6 @@ class AgentDisease:
 
                         cummulative_probability = 0. + cls.immunization_level
 
-                    if (disease_state['can_spread'] 
-                    and spatial_trees_by_disease_state[disease_state]):
-
-                        points_inside_radius = \
-                        spatial_trees_by_disease_state[disease_state].query_ball_point(
-                            agent_location, disease_state['spread_radius']
-                            )
-
-                        spreaders_indices_inside_radius = \
-                            agents_indices_by_disease_state[
-                                disease_state][points_inside_radius]   
-
-                        # If self.agent in spreaders_indices_inside_radius,
-                        # then remove it
-                        if cls.agent in spreaders_indices_inside_radius:
-                            
-                            spreaders_indices_inside_radius = setdiff1d(
-                            spreaders_indices_inside_radius,
-                            cls.agent
-                            )
-                        joint_probability = \
-                        (1.0 - cls.immunization_level) \
-                        * cls.contagion_probabilities_by_susceptibility_groups[
-                            cls.susceptibility_group] \
-                        * disease_states['spread_probability']
-
-                        for spreader_agent_index in spreaders_indices_inside_radius:
-
-                            dice = random_sample()
-
-                            if dice <= joint_probability:
-                                # Got infected !!!
-                                # Save who infected the agent
-                                infected_by.append(spreader_agent_index)
-
-                    if len(infected_by) is not 0:
-
-                        infected_by = infected_by
-                        infected_in_step = step
-                        cls.infected_info[step] = infected_by
-
-                        dice = random_sample()
-
-                        cummulative_probability = 0. + cls.immunization_level
-
     # def update_alertness_state
 
     # def update_immunization_level
