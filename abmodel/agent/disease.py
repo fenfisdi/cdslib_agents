@@ -24,6 +24,7 @@ class AgentDisease:
         execmode: ExecutionModes = ExecutionModes.pandas
     ) -> DataFrame:
         """
+            TODO
         """
         try:
             if execmode == ExecutionModes.pandas:
@@ -55,6 +56,7 @@ class AgentDisease:
         execmode: ExecutionModes = ExecutionModes.pandas
     ) -> DataFrame:
         """
+            TODO
         """
         # =====================================================================
         def init_calculate_max_time(
@@ -63,6 +65,7 @@ class AgentDisease:
             execmode
         ) -> Union[bool, Series]:
             """
+                TODO
             """
             if execmode == ExecutionModes.pandas:
                 dist_type = natural_history.items[key] \
@@ -242,7 +245,7 @@ class AgentDisease:
             if execmode == ExecutionModes.pandas:
                 # Update disease state time
                 df["disease_state_time"] = list(map(
-                    lambda t: t + df if t is not None else None,
+                    lambda t: t + dt if t is not None else None,
                     df["disease_state_time"]
                 ))
 
@@ -462,7 +465,7 @@ class AgentDisease:
             if execmode == ExecutionModes.pandas:
                 # Update isolation time
                 df["isolation_time"] = list(map(
-                    lambda t: t + df if t is not None else None,
+                    lambda t: t + dt if t is not None else None,
                     df["isolation_time"]
                 ))
 
@@ -495,21 +498,25 @@ class AgentDisease:
 
     @classmethod
     def to_hospitalize_agents(
-        cls, df: DataFrame, dt: float, disease_groups: DiseaseStates,
-        health_system: HealthSystem,
-        execmode: ExecutionModes = ExecutionModes.pandas
+        cls, df: DataFrame, dead_disease_group: str,
+        disease_groups: DiseaseStates, health_system: HealthSystem,
+        execmode: ExecutionModes = ExecutionModes.vectorized
     ) -> DataFrame:
         """
             TODO
         """
         # =====================================================================
         def hospitalization_vectorized(
-            disease_states: ndarray,
             is_hospitalized: ndarray,
             is_in_ICU: ndarray,
+            disease_states: ndarray,
+            is_dead: ndarray,
+            dead_disease_group: str,
+            disease_groups: DiseaseStates,
             health_system: HealthSystem
         ):
             """
+                TODO
                 # step 1: no is_hospitalized and disease_state has probability
                 # to be hospitalized
 
@@ -585,7 +592,7 @@ class AgentDisease:
                     )
 
                 # Update disease state of those that died
-                # TODO
+                disease_states[must_die] = dead_disease_group
 
                 is_in_ICU_False = where(is_in_ICU == False)[0]
                 is_in_ICU_True = where(is_in_ICU == True)[0]
@@ -684,7 +691,8 @@ class AgentDisease:
                     ])
 
                     # Update disease state of those that died
-                    # TODO
+                    disease_states[must_die] = dead_disease_group
+                    # TODO: ADD is_dead
 
                     is_hospitalized_False = where(is_hospitalized == False)[0]
                     is_hospitalized_True = where(is_hospitalized == True)[0]
@@ -699,31 +707,40 @@ class AgentDisease:
                     is_hospitalized[new_is_hospitalized_False] = False
                     is_hospitalized[new_is_hospitalized_True] = True
 
+            # TODO
+            # Should we change positions for hospitalized agents?
+
             return is_hospitalized, is_in_ICU, disease_states
 
         # =====================================================================
         try:
             if execmode == ExecutionModes.vectorized:
-                pass
+                df[["is_hospitalized", "is_in_ICU",
+                   "disease_states", "is_dead"]] = hospitalization_vectorized(
+                    df["is_hospitalized"],
+                    df["is_in_ICU"],
+                    df["disease_states"],
+                    df["is_dead"],
+                    dead_disease_group,
+                    disease_groups,
+                    health_system
+                    )
             else:
                 raise NotImplementedError(
                     f"`execmode = {execmode}` is still not implemented yet"
                     )
         except Exception:
-            validation_list = ["disease_state", "isolation_adherence_group",
-                               "is_isolated", "is_diagnosed", "isolation_time",
-                               "isolation_max_time"]
+            validation_list = ["disease_state", "is_in_ICU", "disease_states",
+                               "is_dead"]
             check_field_existance(df, validation_list)
         else:
             return df
 
+    # def update_alertness_state
+
     # def update_immunization_level
 
     # def disease_state_transition_by_contagion
-
-    # def trace_neighbors
-
-    # def update_alertness_state
 
     # def quarantine_by_government_decrees
 
