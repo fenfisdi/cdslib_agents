@@ -26,6 +26,14 @@ add as much states as preferred, and to create custom natural history of the dis
 
 For more information, please refer to the official documentation of the project.
 
+## Testing
+
+All the test were developed with the python tool pytest. To see them properly, type 
+in the command line: pytest -s -v <name_of_test>
+
+For modify the initial conditions of the test, use the fixtures methods at the beggining 
+of all the tests files.
+
 ## Contributors
 
 We want to give special thanks to
