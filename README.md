@@ -29,14 +29,40 @@ For more information, please refer to the official documentation of the project.
 ## Testing
 
 All the test were developed with the python tool pytest. To see them properly, type 
-in the command line: pytest -s -v <name_of_test>
+in the command line: 
+
+`$ pytest -s -v <name_of_test>`
+
+During test execution with pytest, any output sent to stdout and stderr is 
+[captured](https://docs.pytest.org/en/6.2.x/capture.html). the `-s` flag  
+disable all capturing and let the user look at all the outputs, this is very 
+important because the description of all test were typed in the docstring of each method.
+
+The `-v` flag indicate to pytest run in [verbosity](https://docs.pytest.org/en/latest/how-to/output.html) 
+mode, this control all the pytest outputs.
+
+If you want to run all the test at the same time, you must be inside of `abmodel/tests`, 
+and type in the command line:
+
+`$ pytest -s -v`
+
+For more information about [pytest flags](https://docs.pytest.org/en/6.2.x/usage.html).
 
 For modify the initial conditions of the test, use the fixtures methods at the beggining 
 of all the tests files.
 
+For a [short test summary info](https://docs.pytest.org/en/6.2.x/usage.html#detailed-summary-report), 
+type in the command line:
+
+`$ pytest -r`
+
+Typing flags using pytest might be tedious, however, it is possible modify the `pytest.init` file for 
+[change defaulting command line options](https://docs.pytest.org/en/6.2.x/example/simple.html#how-to-change-command-line-options-defaults).
+
 ## How to contribute
 
 Please review our [contributing document](https://github.com/fenfisdi/cdslab/blob/main/contributing.md)
+
 
 ## Contributors
 
