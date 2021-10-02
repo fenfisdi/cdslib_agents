@@ -34,6 +34,10 @@ in the command line: pytest -s -v <name_of_test>
 For modify the initial conditions of the test, use the fixtures methods at the beggining 
 of all the tests files.
 
+## How to contribute
+
+Please review our [contributing document](https://github.com/fenfisdi/cdslab/blob/main/contributing.md)
+
 ## Contributors
 
 We want to give special thanks to
