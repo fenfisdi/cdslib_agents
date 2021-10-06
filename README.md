@@ -28,41 +28,52 @@ For more information, please refer to the official documentation of the project.
 
 ## Testing
 
-All the test were developed with the python tool pytest. To see them properly, type 
-in the command line: 
+All tests were developed with the python tool pytest.
 
-`$ pytest -s -v <name_of_test>`
+During test execution with pytest, any output sent to stdout and stderr is
+[captured](https://docs.pytest.org/en/6.2.x/capture.html). The `-s` flag disables
+all capturing and lets the user looks at all the outputs, this is very important
+because the description of all the tests were typed in the docstring of each method
+of the class.
 
-During test execution with pytest, any output sent to stdout and stderr is 
-[captured](https://docs.pytest.org/en/6.2.x/capture.html). the `-s` flag  
-disable all capturing and let the user look at all the outputs, this is very 
-important because the description of all test were typed in the docstring of each method.
+The `-v` flag indicates to pytest run in [verbosity](https://docs.pytest.org/en/latest/how-to/output.html)
+mode. This controls all the pytest outputs. On the other hand, `-rA` flag, displays
+a [“short test summary info”](https://docs.pytest.org/en/6.2.x/usage.html#detailed-summary-report)
+at the end of the test session.
 
-The `-v` flag indicate to pytest run in [verbosity](https://docs.pytest.org/en/latest/how-to/output.html) 
-mode, this control all the pytest outputs.
+Typing flags using pytest might be tedious, however, it is possible to make and
+modify a `pytest.init` file. This allows adopts as many flags as you want.
+[change default command-line options](https://docs.pytest.org/en/6.2.x/example/simple.html#how-to-change-command-line-options-defaults).
+In the `abmodel/tests` directory, you will find this file. In our case, it was
+adopted the flags: `-v`, `-s`, `--no-header` and `-rs`, therefore, to run a test
+it is only necessary type in the command-line:
 
-If you want to run all the test at the same time, you must be inside of `abmodel/tests`, 
-and type in the command line:
-
-`$ pytest -s -v`
+```python
+$ pytest <name_of_the_test_file.py>
+```
 
 For more information about [pytest flags](https://docs.pytest.org/en/6.2.x/usage.html).
 
-For modify the initial conditions of the test, use the fixtures methods at the beggining 
-of all the tests files.
+Instead of run test by test, you can run all the tests at the same time.
+You must be inside of `abmodel/tests`, and just type:
 
-For a [short test summary info](https://docs.pytest.org/en/6.2.x/usage.html#detailed-summary-report), 
-type in the command line:
+```python
+$ pytest
+```
 
-`$ pytest -r`
+For a [short test summary info](https://docs.pytest.org/en/6.2.x/usage.html#detailed-summary-report),
+you only need to type in the command-line:
 
-Typing flags using pytest might be tedious, however, it is possible modify the `pytest.init` file for 
-[change defaulting command line options](https://docs.pytest.org/en/6.2.x/example/simple.html#how-to-change-command-line-options-defaults).
+```python
+$ pytest -r
+```
+
+Finally, if you want to modify the initial conditions of the test, use the
+fixtures methods at the beginning of all the tests files.
 
 ## How to contribute
 
 Please review our [contributing document](https://github.com/fenfisdi/cdslab/blob/main/contributing.md)
-
 
 ## Contributors
 
