@@ -42,7 +42,7 @@ a [“short test summary info”](https://docs.pytest.org/en/6.2.x/usage.html#de
 at the end of the test session.
 
 Typing flags using pytest might be tedious, however, it is possible to make and
-modify a `pytest.init` file. This allows adopts as many flags as you want.
+modify a `pytest.ini` file. This allows adopts as many flags as necessary.
 [change default command-line options](https://docs.pytest.org/en/6.2.x/example/simple.html#how-to-change-command-line-options-defaults).
 In the `abmodel/tests` directory, you will find this file. In our case, it was
 adopted the flags: `-v`, `-s`, `--no-header` and `-rs`, therefore, to run a test
