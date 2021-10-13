@@ -1,5 +1,5 @@
 from time import time
-from typing import Union, Literal
+from typing import Union, Any, Optional
 
 from pydantic import validate_arguments
 from numpy import abs, genfromtxt, ndarray, random, ones, full
@@ -12,12 +12,14 @@ class Distribution:
 
         It computes random numbers from a probability density distribution.
     """
-    @validate_arguments
+    @validate_arguments(config={"arbitrary_types_allowed": True})
     def __init__(self,
-                 dist_type: Literal[None, 'constant', 'empirical', 'weights',
-                                    'numpy'],
-                 constant: float = 0.0,
-                 filename: str = "", dist_name: str = "", **kwargs):
+                 dist_type: Any,
+                 constant: Optional[float] = None,
+                 data: Optional[ndarray] = None,
+                 filename: Optional[str] = None,
+                 dist_name: Optional[str] = None,
+                 **kwargs):
         """
             Constructor of Distribution class.
 
@@ -36,13 +38,32 @@ class Distribution:
                     specified by the parameter `constant`
 
                 'empirical' : build distributions from empirical data,
-                estimating the overall shape of the distribution using
-                the KDE approach available via Scikit-Learn
+                    estimating the overall shape of the distribution using
+                    the KDE approach available via Scikit-Learn. If the data is
+                    stored in a file, then 'filename' must be passed to specify
+                    the path to the file and the data inside that file must be
+                    formatted without header in this way:
 
-                'weights' : it needs the histogram (xi, pi) data without
-                    header in order to generates a random sample from
-                    this given 1-D array and its corresponding weights.
-                    It uses Numpy Random Choices [2]_
+                    .. code-block::
+                        data_0
+                        data_1
+                        data_2
+                        ...
+
+                'weights' : it needs the histogram (xi, pi) data
+                    in order to generate a random sample from
+                    this given array of points and their corresponding
+                    probability weights.
+                    It uses Numpy Random Choices [2]_. If the data is
+                    stored in a file, then 'filename' must be passed to specify
+                    the path to the file and the data inside that file must be
+                    formatted without header in this way:
+
+                    .. code-block::
+                        x_0, p_0
+                        x_1, p_1
+                        x_2, p_2
+                        ...
 
                 'numpy' : it uses the distributions implemented in
                     Numpy Random Distributions [3]_
@@ -50,6 +71,9 @@ class Distribution:
             constant : float, optional
                 It specifies the constant value to which all point are
                 mapped.
+
+            data : ndarray, optional
+                It corresponds
 
             filename : str, optional
                 It specifies the path for the required data in order to build
@@ -76,6 +100,10 @@ class Distribution:
             .. [1] [Scikit-learn: Kernel Density Estimation](https://scikit-learn.org/stable/modules/density.html#kernel-density)
             .. [2] [Numpy Random Choice](https://numpy.org/doc/stable/reference/random/generated/numpy.random.Generator.choice.html#numpy.random.Generator.choice)
             .. [3] [Numpy Random Distributions](https://numpy.org/doc/stable/reference/random/generator.html#distributions)
+
+            Examples
+            --------
+            TODO: include some exhaustive examples here using each dist_type
         """
         self.dist_type = dist_type
         self.seed = int(time())
@@ -87,30 +115,67 @@ class Distribution:
 
             elif self.dist_type == "constant":
                 # "Dirac delta"-like function
-                self.constant = constant
+                if constant is not None:
+                    self.constant = constant
+                else:
+                    raise ValueError(
+                        "Parameter `constant` should not be None when "
+                        "`dist_type` = 'constant'"
+                        )
 
             elif self.dist_type == "empirical":
                 # Using KernelDensity estimator from Scikit-learn
-                self.filename = filename
-                self.kwargs = kwargs
+                if data is not None and filename is None:
+                    pass
+                elif data is None and filename is not None:
+                    self.filename = filename
+                    self.kwargs = kwargs
 
-                data = genfromtxt(self.filename)
+                    data = genfromtxt(self.filename)
+                else:
+                    raise ValueError(
+                        "The data is required and must be provided through "
+                        "the parameter `data` or `filename` when "
+                        "`dist_type` = 'empirical', then one of them should "
+                        "not be None"
+                        )
 
-                self.kd_estimator = KernelDensity(**self.kwargs).fit(
-                    data.reshape(-1, 1)
-                    )
+                # Check data has the right dimension
+                if data.ndim == 1:
+                    self.kd_estimator = KernelDensity(**self.kwargs).fit(
+                        data.reshape(-1, 1)
+                        )
+                else:
+                    raise ValueError(
+                        "The data provided should be a 1-D array."
+                        )
 
             elif self.dist_type == "weights":
                 # Using numpy.random.choice
-                self.filename = filename
+                if data is not None and filename is None:
+                    pass
+                elif data is None and filename is not None:
+                    self.filename = filename
+                    data = genfromtxt(self.filename, delimiter=",")
+                else:
+                    raise ValueError(
+                        "The data is required and must be provided through "
+                        "the parameter `data` or `filename` when "
+                        "`dist_type` = 'weights', then one of them should "
+                        "not be None"
+                        )
 
-                data = genfromtxt(self.filename, delimiter=",")
+                # Check data has the right dimension
+                if data.ndim == 2:
+                    self.xi = data[:, 0]
+                    self.pi = data[:, 1]
 
-                self.xi = data[:, 0]
-                self.pi = data[:, 1]
-
-                self.random_number_generator = \
-                    random.default_rng(seed=self.seed)
+                    self.random_number_generator = \
+                        random.default_rng(seed=self.seed)
+                else:
+                    raise ValueError(
+                        "The data provided should be a 2-D array."
+                        )
 
             elif self.dist_type == "numpy":
                 # Using numpy.random
@@ -126,9 +191,10 @@ class Distribution:
                         )
                 else:
                     raise ValueError(
-                        f"Distribution '{dist_name}' is not implemented in "
-                        "numpy.random. See: "
-                        "https://numpy.org/doc/stable/reference/random/generator.html#distributions"
+                        f"Distribution '{dist_name}' is not "
+                        "implemented in  numpy.random. See: "
+                        "https://numpy.org/doc/stable/reference/random/"
+                        "generator.html#distributions"
                         )
             else:
                 raise ValueError(
@@ -160,6 +226,10 @@ class Distribution:
             Raises
             ------
             SystemError
+
+            Examples
+            --------
+            TODO: include some examples
         """
         if self.dist_type is None:
             # Always return None
@@ -222,7 +292,11 @@ class Distribution:
 
             See Also
             --------
-            sample
+            sample : Compute random sampling using the defined distribution.
+
+            Examples
+            --------
+            TODO: include some examples
         """
         return abs(self.sample(size))
 
@@ -242,5 +316,9 @@ class Distribution:
             Raises
             ------
             SystemError
+
+            Examples
+            --------
+            TODO: include some examples
         """
         raise SystemError(f"{message}\nError: {exception}")

@@ -26,6 +26,10 @@ class SimpleGroups(BaseModel):
         Attributes
         ----------
         names : list
+
+        Examples
+        --------
+        TODO: include some examples
     """
     names: list
 
@@ -57,7 +61,7 @@ class DistributionGroup:
 
         Raises
         ------
-        TODO
+            TODO
 
         See Also
         --------
@@ -66,6 +70,9 @@ class DistributionGroup:
 
         abmodel.utils.distributions.Distribution : Distribution class
 
+        Examples
+        --------
+        TODO: include some examples
     """
     name: str
     dist_info: Union[dict[str, Any], list[dict[str, Any]]]
@@ -100,9 +107,6 @@ class DistributionGroup:
                 prepare_dict_field(dist_dict)
         else:
             # TODO
-            # include a way that dist = None
-            # when dist_info (or dist_dict) is null
-            # TODO
             raise ValueError("TODO")
 
 
@@ -134,6 +138,10 @@ class SimpleDistGroups:
 
         ComplexDistGroups : Set of groups compound
             by distributions and other additional fields.
+
+        Examples
+        --------
+        TODO: include some examples
     """
     dist_title: Union[str, list[str]]
     group_info: list[dict]
@@ -201,6 +209,10 @@ class SimpleDistGroups:
 
     def multiple_dist_title_validation(self, expected_dist_title):
         """
+            TODO:
+                - Update expected_dist_title type
+                - Update this docstring
+
             Validates `dist_title` list to be equal to
             `expected_dist_title` list.
 
@@ -290,10 +302,14 @@ class ComplexDistGroups(SimpleDistGroups):
 
         See Also
         --------
-        DistributionGroup : ...
+        DistributionGroup : TODO complete explanation
 
         SimpleDistGroups : Set of groups compound only
             by distributions.
+
+        Examples
+        --------
+        TODO: include some examples
     """
     labels: list = field(init=False)
 

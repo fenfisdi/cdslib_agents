@@ -27,7 +27,7 @@ class InterestVariables(Enum):
 
 class MRTStopModes(Enum):
     """
-        TODO
+        TODO: Add brief explanation
     """
     level_number = "level_number"
     length = "length"
@@ -35,7 +35,7 @@ class MRTStopModes(Enum):
 
 class MRTimeUnits(Enum):
     """
-        TODO
+        TODO: Add brief explanation
     """
     days = "days"
     weeks = "weeks"
@@ -44,7 +44,15 @@ class MRTimeUnits(Enum):
 
 class MRTracing(BaseModel):
     """
+        TODO: Add brief explanation
+
+        Attributes
+        ----------
         TODO
+
+        Examples
+        --------
+        TODO: include some examples
     """
     variable: InterestVariables
     mr_start_level: int
@@ -115,7 +123,7 @@ class MRTracing(BaseModel):
 
 class CyclicMRModes(Enum):
     """
-        TODO
+        TODO: Add brief explanation
     """
     random = "random"
     fixed = "fixed"
@@ -123,7 +131,15 @@ class CyclicMRModes(Enum):
 
 class GlobalCyclicMR(BaseModel):
     """
+        TODO: Add brief explanation
+
+        Attributes
+        ----------
         TODO
+
+        Examples
+        --------
+        TODO: include some examples
     """
     enabled: bool
     grace_time: datetime
@@ -164,7 +180,15 @@ class GlobalCyclicMR(BaseModel):
 
 class CyclicMRGroups(BaseModel):
     """
+        TODO: Add brief explanation
+
+        Attributes
+        ----------
         TODO
+
+        Examples
+        --------
+        TODO: include some examples
     """
     mr_groups: SimpleGroups
     target_group: str
