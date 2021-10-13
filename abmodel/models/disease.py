@@ -54,6 +54,10 @@ class SusceptibilityGroups(SimpleDistGroups):
         DistTitles : fundamental distribution titles
 
         abmodel.models.base.SimpleDistGroups : Simple Distribution groups class
+
+        Examples
+        --------
+        TODO: include some examples
     """
     def __post_init__(self):
         """
@@ -94,6 +98,10 @@ class MobilityGroups(SimpleDistGroups):
         DistTitles : fundamental distribution titles
 
         abmodel.models.base.SimpleDistGroups : Simple Distribution groups class
+
+        Examples
+        --------
+        TODO: include some examples
     """
     def __post_init__(self):
         """
@@ -134,6 +142,10 @@ class IsolationAdherenceGroups(SimpleDistGroups):
         DistTitles : fundamental distribution titles
 
         abmodel.models.base.SimpleDistGroups : Simple Distribution groups class
+
+        Examples
+        --------
+        TODO: include some examples
     """
     def __post_init__(self):
         """
@@ -151,7 +163,19 @@ class IsolationAdherenceGroups(SimpleDistGroups):
 @dataclass
 class DiseaseStates(ComplexDistGroups):
     """
+        TODO: Add brief explanation
+
+        Attributes
+        ----------
         TODO
+
+        See Also
+        --------
+        TODO
+
+        Examples
+        --------
+        TODO: include some examples
     """
     def __post_init__(self):
         """
@@ -176,6 +200,19 @@ class DiseaseStates(ComplexDistGroups):
 @dataclass
 class Transitions(ComplexDistGroups):
     """
+        TODO: Add brief explanation
+
+        Attributes
+        ----------
+        TODO
+
+        See Also
+        --------
+        TODO
+
+        Examples
+        --------
+        TODO: include some examples
     """
     def __post_init__(self):
         """
@@ -202,7 +239,19 @@ class Transitions(ComplexDistGroups):
 @dataclass
 class NaturalHistory(ComplexDistGroups):
     """
+        TODO: Add brief explanation
+
+        Attributes
+        ----------
         TODO
+
+        See Also
+        --------
+        TODO
+
+        Examples
+        --------
+        TODO: include some examples
     """
     def __post_init__(self):
         """

@@ -20,7 +20,8 @@ class AgentDisease:
     """
     @classmethod
     def generate_key_col(
-        cls, df: DataFrame,
+        cls,
+        df: DataFrame,
         execmode: ExecutionModes = ExecutionModes.pandas
     ) -> DataFrame:
         """
@@ -52,7 +53,9 @@ class AgentDisease:
 
     @classmethod
     def init_disease_state_max_time(
-        cls, df: DataFrame, natural_history: NaturalHistory,
+        cls,
+        df: DataFrame,
+        natural_history: NaturalHistory,
         execmode: ExecutionModes = ExecutionModes.pandas
     ) -> DataFrame:
         """
@@ -60,9 +63,9 @@ class AgentDisease:
         """
         # =====================================================================
         def init_calculate_max_time(
-            key,
-            natural_history,
-            execmode
+            key: str,
+            natural_history: NaturalHistory,
+            execmode: ExecutionModes
         ) -> Union[bool, Series]:
             """
                 TODO
@@ -114,60 +117,67 @@ class AgentDisease:
 
     @classmethod
     def determine_disease_state_max_time(
-        cls, df: DataFrame, natural_history: NaturalHistory,
+        cls,
+        df: DataFrame,
+        natural_history: NaturalHistory,
         execmode: ExecutionModes = ExecutionModes.pandas
     ) -> DataFrame:
         """
             TODO
         """
         # =====================================================================
-        def calculate_max_time(
-            key,
-            do_calculate_max_time,
-            disease_state_max_time,
-            natural_history,
-            execmode
-        ) -> Union[float, Series]:
+        def calculate_max_time_pandas(
+            key: str,
+            do_calculate_max_time: bool,
+            disease_state_max_time: float,
+            natural_history: NaturalHistory
+        ) -> float:
             """
                 TODO
             """
-            if execmode == ExecutionModes.pandas:
-                if do_calculate_max_time:
-                    return natural_history.items[key] \
-                        .dist[DistTitles.time.value] \
-                        .sample()
-                else:
-                    return disease_state_max_time
+            if do_calculate_max_time:
+                return natural_history.items[key] \
+                    .dist[DistTitles.time.value] \
+                    .sample()
+            else:
+                return disease_state_max_time
 
-            if execmode == ExecutionModes.vectorized:
-                return list(map(
-                    lambda single_key, cond, time_value: natural_history
-                    .items[single_key]
-                    .dist[DistTitles.time.value]
-                    .sample() if cond else time_value,
-                    zip(key, do_calculate_max_time, disease_state_max_time)
-                ))
+        # =====================================================================
+        def calculate_max_time_vectorized(
+            key: Series,  # str
+            do_calculate_max_time: Series,  # bool
+            disease_state_max_time: Series,  # float
+            natural_history: NaturalHistory
+        ) -> Series:  # Series of float
+            """
+                TODO
+            """
+            return list(map(
+                lambda single_key, cond, time_value: natural_history
+                .items[single_key]
+                .dist[DistTitles.time.value]
+                .sample() if cond else time_value,
+                zip(key, do_calculate_max_time, disease_state_max_time)
+            ))
 
         # =====================================================================
         try:
             if execmode == ExecutionModes.pandas:
                 df["disease_state_max_time"] = df.apply(
-                    lambda row: calculate_max_time(
+                    lambda row: calculate_max_time_pandas(
                         row["key"],
                         row["do_calculate_max_time"],
                         row["disease_state_max_time"],
-                        natural_history,
-                        execmode
+                        natural_history
                         ),
                     axis=1
                     )
             elif execmode == ExecutionModes.vectorized:
-                df["disease_state_max_time"] = calculate_max_time(
+                df["disease_state_max_time"] = calculate_max_time_vectorized(
                     df["key"],
                     df["do_calculate_max_time"],
                     df["disease_state_max_time"],
-                    natural_history,
-                    execmode
+                    natural_history
                     )
             else:
                 raise NotImplementedError(
@@ -178,11 +188,17 @@ class AgentDisease:
                                "do_calculate_max_time"]
             check_field_existance(df, validation_list)
         else:
+            # Restart do_calculate_max_time
+            df = df.assign(do_calculate_max_time=False)
+
             return df
 
     @classmethod
     def disease_state_transition(
-        cls, df: DataFrame, dt: float, natural_history: NaturalHistory,
+        cls,
+        df: DataFrame,
+        dt: float,
+        natural_history: NaturalHistory,
         execmode: ExecutionModes = ExecutionModes.pandas
     ) -> DataFrame:
         """
@@ -190,11 +206,11 @@ class AgentDisease:
         """
         # =====================================================================
         def transition_function(
-            disease_state_time,
-            disease_state_max_time,
-            key,
-            natural_history,
-            execmode
+            disease_state_time: float,
+            disease_state_max_time: float,
+            key: str,
+            natural_history: NaturalHistory,
+            execmode: ExecutionModes
         ) -> tuple[
             Union[str, Series],
             Union[float, Series],
@@ -205,7 +221,7 @@ class AgentDisease:
             """
             if execmode == ExecutionModes.pandas:
                 # Set False the flag that forces to calculate
-                # disease state max time. It is going to be change to True
+                # disease state max time. It is going to be changed to True
                 # if disease state changes
                 do_calculate_max_time = False
 
@@ -273,15 +289,16 @@ class AgentDisease:
 
         except Exception:
             validation_list = ["disease_state", "disease_state_time", "key"
-                               "disease_state_max_time",
-                               "do_calculate_max_time"]
+                               "disease_state_max_time"]
             check_field_existance(df, validation_list)
         else:
             return df
 
     @classmethod
     def to_diagnose_agents(
-        cls, df: DataFrame, disease_groups: DiseaseStates,
+        cls,
+        df: DataFrame,
+        disease_groups: DiseaseStates,
         execmode: ExecutionModes = ExecutionModes.pandas
     ) -> DataFrame:
         """
@@ -289,11 +306,11 @@ class AgentDisease:
         """
         # =====================================================================
         def diagnosis_function(
-            disease_state,
-            is_diagnosed,
-            disease_groups,
-            execmode
-        ):
+            disease_state: str,
+            is_diagnosed: bool,
+            disease_groups: DiseaseStates,
+            execmode: ExecutionModes
+        ) -> bool:
             """
                 TODO
             """
@@ -351,7 +368,10 @@ class AgentDisease:
 
     @classmethod
     def to_isolate_agents(
-        cls, df: DataFrame, dt: float, disease_groups: DiseaseStates,
+        cls,
+        df: DataFrame,
+        dt: float,
+        disease_groups: DiseaseStates,
         isolation_adherence_groups: Union[
             IsolationAdherenceGroups, None] = None,
         execmode: ExecutionModes = ExecutionModes.pandas
@@ -361,10 +381,10 @@ class AgentDisease:
         """
         # =====================================================================
         def isolation_function(
-            disease_state,
-            disease_groups,
-            execmode
-        ):
+            disease_state: str,
+            disease_groups: DiseaseStates,
+            execmode: ExecutionModes
+        ) -> tuple[bool, float, float]:
             """
                 TODO
             """
@@ -377,7 +397,8 @@ class AgentDisease:
                     .sample()
 
                 # TODO
-                # isolation_days --> isolation_time
+                # Calculate isolation_max_time from isolation_days
+                # i.e. change units
                 isolation_max_time = isolation_days
 
                 isolation_time = 0.0
@@ -387,16 +408,16 @@ class AgentDisease:
 
         # =====================================================================
         def isolation_handler(
-            disease_state,
-            isolation_adherence_group,
-            is_diagnosed,
-            is_isolated,
-            isolation_time,
-            isolation_max_time,
-            disease_groups,
-            isolation_adherence_groups,
+            disease_state: str,
+            isolation_adherence_group: str,
+            is_diagnosed: bool,
+            is_isolated: bool,
+            isolation_time: float,
+            isolation_max_time: float,
+            disease_groups: DiseaseStates,
+            isolation_adherence_groups: Union[IsolationAdherenceGroups, None],
             execmode
-        ):
+        ) -> tuple[bool, bool, float, float]:
             """
                 TODO
             """
@@ -498,8 +519,11 @@ class AgentDisease:
 
     @classmethod
     def to_hospitalize_agents(
-        cls, df: DataFrame, dead_disease_group: str,
-        disease_groups: DiseaseStates, health_system: HealthSystem,
+        cls,
+        df: DataFrame,
+        dead_disease_group: str,
+        disease_groups: DiseaseStates,
+        health_system: HealthSystem,
         execmode: ExecutionModes = ExecutionModes.vectorized
     ) -> DataFrame:
         """
@@ -514,7 +538,7 @@ class AgentDisease:
             dead_disease_group: str,
             disease_groups: DiseaseStates,
             health_system: HealthSystem
-        ):
+        ) -> tuple[bool, bool, ndarray]:
             """
                 TODO
                 # step 1: no is_hospitalized and disease_state has probability
@@ -738,93 +762,333 @@ class AgentDisease:
 
     @classmethod
     def disease_state_transition_by_contagion(
-        cls, df: DataFrame, dt: float, natural_history: NaturalHistory, step: int,
-        disease_states: DiseaseStates,
+        cls,
+        df: DataFrame,
+        kdtree_by_disease_state: dict,
+        agents_labels_by_disease_state: dict,
+        natural_history: NaturalHistory,
+        disease_groups: DiseaseStates,
         execmode: ExecutionModes = ExecutionModes.pandas
     ) -> DataFrame:
         """
             TODO
         """
-        def transition_function(
-            key,
-            natural_history,
-            execmode,
-            spatial_trees_by_disease_state,
-            agents_indices_by_disease_state
-        ) -> tuple[
-            Union[str, Series],
-            Union[float, Series],
-            Union[bool, Series]:
-        ]:
+        # =====================================================================
+        def contagion_function(
+            step: int,
+            agent: int,
+            x: float,
+            y: float,
+            immunization_level: float,
+            key: str,
+            disease_state: str,
+            times_infected: int,
+            infected_info: dict,
+            disease_state_time: float,
+            natural_history: NaturalHistory,
+            disease_groups: DiseaseStates,
+            kdtree_by_disease_state: dict,
+            agents_labels_by_disease_state: dict
+        ) -> tuple[str, int, dict, float, bool]:
             """
+                # Set None the disease_state_time
+                # It is going to be changed to zero 0 if gets infected
                 TODO
             """
-            if execmode == ExecutionModes.pandas:
-                # Set False the flag that forces to calculate
-                # disease state max time. It is going to be change to True
-                # if disease state changes
-                do_calculate_max_time = False
-    
-           
-            if disease_states.labels['can_get_infected']:
-                """
-                    # Retrieve agent location
-                    # List to save who infected the agent
-                    TODO
-                """
-                agent_location=[]
+            # Set False the flag that forces to calculate
+            # disease state max time. It is going to be changed to True
+            # if disease state changes
+            do_calculate_max_time = False
+
+            # Get transition_by_contagion boolean
+            transition_by_contagion = \
+                natural_history.items[key].transition_by_contagion
+
+            if transition_by_contagion:
+                # Get the transitions info for the current
+                # key (vulnerability_group, current disease_state)
+                transitions = natural_history.items[key].transitions
+
+                # Get disease_states enabled for the probable transition
+                # after contagion and and their corresponding probabilities
+                disease_states = transitions.keys()
+                probabilities = [
+                    transitions[transition].probability
+                    for transition in disease_states
+                    ]
+
+                # Agent location
+                agent_location = [x, y]
+
+                # List to save who infected the agent
                 infected_by = []
 
-                for disease_state in disease_states.labels:
+                # Cycle through each spreader to see if the agent gets
+                # infected by the spreader
+                spreaders = []
+                for disease_state_label in disease_groups.items.keys():
+                    if disease_groups.items[
+                       disease_state_label].can_spread:
+                        spreaders.append(disease_state_label)
 
-                    if (disease_state['can_spread'] 
-                    and spatial_trees_by_disease_state[disease_state]):
+                for spreader_state in spreaders:
+                    if kdtree_by_disease_state[spreader_state]:
+                        # Retrieve spread_radius
+                        spread_radius = \
+                            disease_groups.items[spreader_state] \
+                            .spread_radius
 
-                        points_inside_radius = \
-                        spatial_trees_by_disease_state[disease_state].query_ball_point(
-                            agent_location, disease_state['spread_radius']
+                        # Detect if the agents of "disease_state" that are
+                        # inside a distance equal to the tracing_radius
+                        # points_inside_radius_array is a ndarray with a
+                        # list of indeces which correspond neighbors of
+                        # agent
+                        points_inside_radius_array = \
+                            kdtree_by_disease_state[spreader_state] \
+                            .query_ball_point(
+                                agent_location,
+                                spread_radius
+                                )
+
+                        # Now we have to get the corresponding spreader
+                        # labels excluding the agent's own label
+                        spreader_labels_inside_radius = list(setdiff1d(
+                                agents_labels_by_disease_state[
+                                    spreader_state][
+                                    points_inside_radius_array],
+                                agent
+                                )
                             )
 
-                        spreaders_indices_inside_radius = \
-                            agents_indices_by_disease_state[
-                                disease_state][points_inside_radius]   
-
-                        # If self.agent in spreaders_indices_inside_radius,
-                        # then remove it
-                        if cls.agent in spreaders_indices_inside_radius:
-                            
-                            spreaders_indices_inside_radius = setdiff1d(
-                            spreaders_indices_inside_radius,
-                            cls.agent
-                            )
+                        # Calculate joint probability for contagion
                         joint_probability = \
-                        (1.0 - cls.immunization_level) \
-                        * cls.contagion_probabilities_by_susceptibility_groups[
-                            cls.susceptibility_group] \
-                        * disease_states['spread_probability']
+                            (1.0 - immunization_level) \
+                            * disease_groups.items[spreader_state] \
+                            .spread_probability
 
-                        for spreader_agent_index in spreaders_indices_inside_radius:
-
+                        # Check if got infected
+                        for spreader in spreader_labels_inside_radius:
+                            # Throw the dice
                             dice = random_sample()
 
                             if dice <= joint_probability:
                                 # Got infected !!!
                                 # Save who infected the agent
-                                infected_by.append(spreader_agent_index)
+                                infected_by.append(spreader)
 
-                    if len(infected_by) is not 0:
+                if len(infected_by) != 0:
+                    # Update times_infected
+                    times_infected += 1
 
-                        infected_by = infected_by
-                        infected_in_step = step
-                        cls.infected_info[step] = infected_by
+                    infected_info[step] = infected_by
 
-                        dice = random_sample()
+                    # Verify: becomes into? ... Throw the dice
+                    disease_state = choice(
+                        disease_states,
+                        p=probabilities
+                        )
 
-                        cummulative_probability = 0. + cls.immunization_level
+                    # Set the time elapsed since it got infected
+                    # in zero
+                    disease_state_time = 0
+
+                    # Set True the flag that forces to calculate
+                    # disease state max time
+                    do_calculate_max_time = True
+            else:
+                # transition_by_contagion == False
+                pass
+
+            return (disease_state, times_infected, infected_info,
+                    disease_state_time, do_calculate_max_time)
+
+        # =====================================================================
+        try:
+            if execmode == ExecutionModes.pandas:
+                df[["disease_state", "times_infected", "infected_info",
+                    "disease_state_time", "do_calculate_max_time"]] = df.apply(
+                    lambda row: contagion_function(
+                        row["step"],
+                        row["agent"],
+                        row["x"],
+                        row["y"],
+                        row["immunization_level"],
+                        row["key"],
+                        row["disease_state"],
+                        row["times_infected"],
+                        row["infected_info"],
+                        row["disease_state_time"],
+                        natural_history,
+                        disease_groups,
+                        kdtree_by_disease_state,
+                        agents_labels_by_disease_state
+                        ),
+                    axis=1
+                    )
+            else:
+                raise NotImplementedError(
+                    f"`execmode = {execmode}` is still not implemented yet"
+                    )
+
+            # Call determine_disease_state_max_time function in order
+            # to calculate it for those agents who went through a transition
+            df = cls.determine_disease_state_max_time(
+                df, natural_history, execmode
+            )
+
+        except Exception:
+            validation_list = ["step", "agent", "x", "y", "immunization_level",
+                               "key", "disease_state", "times_infected",
+                               "infected_info", "disease_state_time"]
+            check_field_existance(df, validation_list)
+        else:
+            return df
+
+    @classmethod
+    def update_immunization_params(
+        cls,
+        df: DataFrame,
+        natural_history: NaturalHistory,
+        execmode: ExecutionModes = ExecutionModes.pandas
+    ) -> DataFrame:
+        """
+            TODO
+        """
+        # =====================================================================
+        def calculate_immunization_params_pandas(
+            key: str,
+            disease_state: str,
+            immunization_level: float,
+            immunization_level_start: float,
+            immunization_max_time: float,
+            do_update_immunization_params: bool,
+            natural_history: NaturalHistory
+        ) -> tuple[float, float]:
+            """
+                TODO
+            """
+            if do_update_immunization_params:
+                # Get the transitions info for the current
+                # key (vulnerability_group, current disease_state)
+                transitions = natural_history.items[key].transitions
+
+                # Calculate immunization_max_time
+                immunization_max_time = transitions[disease_state] \
+                    .dist[DistTitles.immunization_time.value] \
+                    .sample()
+
+                # Calculate immunization_level_start
+                gain = transitions[disease_state] \
+                    .immunization_gain
+
+                immunization_level_start = immunization_level + gain
+
+                # TODO
+                # Should immunization_max_time start as None?
+
+            return (immunization_level_start, immunization_max_time)
+
+        # =====================================================================
+        try:
+            if execmode == ExecutionModes.pandas:
+                df[["immunization_level_start",
+                    "immunization_max_time"]] = df.apply(
+                    lambda row: calculate_immunization_params_pandas(
+                        row["key"],
+                        row["disease_state"],
+                        row["immunization_level"],
+                        row["immunization_level_start"],
+                        row["immunization_max_time"],
+                        row["do_update_immunization_params"],
+                        natural_history
+                        ),
+                    axis=1
+                    )
+            else:
+                raise NotImplementedError(
+                    f"`execmode = {execmode}` is still not implemented yet"
+                    )
+        except Exception:
+            validation_list = ["key", "immunization_level",
+                               "immunization_level_start",
+                               "immunization_max_time",
+                               "do_update_immunization_params"]
+            check_field_existance(df, validation_list)
+        else:
+            # Restart do_calculate_max_time
+            df = df.assign(do_update_immunization_params=False)
+
+            return df
+
+    @classmethod
+    def update_immunization_level(
+        cls,
+        df: DataFrame,
+        natural_history: NaturalHistory,
+        execmode: ExecutionModes = ExecutionModes.pandas
+    ) -> DataFrame:
+        """
+            TODO
+        """
+        # =====================================================================
+        def immunization_function(
+            immunization_time: float,
+            immunization_level_start: float,
+            immunization_max_time: float
+        ) -> float:
+            """
+                TODO
+            """
+            return None
+
+        # =====================================================================
+        def calculate_immunization_level_pandas(
+            immunization_level: float,
+            immunization_time: float,
+            immunization_level_start: float,
+            immunization_max_time: float
+        ) -> float:
+            """
+                TODO
+            """
+            if immunization_time < immunization_max_time:
+                immunization_level = immunization_function(
+                    immunization_time,
+                    immunization_level_start,
+                    immunization_max_time
+                )
+            else:
+                # immunization_time >= immunization_max_time
+                pass
+            return immunization_level
+
+        # =====================================================================
+        try:
+            if execmode == ExecutionModes.pandas:
+                df["immunization_level"] = df.apply(
+                    lambda row: calculate_immunization_level_pandas(
+                        row["key"],
+                        row["do_update_immunization_constant"],
+                        row["immunization_level"],
+                        natural_history
+                        ),
+                    axis=1
+                    )
+            else:
+                raise NotImplementedError(
+                    f"`execmode = {execmode}` is still not implemented yet"
+                    )
+        except Exception:
+            validation_list = ["disease_state_max_time", "key",
+                               "do_update_immunization_level"]
+            check_field_existance(df, validation_list)
+        else:
+            # Remove unnecessary column
+            df.drop(columns=["do_update_immunization_level"], inplace=True)
+
+            return df
 
     # def update_alertness_state
-
-    # def update_immunization_level
 
     # def quarantine_by_government_decrees
 

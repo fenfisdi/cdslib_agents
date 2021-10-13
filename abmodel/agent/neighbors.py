@@ -8,9 +8,166 @@ from abmodel.models.disease import DiseaseStates
 from abmodel.agent.execution_modes import ExecutionModes
 
 
+def trace_neighbors_vectorized(
+    df: DataFrame,
+    tracing_radius: float,
+    kdtree_by_disease_state: dict,
+    agents_labels_by_disease_state: dict,
+    dead_disease_group: str,
+    disease_groups: DiseaseStates
+) -> tuple[list, list, list, list, list]:
+    """
+        TODO: Add brief explanation
+
+        Parameters
+        ----------
+        TODO
+
+        Returns
+        -------
+        TODO
+
+        Notes
+        -----
+        TODO: include mathematical description and explanatory image
+
+        Examples
+        --------
+        TODO: include some examples
+    """
+    # Retrieve agents locations
+    agents_locations = df[["x", "y"]].to_numpy()
+    agents_labels = df[["agent"]].to_numpy()
+    n_agents = df.shape[0]
+
+    susceptible_neighbors = \
+        [array([], dtype=int) for index in range(n_agents)]
+    infected_spreader_neighbors = \
+        [array([], dtype=int) for index in range(n_agents)]
+    infected_non_spreader_neighbors = \
+        [array([], dtype=int) for index in range(n_agents)]
+    immune_neighbors = \
+        [array([], dtype=int) for index in range(n_agents)]
+    total_neighbors = \
+        [array([], dtype=int) for index in range(n_agents)]
+
+    # Cycle through each state of the neighbors
+    for disease_state in disease_groups.items.keys():
+
+        can_get_infected = \
+            disease_groups.items[disease_state].can_get_infected
+
+        is_infected = \
+            disease_groups.items[disease_state].is_infected
+
+        can_spread = \
+            disease_groups.items[disease_state].can_spread
+
+        if disease_state != dead_disease_group:
+
+            if kdtree_by_disease_state[disease_state]:
+
+                # Detect if the agents of "disease_state" that are
+                # inside a distance equal to the tracing_radius
+                # points_inside_radius_array is a ndarray with a list
+                # of indeces which correspond neighbors of agent
+                points_inside_radius_array = \
+                    kdtree_by_disease_state[disease_state] \
+                    .query_ball_point(
+                        agents_locations,
+                        tracing_radius
+                        )
+
+                # Now we have to get the corresponding agents labels
+                # excluding the agent's own index
+                agents_labels_inside_radius_list = [
+                    list(setdiff1d(
+                        agents_labels_by_disease_state[disease_state][
+                            points_inside_radius_array[i]],
+                        agents_labels[i]
+                        ))
+                    for i in range(n_agents)
+                    ]
+
+                if can_get_infected:
+                    # i.e. susceptibles
+                    susceptible_neighbors = [
+                        concatenate(
+                            (susceptible_neighbors[i],
+                                agents_labels_inside_radius_list[i]),
+                            axis=None,
+                            dtype=int
+                            )
+                        for i in range(n_agents)
+                        ]
+
+                if not can_get_infected and not is_infected:
+                    # i.e. inmunes
+                    immune_neighbors = [
+                        concatenate(
+                            (immune_neighbors[i],
+                                agents_labels_inside_radius_list[i]),
+                            axis=None,
+                            dtype=int
+                            )
+                        for i in range(n_agents)
+                        ]
+
+                if is_infected:
+                    # infected
+
+                    if can_spread:
+                        infected_spreader_neighbors = [
+                            concatenate(
+                                (infected_spreader_neighbors[i],
+                                    agents_labels_inside_radius_list[i]),
+                                axis=None,
+                                dtype=int
+                                )
+                            for i in range(n_agents)
+                            ]
+
+                    else:
+                        infected_non_spreader_neighbors = [
+                            concatenate(
+                                (infected_non_spreader_neighbors[i],
+                                    agents_labels_inside_radius_list[i]),
+                                axis=None,
+                                dtype=int
+                                )
+                            for i in range(n_agents)
+                            ]
+
+        else:
+            # disease_state == dead_disease_group
+            pass
+
+    # Extend total_neighbors
+    total_neighbors = [
+        concatenate(
+            (total_neighbors[i],
+                susceptible_neighbors[i],
+                immune_neighbors[i],
+                infected_spreader_neighbors[i],
+                infected_non_spreader_neighbors[i]),
+            axis=None,
+            dtype=int
+            )
+        for i in range(n_agents)
+        ]
+
+    return (susceptible_neighbors, infected_spreader_neighbors,
+            infected_non_spreader_neighbors, immune_neighbors,
+            total_neighbors)
+
+
 class AgentNeighbors:
     """
-        ... TODO
+        TODO: Add brief explanation
+
+        Methods
+        -------
+        TODO
     """
     @classmethod
     def trace_neighbors_to_susceptibles(
@@ -19,152 +176,33 @@ class AgentNeighbors:
         tracing_radius: float,
         kdtree_by_disease_state: dict,
         agents_labels_by_disease_state: dict,
-        susceptible_disease_group: str,
         dead_disease_group: str,
         disease_groups: DiseaseStates,
         execmode: ExecutionModes = ExecutionModes.vectorized
     ) -> DataFrame:
         """
+            TODO: Add brief explanation
+
+            Parameters
+            ----------
             TODO
+
+            Returns
+            -------
+            TODO
+
+            Raises
+            ------
+            TODO
+
+            See Also
+            --------
+            trace_neighbors_vectorized : TODO complete explanation
+
+            Examples
+            --------
+            TODO: include some examples
         """
-        # =====================================================================
-        def trace_neighbors_vectorized(
-            df: DataFrame,
-            tracing_radius: float,
-            kdtree_by_disease_state: dict,
-            agents_labels_by_disease_state: dict,
-            dead_disease_group: str,
-            disease_groups: DiseaseStates
-        ):
-            """
-                TODO
-            """
-            # Retrieve agents locations
-            agents_locations = df[["x", "y"]].to_numpy()
-            agents_labels = df[["agent"]].to_numpy()
-            n_agents = df.shape[0]
-
-            susceptible_neighbors = \
-                [array([], dtype=int) for index in range(n_agents)]
-            infected_spreader_neighbors = \
-                [array([], dtype=int) for index in range(n_agents)]
-            infected_non_spreader_neighbors = \
-                [array([], dtype=int) for index in range(n_agents)]
-            immune_neighbors = \
-                [array([], dtype=int) for index in range(n_agents)]
-            total_neighbors = \
-                [array([], dtype=int) for index in range(n_agents)]
-
-            # Cycle through each state of the neighbors
-            for disease_state in disease_groups.items.keys():
-
-                can_get_infected = \
-                    disease_groups.items[disease_state].can_get_infected
-
-                is_infected = \
-                    disease_groups.items[disease_state].is_infected
-
-                can_spread = \
-                    disease_groups.items[disease_state].can_spread
-
-                if disease_state != dead_disease_group:
-
-                    if kdtree_by_disease_state[disease_state]:
-
-                        # Detect if the agents of "disease_state" that are
-                        # inside a distance equal to the tracing_radius
-                        # points_inside_radius_array is a ndarray with a list
-                        # of indeces which correspond neighbors of agent
-                        points_inside_radius_array = \
-                            kdtree_by_disease_state[disease_state] \
-                            .query_ball_point(
-                                agents_locations,
-                                tracing_radius
-                                )
-
-                        # Now we have to get the corresponding agents labels
-                        # excluding the agent's own index
-                        agents_labels_inside_radius_list = [
-                            list(setdiff1d(
-                                agents_labels_by_disease_state[disease_state][
-                                    points_inside_radius_array[i]],
-                                agents_labels[i]
-                                ))
-                            for i in range(n_agents)
-                            ]
-
-                        if can_get_infected:
-                            # i.e. susceptibles
-                            susceptible_neighbors = [
-                                concatenate(
-                                    (susceptible_neighbors[i],
-                                     agents_labels_inside_radius_list[i]),
-                                    axis=None,
-                                    dtype=int
-                                    )
-                                for i in range(n_agents)
-                                ]
-
-                        if not can_get_infected and not is_infected:
-                            # i.e. inmunes
-                            immune_neighbors = [
-                                concatenate(
-                                    (immune_neighbors[i],
-                                     agents_labels_inside_radius_list[i]),
-                                    axis=None,
-                                    dtype=int
-                                    )
-                                for i in range(n_agents)
-                                ]
-
-                        if is_infected:
-                            # infected
-
-                            if can_spread:
-                                infected_spreader_neighbors = [
-                                    concatenate(
-                                        (infected_spreader_neighbors[i],
-                                         agents_labels_inside_radius_list[i]),
-                                        axis=None,
-                                        dtype=int
-                                        )
-                                    for i in range(n_agents)
-                                    ]
-
-                            else:
-                                infected_non_spreader_neighbors = [
-                                    concatenate(
-                                        (infected_non_spreader_neighbors[i],
-                                         agents_labels_inside_radius_list[i]),
-                                        axis=None,
-                                        dtype=int
-                                        )
-                                    for i in range(n_agents)
-                                    ]
-
-                else:
-                    # disease_state == dead_disease_group
-                    pass
-
-            # Extend total_neighbors
-            total_neighbors = [
-                concatenate(
-                    (total_neighbors[i],
-                     susceptible_neighbors[i],
-                     immune_neighbors[i],
-                     infected_spreader_neighbors[i],
-                     infected_non_spreader_neighbors[i]),
-                    axis=None,
-                    dtype=int
-                    )
-                for i in range(n_agents)
-                ]
-
-            return (susceptible_neighbors, infected_spreader_neighbors,
-                    infected_non_spreader_neighbors, immune_neighbors,
-                    total_neighbors)
-
-        # =====================================================================
         try:
             if execmode == ExecutionModes.vectorized:
                 df[["susceptible_neighbors",
