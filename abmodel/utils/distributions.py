@@ -129,7 +129,6 @@ class Distribution:
                     pass
                 elif data is None and filename is not None:
                     self.filename = filename
-                    self.kwargs = kwargs
 
                     data = genfromtxt(self.filename)
                 else:
@@ -142,6 +141,7 @@ class Distribution:
 
                 # Check data has the right dimension
                 if data.ndim == 1:
+                    self.kwargs = kwargs
                     self.kd_estimator = KernelDensity(**self.kwargs).fit(
                         data.reshape(-1, 1)
                         )
