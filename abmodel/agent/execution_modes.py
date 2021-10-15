@@ -5,8 +5,9 @@ class ExecutionModes(Enum):
     """
         This class enumerates the different execution modes
         that are avaible across agent module
+        TODO: expand explanation
     """
-    pandas = "pandas"
+    iterative = "iterative"
     vectorized = "vectorized"
     dask = "dask"
     swifter = "swifter"

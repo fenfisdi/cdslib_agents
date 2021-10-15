@@ -7,12 +7,33 @@ from abmodel.models.disease import NaturalHistory, DiseaseStates
 
 class Population:
     """
-        ... TODO
+        TODO: Add brief explanation
+
+        Methods
+        -------
+        TODO
     """
     def __init__(
-        self, disease_groups: DiseaseStates, natural_history: NaturalHistory
+        self,
+        disease_groups: DiseaseStates,
+        natural_history: NaturalHistory
     ) -> None:
         """
+            Constructor of Population class.
+
+            TODO: Add brief explanation
+
+            Parameters
+            ----------
+            TODO
+
+            See Also
+            --------
+            get_disease_groups_alive : TODO complete explanation
+
+            Examples
+            --------
+            TODO: include some examples
         """
         self.disease_groups = disease_groups
         self.natural_history = natural_history
@@ -21,9 +42,21 @@ class Population:
 
         self.population = DataFrame()
 
-    def get_disease_groups_alive(self):
+    def get_disease_groups_alive(self) -> None:
         """
+            TODO: Add brief explanation
+
+            Parameters
+            ----------
             TODO
+
+            See Also
+            --------
+            TODO
+
+            Examples
+            --------
+            TODO: include some examples
         """
         # Retrieve disease group label which corresponds to those dead
         for disease_group_label in self.disease_groups.items.keys():
@@ -38,7 +71,19 @@ class Population:
 
     def choose_tracing_radius(self) -> None:
         """
+            TODO: Add brief explanation
+
+            Parameters
+            ----------
             TODO
+
+            See Also
+            --------
+            TODO
+
+            Examples
+            --------
+            TODO: include some examples
         """
         # Retrieve maximum radius for trace_neighbors function
         spread_radius_list = [
@@ -66,7 +111,19 @@ class Population:
 
     def kdtrees_and_agents_indices(self) -> None:
         """
+            TODO: Add brief explanation
+
+            Parameters
+            ----------
             TODO
+
+            See Also
+            --------
+            TODO
+
+            Examples
+            --------
+            TODO: include some examples
         """
         self.kdtree_by_disease_state = {}
         self.agents_labels_by_disease_state = {}

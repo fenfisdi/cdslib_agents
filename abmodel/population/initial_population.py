@@ -1,22 +1,47 @@
-import numpy as np
-import pandas as pd
+from typing import Any
+
+from numpy.random import random_sample
 from pandas.core.frame import DataFrame
 
 
 class InitialPopulation:
     """
-        Here I would put my wonderful documentation...
-        IF I HAD IT!
+        TODO: Add brief explanation
+
+        Methods
+        -------
+        TODO
     """
-    def __init__(self, core_var: str, nested_vars: list):
+    def __init__(self, core_var: str, nested_vars: list) -> None:
+        """
+            Constructor of InitialPopulation.
+
+            TODO: Add brief explanation
+
+            Parameters
+            ----------
+            TODO
+        """
         self.nesting = nested_vars
         self.core = core_var
 
-    def _filler(self, values, probabilities):
+    def _filler(self, values: Any, probabilities: list) -> Any:
         """
-            insert.Docs()
+            TODO: Add brief explanation
+
+            Parameters
+            ----------
+            TODO
+
+            Returns
+            -------
+            TODO
+
+            Examples
+            --------
+            TODO: include some examples
         """
-        sample = np.random.random_sample()
+        sample = random_sample()
         cummulative_probability = 0.
 
         for value, probability in zip(values, probabilities):
@@ -25,14 +50,28 @@ class InitialPopulation:
             if sample <= cummulative_probability:
                 return value
 
-    def setup(self, settings_json, agents: DataFrame):
+    def setup(self, settings_json: dict, agents: DataFrame) -> DataFrame:
         """
             I take a json-like input, a df contaning `agent` data and
             modify such df with the necessary data inside the json-like input.
+
+            TODO: Add brief explanation
+
+            Parameters
+            ----------
+            TODO
+
+            Returns
+            -------
+            TODO
+
+            Examples
+            --------
+            TODO: include some examples
         """
         for field in self.nesting:
             nested_content = settings_json[field]
-            population_df = pd.DataFrame(columns=self.nesting)
+            population_df = DataFrame(columns=self.nesting)
 
             for (col_index, col_name) in enumerate(self.nesting):
                 if col_index != 0:
@@ -40,7 +79,7 @@ class InitialPopulation:
                     column = eval(f'select.{col_name}s')
 
                     placeholder = population_df.copy()
-                    population_df = pd.DataFrame(columns=self.nesting)
+                    population_df = DataFrame(columns=self.nesting)
 
                     for item in column:
                         array = [item for _ in range(row_number)]
@@ -108,3 +147,5 @@ class InitialPopulation:
                     agents.loc[
                         agents['agent'] == agent_index, field
                         ] = self._filler(values, probabilities)
+
+        return population_df
