@@ -1,8 +1,14 @@
+from typing import Optional
+
 from numpy import array, nan_to_num, inf, maximum, floor, setdiff1d
 from scipy.spatial import KDTree
 from pandas.core.frame import DataFrame
 
+from abmodel.models.health_system import HealthSystem
+from abmodel.models.base import SimpleGroups
+from abmodel.models.disease import SusceptibilityGroups, MobilityGroups
 from abmodel.models.disease import NaturalHistory, DiseaseStates
+from abmodel.models.disease import IsolationAdherenceGroups
 
 
 class Population:
@@ -15,8 +21,15 @@ class Population:
     """
     def __init__(
         self,
+        health_system: HealthSystem,
+        age_groups: SimpleGroups,
+        vulnerability_groups: SimpleGroups,
+        mr_groups: SimpleGroups,
+        susceptibility_groups: SusceptibilityGroups,
+        mobility_groups: MobilityGroups,
         disease_groups: DiseaseStates,
-        natural_history: NaturalHistory
+        natural_history: NaturalHistory,
+        isolation_adherence_groups: Optional[IsolationAdherenceGroups] = None
     ) -> None:
         """
             Constructor of Population class.
