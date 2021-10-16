@@ -11,6 +11,10 @@ class Distribution:
         Distribution class
 
         It computes random numbers from a probability density distribution.
+
+        Methods
+        -------
+        TODO
     """
     @validate_arguments(config={"arbitrary_types_allowed": True})
     def __init__(self,
@@ -93,7 +97,11 @@ class Distribution:
 
             Raises
             ------
+            ValueError
+                TODO: when ?
+
             SystemError
+                TODO: when ?
 
             References
             ----------
@@ -226,6 +234,7 @@ class Distribution:
             Raises
             ------
             SystemError
+                TODO: when ?
 
             Examples
             --------
@@ -290,6 +299,11 @@ class Distribution:
             ----------
             size : int, default=1
 
+            Raises
+            ------
+            SystemError
+                TODO: when ?
+
             See Also
             --------
             sample : Compute random sampling using the defined distribution.
@@ -316,6 +330,7 @@ class Distribution:
             Raises
             ------
             SystemError
+                TODO: when ?
 
             Examples
             --------

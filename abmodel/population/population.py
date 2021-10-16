@@ -1,29 +1,97 @@
+from typing import Optional
+
 from numpy import array, nan_to_num, inf, maximum, floor, setdiff1d
 from scipy.spatial import KDTree
 from pandas.core.frame import DataFrame
 
+from abmodel.utils.execution_modes import ExecutionModes
+from abmodel.models.population import Configutarion
+from abmodel.models.health_system import HealthSystem
+from abmodel.models.base import SimpleGroups
+from abmodel.models.disease import SusceptibilityGroups, MobilityGroups
 from abmodel.models.disease import NaturalHistory, DiseaseStates
+from abmodel.models.disease import IsolationAdherenceGroups
 
 
 class Population:
     """
-        ... TODO
+        TODO: Add brief explanation
+
+        Methods
+        -------
+        TODO
     """
     def __init__(
-        self, disease_groups: DiseaseStates, natural_history: NaturalHistory
+        self,
+        configuration: Configutarion,
+        health_system: HealthSystem,
+        age_groups: SimpleGroups,
+        vulnerability_groups: SimpleGroups,
+        mr_groups: SimpleGroups,
+        susceptibility_groups: SusceptibilityGroups,
+        mobility_groups: MobilityGroups,
+        disease_groups: DiseaseStates,
+        natural_history: NaturalHistory,
+        isolation_adherence_groups: Optional[IsolationAdherenceGroups] = None,
+        execmode: ExecutionModes = ExecutionModes.iterative
     ) -> None:
         """
+            Constructor of Population class.
+
+            TODO: Add brief explanation
+
+            Parameters
+            ----------
+            TODO
+
+            See Also
+            --------
+            get_disease_groups_alive : TODO complete explanation
+
+            choose_tracing_radius : TODO complete explanation
+
+            Examples
+            --------
+            TODO: include some examples
         """
+        # Store configuration
+        self.configuration = configuration
+        self.health_system = health_system
+        self.age_groups = age_groups
+        self.vulnerability_groups = vulnerability_groups
+        self.mr_groups = mr_groups
+        self.susceptibility_groups = susceptibility_groups
+        self.mobility_groups = mobility_groups
         self.disease_groups = disease_groups
         self.natural_history = natural_history
+        self.isolation_adherence_groups = isolation_adherence_groups
+        self.execmode = execmode
 
+        # TODO
+        # Handle units
+
+        # Setup internal variables
         self.get_disease_groups_alive()
+        self.choose_tracing_radius()
 
+        # Init population dataframe
         self.population = DataFrame()
 
-    def get_disease_groups_alive(self):
+    def get_disease_groups_alive(self) -> None:
         """
+            TODO: Add brief explanation
+
+            Parameters
+            ----------
             TODO
+
+            See Also
+            --------
+            TODO
+
+            Examples
+            --------
+            TODO: include some examples
         """
         # Retrieve disease group label which corresponds to those dead
         for disease_group_label in self.disease_groups.items.keys():
@@ -38,7 +106,19 @@ class Population:
 
     def choose_tracing_radius(self) -> None:
         """
+            TODO: Add brief explanation
+
+            Parameters
+            ----------
             TODO
+
+            See Also
+            --------
+            TODO
+
+            Examples
+            --------
+            TODO: include some examples
         """
         # Retrieve maximum radius for trace_neighbors function
         spread_radius_list = [
@@ -66,7 +146,19 @@ class Population:
 
     def kdtrees_and_agents_indices(self) -> None:
         """
+            TODO: Add brief explanation
+
+            Parameters
+            ----------
             TODO
+
+            See Also
+            --------
+            TODO
+
+            Examples
+            --------
+            TODO: include some examples
         """
         self.kdtree_by_disease_state = {}
         self.agents_labels_by_disease_state = {}

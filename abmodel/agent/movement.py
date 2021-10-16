@@ -111,7 +111,10 @@ class AgentMovement:
         """
         check_field_errors(df)
         try:
-            df = df.apply(move_individual_agent, axis=1)
+            df = df.apply(
+                lambda row: move_individual_agent(row, box_size, dt),
+                axis=1
+                )
         except Exception:
             check_field_existance(df, ["x", "y", "vx", "vy"])
         else:
@@ -493,10 +496,7 @@ class AgentMovement:
     @classmethod
     def avoid_agents(cls, df: DataFrame, df_to_avoid: DataFrame) -> DataFrame:
         """
-            Update the velocity of a given set of agents from a given
-            mobility profile (i.e. a velocity distribution) and
-            deviating the resulting angles using a normal distribution
-            with a standard deviation equal to `angle_variance`.
+            TODO: Add brief explanation
 
             Parameters
             ----------

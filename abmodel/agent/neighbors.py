@@ -3,9 +3,9 @@ from numpy import array, setdiff1d, concatenate
 # from numpy.random import choice, random_sample
 from pandas.core.frame import DataFrame
 
+from abmodel.utils.execution_modes import ExecutionModes
 from abmodel.utils.utilities import check_field_existance
 from abmodel.models.disease import DiseaseStates
-from abmodel.agent.execution_modes import ExecutionModes
 
 
 def trace_neighbors_vectorized(
