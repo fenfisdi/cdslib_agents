@@ -493,10 +493,7 @@ class AgentMovement:
     @classmethod
     def avoid_agents(cls, df: DataFrame, df_to_avoid: DataFrame) -> DataFrame:
         """
-            Update the velocity of a given set of agents from a given
-            mobility profile (i.e. a velocity distribution) and
-            deviating the resulting angles using a normal distribution
-            with a standard deviation equal to `angle_variance`.
+            TODO: Add brief explanation
 
             Parameters
             ----------

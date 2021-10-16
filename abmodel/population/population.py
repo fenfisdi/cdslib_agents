@@ -4,6 +4,8 @@ from numpy import array, nan_to_num, inf, maximum, floor, setdiff1d
 from scipy.spatial import KDTree
 from pandas.core.frame import DataFrame
 
+from abmodel.utils.execution_modes import ExecutionModes
+from abmodel.models.population import Configutarion
 from abmodel.models.health_system import HealthSystem
 from abmodel.models.base import SimpleGroups
 from abmodel.models.disease import SusceptibilityGroups, MobilityGroups
@@ -21,6 +23,7 @@ class Population:
     """
     def __init__(
         self,
+        configuration: Configutarion,
         health_system: HealthSystem,
         age_groups: SimpleGroups,
         vulnerability_groups: SimpleGroups,
@@ -29,7 +32,8 @@ class Population:
         mobility_groups: MobilityGroups,
         disease_groups: DiseaseStates,
         natural_history: NaturalHistory,
-        isolation_adherence_groups: Optional[IsolationAdherenceGroups] = None
+        isolation_adherence_groups: Optional[IsolationAdherenceGroups] = None,
+        execmode: ExecutionModes = ExecutionModes.iterative
     ) -> None:
         """
             Constructor of Population class.
@@ -44,15 +48,33 @@ class Population:
             --------
             get_disease_groups_alive : TODO complete explanation
 
+            choose_tracing_radius : TODO complete explanation
+
             Examples
             --------
             TODO: include some examples
         """
+        # Store configuration
+        self.configuration = configuration
+        self.health_system = health_system
+        self.age_groups = age_groups
+        self.vulnerability_groups = vulnerability_groups
+        self.mr_groups = mr_groups
+        self.susceptibility_groups = susceptibility_groups
+        self.mobility_groups = mobility_groups
         self.disease_groups = disease_groups
         self.natural_history = natural_history
+        self.isolation_adherence_groups = isolation_adherence_groups
+        self.execmode = execmode
 
+        # TODO
+        # Handle units
+
+        # Setup internal variables
         self.get_disease_groups_alive()
+        self.choose_tracing_radius()
 
+        # Init population dataframe
         self.population = DataFrame()
 
     def get_disease_groups_alive(self) -> None:

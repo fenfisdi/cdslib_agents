@@ -1,4 +1,4 @@
-from typing import Union, Optional
+from typing import Optional
 from copy import deepcopy
 
 from numpy import where, full, ndarray, isin, concatenate, setdiff1d
@@ -6,12 +6,12 @@ from numpy.random import choice, random_sample
 from pandas.core.frame import DataFrame
 from pandas.core.series import Series
 
+from abmodel.utils.execution_modes import ExecutionModes
 from abmodel.utils.utilities import check_field_existance
 from abmodel.utils.utilities import std_str_join_cols
 from abmodel.models.disease import NaturalHistory, DiseaseStates
 from abmodel.models.disease import IsolationAdherenceGroups, DistTitles
 from abmodel.models.health_system import HealthSystem
-from abmodel.agent.execution_modes import ExecutionModes
 
 
 # =============================================================================

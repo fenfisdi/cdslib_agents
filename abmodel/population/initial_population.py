@@ -12,20 +12,8 @@ class InitialPopulation:
         -------
         TODO
     """
-    def __init__(self, core_var: str, nested_vars: list) -> None:
-        """
-            Constructor of InitialPopulation.
-
-            TODO: Add brief explanation
-
-            Parameters
-            ----------
-            TODO
-        """
-        self.nesting = nested_vars
-        self.core = core_var
-
-    def _filler(self, values: Any, probabilities: list) -> Any:
+    @classmethod
+    def filler(cls, values: Any, probabilities: list) -> Any:
         """
             TODO: Add brief explanation
 
@@ -50,7 +38,14 @@ class InitialPopulation:
             if sample <= cummulative_probability:
                 return value
 
-    def setup(self, settings_json: dict, agents: DataFrame) -> DataFrame:
+    @classmethod
+    def setup(
+        cls,
+        core_var: str,
+        nested_vars: list,
+        settings_json: dict,
+        agents: DataFrame
+    ) -> DataFrame:
         """
             I take a json-like input, a df contaning `agent` data and
             modify such df with the necessary data inside the json-like input.
@@ -69,17 +64,17 @@ class InitialPopulation:
             --------
             TODO: include some examples
         """
-        for field in self.nesting:
+        for field in nested_vars:
             nested_content = settings_json[field]
-            population_df = DataFrame(columns=self.nesting)
+            population_df = DataFrame(columns=nested_vars)
 
-            for (col_index, col_name) in enumerate(self.nesting):
+            for (col_index, col_name) in enumerate(nested_vars):
                 if col_index != 0:
                     row_number = population_df.shape[0]
                     column = eval(f'select.{col_name}s')
 
                     placeholder = population_df.copy()
-                    population_df = DataFrame(columns=self.nesting)
+                    population_df = DataFrame(columns=nested_vars)
 
                     for item in column:
                         array = [item for _ in range(row_number)]
@@ -146,6 +141,6 @@ class InitialPopulation:
                 for agent_index in agent_list:
                     agents.loc[
                         agents['agent'] == agent_index, field
-                        ] = self._filler(values, probabilities)
+                        ] = cls.filler(values, probabilities)
 
         return population_df
