@@ -1023,8 +1023,7 @@ class AgentDisease:
                 df["do_calculate_max_time"] = df.apply(
                     lambda row: init_calculate_max_time_iterative(
                         row["key"],
-                        natural_history,
-                        execmode
+                        natural_history
                         ),
                     axis=1
                     )
@@ -1032,8 +1031,7 @@ class AgentDisease:
                 df["do_calculate_max_time"] = \
                     init_calculate_max_time_vectorized(
                         df["key"],
-                        natural_history,
-                        execmode
+                        natural_history
                         )
             else:
                 raise NotImplementedError(
