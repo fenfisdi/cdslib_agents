@@ -17,20 +17,36 @@ def move_individual_agent(
     dt: float
 ) -> DataFrame:
     """
-    TODO: Add brief explanation
-    A row represents an agent.
+    Moves spatially each agent by updating its positions,
+    each agent is represented by a row containing its positions and 
+    velocities.
 
     Parameters
     ----------
-    TODO
+    row : DataFrame
+        A row from a DataFrame. 
+        Must have x, y, vx and vy columns. 
+    
+    box_size : BoxSize
+        Named tuple that contains the box dimensions. 
+        Must have top, bottom, right and left names.   
+    
+    dt : float
+        Time step for the movement.
 
     Returns
     -------
-    TODO
+    row : DataFrame
+        Agent's position and velocity updated according to its movement.
 
     Notes
     -----
-    TODO: include mathematical description and explanatory image
+    The new position is calculated as x = x_0 + v_x * dt according to 
+    classical mechanics equations of motion.
+    If the new coordinates are outside the box, the agent's new position will 
+    be the box boundary and the velocity will be changed in the opposite direction.
+
+    TODO: explanatory image
 
     Examples
     --------
@@ -61,10 +77,27 @@ def move_individual_agent(
 
 class AgentMovement:
     """
-        TODO: Add brief explanation
+        Class containing all the methods used to move the agents.
+        No initialization is required. 
 
         Methods
         -------
+        move_agents()
+            Applies a transformation in pandas DataFrame to update agent's
+            coordinates and velocities.
+        
+        stop_agents()
+            Sets the velocity of a given set of agents to zero.
+
+        standardize_angle()
+            Standardizes angles to be in the interval [-pi, pi].
+
+        angle()
+            Returns the standardized angle formed by the components `x` and `y`.
+
+        vector_angles()
+            Calculates vector angles from their euclidean components.
+
         TODO
     """
     @classmethod
@@ -91,11 +124,17 @@ class AgentMovement:
 
             Notes
             -----
-            TODO: include mathematical description and explanatory image
+            The new position is calculated as x = x_0 + v_x * dt for each direction
+            according to classical mechanics equations of motion.
+            If the new coordinates are outside the box, the agent's new position will 
+            be the box boundary and the velocity will be changed in the opposite direction.
+            
+            TODO: explanatory image (it's the same from move_individual_agent)
 
             See Also
             --------
-            move_individual_agent : TODO complete explanation
+            move_individual_agent : Moves spatially each agent by updating its positions,
+            each agent is represented by a row containing its positions and velocities.
 
             Examples
             --------
