@@ -7,7 +7,7 @@ class TestBoxSizeCase:
     """
         Verifies the functionality of the BoxSize namedtuple from population.
     """
-    def setup_method(self, method
+    def setup_method(self, method):
         """Allows to see a brief description of the test in the report."""
         print('\u21B4' + '\n' + '\u273C' + method.__doc__.strip())
 
