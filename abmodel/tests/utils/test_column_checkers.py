@@ -5,7 +5,7 @@ from pandas import DataFrame
 from abmodel.utils.utilities import check_field_errors, check_field_existance
 
 
-class TestCaseFieldExistenceAndErrors():
+class TestCaseFieldExistenceAndErrors:
     """
         Verifies the functionality of the methods check_field_existance and
         check_field_errors from utilities.
