@@ -6,7 +6,7 @@ from sklearn.neighbors import KernelDensity
 from abmodel.utils.distributions import Distribution
 
 
-class TestDistribution():
+class TestDistribution:
     """
         Checks the functionality of the Distribution constructor from
         distribution module.
