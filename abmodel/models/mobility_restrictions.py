@@ -42,7 +42,7 @@ class MRTimeUnits(Enum):
     months = "months"
 
 
-class MRTracing(BaseModel):
+class MRTracingPolicies(BaseModel):
     """
         TODO: Add brief explanation
 
@@ -178,7 +178,7 @@ class GlobalCyclicMR(BaseModel):
         return v
 
 
-class CyclicMRGroups(BaseModel):
+class CyclicMRPolicies(BaseModel):
     """
         TODO: Add brief explanation
 

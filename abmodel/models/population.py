@@ -20,7 +20,7 @@ class Configutarion(BaseModel):
         TODO: include some examples
     """
     population_number: int
-    init_date: datetime
+    initial_date: datetime
     final_date: datetime
     iteration_time: timedelta
     iterations_number: int

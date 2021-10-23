@@ -637,6 +637,8 @@ def hospitalization_vectorized(
 
 
 # =============================================================================
+# TODO
+# Add susceptibility_dist
 def contagion_function(
     step: int,
     agent: int,
@@ -743,6 +745,7 @@ def contagion_function(
                 # Calculate joint probability for contagion
                 joint_probability = \
                     (1.0 - immunization_level) \
+                    * 
                     * disease_groups.items[spreader_state] \
                     .spread_probability
 
