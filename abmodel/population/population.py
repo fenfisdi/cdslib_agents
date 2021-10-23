@@ -11,6 +11,10 @@ from abmodel.models.base import SimpleGroups
 from abmodel.models.disease import SusceptibilityGroups, MobilityGroups
 from abmodel.models.disease import NaturalHistory, DiseaseStates
 from abmodel.models.disease import IsolationAdherenceGroups
+from abmodel.population.initial_arrangement import InitialArrangement
+from abmodel.models.mobility_restrictions import MRTracingPolicies
+from abmodel.models.mobility_restrictions import GlobalCyclicMR
+from abmodel.models.mobility_restrictions import CyclicMRPolicies
 
 
 class Population:
@@ -32,6 +36,10 @@ class Population:
         mobility_groups: MobilityGroups,
         disease_groups: DiseaseStates,
         natural_history: NaturalHistory,
+        initial_population_setup_list: list[dict],
+        mrt_policies: Optional[MRTracingPolicies] = None,
+        global_cyclic_mr: Optional[GlobalCyclicMR] = None,
+        cyclic_mr_policies: Optional[CyclicMRPolicies] = None,
         isolation_adherence_groups: Optional[IsolationAdherenceGroups] = None,
         execmode: ExecutionModes = ExecutionModes.iterative
     ) -> None:
@@ -65,6 +73,9 @@ class Population:
         self.disease_groups = disease_groups
         self.natural_history = natural_history
         self.isolation_adherence_groups = isolation_adherence_groups
+        self.mrt_policies = mrt_policies
+        self.global_cyclic_mr = global_cyclic_mr
+        self.cyclic_mr_policies = cyclic_mr_policies
         self.execmode = execmode
 
         # TODO
@@ -75,7 +86,17 @@ class Population:
         self.choose_tracing_radius()
 
         # Init population dataframe
-        self.population = DataFrame()
+        self.df = DataFrame({
+            "agent": list(range(self.configuration.population_number))
+        })
+
+        for initial_population_setup in initial_population_setup_list:
+            self.df = InitialArrangement.setup(
+                self.df,
+                **initial_population_setup,
+                )
+
+        print(self.df)
 
     def get_disease_groups_alive(self) -> None:
         """

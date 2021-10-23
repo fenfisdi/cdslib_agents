@@ -32,13 +32,15 @@ def init_distribution(dist_dict: dict[str, Any]) -> Distribution:
     elif dist_dict["dist_type"] == "empirical":
         return Distribution(
             dist_type=dist_dict["dist_type"],
+            data=dist_dict["data"],
             filename=dist_dict["filename"],
             **dist_dict["kwargs"]
             )
     elif dist_dict["dist_type"] == "weights":
         return Distribution(
             dist_type=dist_dict["dist_type"],
-            filename=dist_dict["filename"]
+            data=dist_dict["data"],
+            filename=dist_dict["filename"],
             )
     elif dist_dict["dist_type"] == "numpy":
         return Distribution(
