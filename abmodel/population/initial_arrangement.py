@@ -45,7 +45,7 @@ class InitialArrangement:
             # All values are assigned randomly with the given probabilities
             df[core_var] = choice(a=values, p=probabilities, size=df.shape[0])
         else:
-            # Create the new collumn with assigned value None
+            # Create the new column with assigned value None
             df[core_var] = full(df.shape[0], None)
 
             # aux_df is going to have all nested_vars values

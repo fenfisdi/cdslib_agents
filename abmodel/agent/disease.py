@@ -922,7 +922,7 @@ class AgentDisease:
     def generate_key_col(
         cls,
         df: DataFrame,
-        execmode: ExecutionModes = ExecutionModes.iterative
+        execmode: ExecutionModes = ExecutionModes.iterative.value
     ) -> DataFrame:
         """
             TODO: Add brief explanation
@@ -957,7 +957,7 @@ class AgentDisease:
             TODO: include some examples
         """
         try:
-            if execmode == ExecutionModes.iterative:
+            if execmode == ExecutionModes.iterative.value:
                 df["key"] = df.apply(
                     lambda row: std_str_join_cols(
                         row["vulnerability_group"],
@@ -965,7 +965,7 @@ class AgentDisease:
                         ),
                     axis=1
                     )
-            elif execmode == ExecutionModes.vectorized:
+            elif execmode == ExecutionModes.vectorized.value:
                 df["key"] = std_str_join_cols(
                     df["vulnerability_group"],
                     df["disease_state"]
@@ -985,7 +985,7 @@ class AgentDisease:
         cls,
         df: DataFrame,
         natural_history: NaturalHistory,
-        execmode: ExecutionModes = ExecutionModes.iterative
+        execmode: ExecutionModes = ExecutionModes.iterative.value
     ) -> DataFrame:
         """
             TODO: Add brief explanation
@@ -1022,7 +1022,7 @@ class AgentDisease:
             TODO: include some examples
         """
         try:
-            if execmode == ExecutionModes.iterative:
+            if execmode == ExecutionModes.iterative.value:
                 df["do_calculate_max_time"] = df.apply(
                     lambda row: init_calculate_max_time_iterative(
                         row["key"],
@@ -1030,7 +1030,7 @@ class AgentDisease:
                         ),
                     axis=1
                     )
-            elif execmode == ExecutionModes.vectorized:
+            elif execmode == ExecutionModes.vectorized.value:
                 df["do_calculate_max_time"] = \
                     init_calculate_max_time_vectorized(
                         df["key"],
@@ -1056,7 +1056,7 @@ class AgentDisease:
         cls,
         df: DataFrame,
         natural_history: NaturalHistory,
-        execmode: ExecutionModes = ExecutionModes.iterative
+        execmode: ExecutionModes = ExecutionModes.iterative.value
     ) -> DataFrame:
         """
             TODO: Add brief explanation
@@ -1093,7 +1093,7 @@ class AgentDisease:
             TODO: include some examples
         """
         try:
-            if execmode == ExecutionModes.iterative:
+            if execmode == ExecutionModes.iterative.value:
                 df["disease_state_max_time"] = df.apply(
                     lambda row: calculate_max_time_iterative(
                         row["key"],
@@ -1103,7 +1103,7 @@ class AgentDisease:
                         ),
                     axis=1
                     )
-            elif execmode == ExecutionModes.vectorized:
+            elif execmode == ExecutionModes.vectorized.value:
                 df["disease_state_max_time"] = calculate_max_time_vectorized(
                     df["key"],
                     df["do_calculate_max_time"],
@@ -1130,7 +1130,7 @@ class AgentDisease:
         df: DataFrame,
         dt: float,
         natural_history: NaturalHistory,
-        execmode: ExecutionModes = ExecutionModes.iterative
+        execmode: ExecutionModes = ExecutionModes.iterative.value
     ) -> DataFrame:
         """
             TODO: Add brief explanation
@@ -1167,7 +1167,7 @@ class AgentDisease:
             TODO: include some examples
         """
         try:
-            if execmode == ExecutionModes.iterative:
+            if execmode == ExecutionModes.iterative.value:
                 # Update disease state time
                 df["disease_state_time"] = list(map(
                     lambda t: t + dt if t is not None else None,
@@ -1207,7 +1207,7 @@ class AgentDisease:
         cls,
         df: DataFrame,
         disease_groups: DiseaseStates,
-        execmode: ExecutionModes = ExecutionModes.iterative
+        execmode: ExecutionModes = ExecutionModes.iterative.value
     ) -> DataFrame:
         """
             TODO: Add brief explanation
@@ -1242,7 +1242,7 @@ class AgentDisease:
             TODO: include some examples
         """
         try:
-            if execmode == ExecutionModes.iterative:
+            if execmode == ExecutionModes.iterative.value:
                 df["is_diagnosed"] = df.apply(
                     lambda row: diagnosis_function(
                         row["disease_state"],
@@ -1269,7 +1269,7 @@ class AgentDisease:
         df: DataFrame,
         dt: float,
         disease_groups: DiseaseStates,
-        execmode: ExecutionModes = ExecutionModes.iterative,
+        execmode: ExecutionModes = ExecutionModes.iterative.value,
         isolation_adherence_groups: Optional[IsolationAdherenceGroups] = None
     ) -> DataFrame:
         """
@@ -1308,7 +1308,7 @@ class AgentDisease:
             # TODO
             # Should we change positions for an isolated agent?
 
-            if execmode == ExecutionModes.iterative:
+            if execmode == ExecutionModes.iterative.value:
                 # Update isolation time
                 df["isolation_time"] = list(map(
                     lambda t: t + dt if t is not None else None,
@@ -1348,7 +1348,7 @@ class AgentDisease:
         dead_disease_group: str,
         disease_groups: DiseaseStates,
         health_system: HealthSystem,
-        execmode: ExecutionModes = ExecutionModes.vectorized
+        execmode: ExecutionModes = ExecutionModes.vectorized.value
     ) -> DataFrame:
         """
             TODO: Add brief explanation
@@ -1383,7 +1383,7 @@ class AgentDisease:
             TODO: include some examples
         """
         try:
-            if execmode == ExecutionModes.vectorized:
+            if execmode == ExecutionModes.vectorized.value:
                 df[["is_hospitalized", "is_in_ICU",
                    "disease_states", "is_dead"]] = hospitalization_vectorized(
                     df["is_hospitalized"],
@@ -1413,7 +1413,7 @@ class AgentDisease:
         agents_labels_by_disease_state: dict,
         natural_history: NaturalHistory,
         disease_groups: DiseaseStates,
-        execmode: ExecutionModes = ExecutionModes.iterative
+        execmode: ExecutionModes = ExecutionModes.iterative.value
     ) -> DataFrame:
         """
             TODO: Add brief explanation
@@ -1450,7 +1450,7 @@ class AgentDisease:
             TODO: include some examples
         """
         try:
-            if execmode == ExecutionModes.iterative:
+            if execmode == ExecutionModes.iterative.value:
                 df[["disease_state", "times_infected", "infected_info",
                     "disease_state_time", "do_calculate_max_time"]] = df.apply(
                     lambda row: contagion_function(
@@ -1495,7 +1495,7 @@ class AgentDisease:
         cls,
         df: DataFrame,
         natural_history: NaturalHistory,
-        execmode: ExecutionModes = ExecutionModes.iterative
+        execmode: ExecutionModes = ExecutionModes.iterative.value
     ) -> DataFrame:
         """
             TODO: Add brief explanation
@@ -1530,7 +1530,7 @@ class AgentDisease:
             TODO: include some examples
         """
         try:
-            if execmode == ExecutionModes.iterative:
+            if execmode == ExecutionModes.iterative.value:
                 df[["immunization_level_start",
                     "immunization_max_time"]] = df.apply(
                     lambda row: calculate_immunization_params_iterative(
@@ -1565,7 +1565,7 @@ class AgentDisease:
         cls,
         df: DataFrame,
         natural_history: NaturalHistory,
-        execmode: ExecutionModes = ExecutionModes.iterative
+        execmode: ExecutionModes = ExecutionModes.iterative.value
     ) -> DataFrame:
         """
             TODO: Add brief explanation
@@ -1600,7 +1600,7 @@ class AgentDisease:
             TODO: include some examples
         """
         try:
-            if execmode == ExecutionModes.iterative:
+            if execmode == ExecutionModes.iterative.value:
                 df["immunization_level"] = df.apply(
                     lambda row: calculate_immunization_level_iterative(
                         row["key"],

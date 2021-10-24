@@ -1,8 +1,10 @@
-from typing import Optional
+from enum import Enum
+from typing import Optional, Literal
 
 from numpy import array, nan_to_num, inf, maximum, floor, setdiff1d
 from scipy.spatial import KDTree
 from pandas.core.frame import DataFrame
+from pandas import concat
 
 from abmodel.utils.execution_modes import ExecutionModes
 from abmodel.models.population import Configutarion
@@ -10,16 +12,31 @@ from abmodel.models.health_system import HealthSystem
 from abmodel.models.base import SimpleGroups
 from abmodel.models.disease import SusceptibilityGroups, MobilityGroups
 from abmodel.models.disease import NaturalHistory, DiseaseStates
-from abmodel.models.disease import IsolationAdherenceGroups
 from abmodel.population.initial_arrangement import InitialArrangement
 from abmodel.models.mobility_restrictions import MRTracingPolicies
 from abmodel.models.mobility_restrictions import GlobalCyclicMR
 from abmodel.models.mobility_restrictions import CyclicMRPolicies
+from abmodel.models.disease import IsolationAdherenceGroups
+from abmodel.agent.neighbors import AgentNeighbors
+
+
+class EvolutionModes(Enum):
+    """
+        This class enumerates the evolution modes that can be used in
+        the method Population.evolve() and determines if cumulative
+        storing data or not.
+    """
+    steps = "steps"
+    cumulative = "cumulative"
 
 
 class Population:
     """
         TODO: Add brief explanation
+
+        Attributes
+        ----------
+        TODO
 
         Methods
         -------
@@ -41,7 +58,8 @@ class Population:
         global_cyclic_mr: Optional[GlobalCyclicMR] = None,
         cyclic_mr_policies: Optional[CyclicMRPolicies] = None,
         isolation_adherence_groups: Optional[IsolationAdherenceGroups] = None,
-        execmode: ExecutionModes = ExecutionModes.iterative
+        execmode: ExecutionModes = ExecutionModes.iterative.value,
+        evolmode: EvolutionModes = EvolutionModes.steps.value
     ) -> None:
         """
             Constructor of Population class.
@@ -72,33 +90,161 @@ class Population:
         self.mobility_groups = mobility_groups
         self.disease_groups = disease_groups
         self.natural_history = natural_history
-        self.isolation_adherence_groups = isolation_adherence_groups
+        self.initial_population_setup_list = initial_population_setup_list
         self.mrt_policies = mrt_policies
         self.global_cyclic_mr = global_cyclic_mr
         self.cyclic_mr_policies = cyclic_mr_policies
+        self.isolation_adherence_groups = isolation_adherence_groups
         self.execmode = execmode
+        self.evolmode = evolmode
 
         # TODO
         # Handle units
 
+        # =====================================================================
         # Setup internal variables
-        self.get_disease_groups_alive()
-        self.choose_tracing_radius()
+        self.__get_disease_groups_alive()
+        self.__choose_tracing_radius()
 
+        # =====================================================================
+        # Initialize population dataframe
+        self.__initialize_df()
+
+    @property
+    def evolmode(self):
+        return self.__evolmode
+
+    @evolmode.setter
+    def evolmode(self, value: EvolutionModes):
+        self.__evolmode = value
+
+    def __initialize_df(self):
+        """
+        """
+        # =====================================================================
         # Init population dataframe
-        self.df = DataFrame({
+        self.__df = DataFrame({
             "agent": list(range(self.configuration.population_number))
         })
 
-        for initial_population_setup in initial_population_setup_list:
-            self.df = InitialArrangement.setup(
-                self.df,
+        # =====================================================================
+        # Setup population's initial arrangement
+        for initial_population_setup in self.initial_population_setup_list:
+            self.__df = InitialArrangement.setup(
+                self.__df,
                 **initial_population_setup,
                 )
 
-        print(self.df)
+        # =====================================================================
+        # Store step information in a private attribute
+        # for checking purposes
+        self.__step = 0
 
-    def get_disease_groups_alive(self) -> None:
+        # Initialize time columns
+        self.__df = self.__df.insert(loc=0, column="step", value=self.__step)
+        self.__df = self.__df.insert(loc=1, column="datetime",
+                                     value=self.configuration.initial_date)
+
+        # =====================================================================
+        # Initialize movement related columns
+        pass
+
+        # =====================================================================
+        # Initialize disease related columns
+        pass
+
+        # =====================================================================
+        # Initialize disease related columns
+        if self.evolmode == EvolutionModes.cumulative.value:
+            self.__accumulated_df = self.__df.copy()
+
+    def get_population_df(self):
+        """
+        """
+        return self.__df
+
+    def get_accumulated_population_df(self):
+        """
+        """
+        if self.evolmode == ExecutionModes.cumulative.value:
+            return self.__accumulated_df
+        else:
+            raise ValueError(f"Denied: evolmode == {self.evolmode}")
+
+    def get_units(self):
+        """
+        """
+        return None
+
+    def evolve(
+        self,
+        iterations: int
+    ):
+        """
+            # TODO: add the option to iterate by date
+        """
+        for step in range(iterations):
+            self.__evolve_single_step()
+
+            if self.evolmode == ExecutionModes.cumulative.value:
+                self.__accumulated_df = concat(
+                    [self.__accumulated_df, self.__df],
+                    ignore_index=True
+                    )
+
+    def __evolve_single_step(self):
+        """
+        """
+        # =====================================================================
+        # Remove dead agents before evolving population dataframe
+        # TODO self.__remove_dead_agents()
+
+        # =====================================================================
+        # Evolve step
+        self.__step += 1
+        self.__df["step"] = self.__step
+
+        # Evolve date
+        self.__df["datetime"] += self.configuration.iteration_time
+
+        # =====================================================================
+        # Change population states by means of state transition
+        # and update diagnosis and hospitalization states
+        # TODO
+
+        # =====================================================================
+        # Quarantine
+        # TODO
+
+        # =====================================================================
+        # Create KDTree for agents of each alive disease state
+        self.__kdtrees_and_agents_indices()
+
+        # =====================================================================
+        # Trace neighbors to susceptible agents
+        # self.__df = AgentNeighbors.trace_neighbors_to_susceptibles(
+        #     df: DataFrame,
+        #     tracing_radius: float,
+        #     kdtree_by_disease_state: dict,
+        #     agents_labels_by_disease_state: dict,
+        #     dead_disease_group: str,
+        #     disease_groups: DiseaseStates,
+        #     execmode: ExecutionModes = ExecutionModes.vectorized.value
+        #     )
+
+        # =====================================================================
+        # Update alertness states and avoid avoidable agents
+        # TODO
+
+        # =====================================================================
+        # Change population states by means of contagion
+        # TODO
+
+        # =====================================================================
+        # Update agents' positions and velocities
+        # TODO
+
+    def __get_disease_groups_alive(self) -> None:
         """
             TODO: Add brief explanation
 
@@ -125,7 +271,7 @@ class Population:
             [self.dead_disease_group]
             ))
 
-    def choose_tracing_radius(self) -> None:
+    def __choose_tracing_radius(self) -> None:
         """
             TODO: Add brief explanation
 
@@ -165,7 +311,7 @@ class Population:
             max_avoidance_radius
             )
 
-    def kdtrees_and_agents_indices(self) -> None:
+    def __kdtrees_and_agents_indices(self) -> None:
         """
             TODO: Add brief explanation
 

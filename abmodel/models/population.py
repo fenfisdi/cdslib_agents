@@ -21,8 +21,6 @@ class Configutarion(BaseModel):
     """
     population_number: int
     initial_date: datetime
-    final_date: datetime
     iteration_time: timedelta
-    iterations_number: int
     box_size: BoxSize
     # box_size_units:

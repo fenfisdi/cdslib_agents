@@ -178,7 +178,7 @@ class AgentNeighbors:
         agents_labels_by_disease_state: dict,
         dead_disease_group: str,
         disease_groups: DiseaseStates,
-        execmode: ExecutionModes = ExecutionModes.vectorized
+        execmode: ExecutionModes = ExecutionModes.vectorized.value
     ) -> DataFrame:
         """
             TODO: Add brief explanation
@@ -204,7 +204,7 @@ class AgentNeighbors:
             TODO: include some examples
         """
         try:
-            if execmode == ExecutionModes.vectorized:
+            if execmode == ExecutionModes.vectorized.value:
                 df[["susceptible_neighbors",
                     "infected_spreader_neighbors",
                     "infected_non_spreader_neighbors",
