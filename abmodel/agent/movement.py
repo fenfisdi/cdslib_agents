@@ -233,16 +233,11 @@ class AgentMovement:
             --------
             TODO: include some examples
         """
-        try:
-            df.loc[indexes, "vx"] = 0
-            df.loc[indexes, "vy"] = 0
-        except Exception as error:
-            exception_burner([
-                error,
-                check_field_existance(df, ["vx", "vy"])
-                ])
-        else:
-            return df
+        check_field_existance(df, ["vx", "vy"])
+        df.loc[indexes, "vx"] = 0
+        df.loc[indexes, "vy"] = 0
+
+        return df
 
     @classmethod
     def standardize_angle(cls, angle: float) -> float:
@@ -392,6 +387,7 @@ class AgentMovement:
             TODO: include some examples
         """
         try:
+            check_field_existance(df, ["vx", "vy"])
             n_agents = len(df.index)
             new_velocities_norm = distribution.sample(size=n_agents)
 

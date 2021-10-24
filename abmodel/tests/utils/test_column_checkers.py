@@ -1,8 +1,9 @@
 import pytest
-from numpy import nan
-from pandas import DataFrame
+from numpy import nan, all
+from pandas import DataFrame, Series
 
-from abmodel.utils.utilities import check_field_errors, check_field_existance
+from abmodel.utils.utilities import check_field_errors
+from abmodel.utils.utilities import check_field_existance, std_str_join_cols
 
 
 class TestCaseFieldExistenceAndErrors:
@@ -15,21 +16,25 @@ class TestCaseFieldExistenceAndErrors:
         print('\u21B4' + '\n' + '\u273C' + method.__doc__.strip())
 
     @pytest.fixture
-    def fixture_field_existence(self, scope = 'class') -> None:
-        data = {'vx': [0, 10, 20],
-                'vy': [2, 2, 2]}
+    def fixture_field_existence(self) -> None:
+        data = {
+            "vx": [0, 10, 20],
+            "vy": [2, 2, 2]
+        }
         pytest.df = DataFrame(data)
-        pytest.cols_in = ['vx', 'vy']
-        pytest.cols_is_not_in = ['x', 'y']
+        pytest.cols_in = ["vx", "vy"]
+        pytest.cols_is_not_in = ["x", "y"]
         error_string = "df must contain: " + ", ".join(pytest.cols_is_not_in)
         check_string = \
             ".\n" + ", ".join(pytest.cols_is_not_in) + " must be checked"
         pytest.expected_ouput_cols_is_not_in = error_string + check_string
 
     @pytest.fixture
-    def fixture_field_errors(self, scope='class') -> None:
-        data = {'vx': [nan, 1, 2],
-                'vy': [0, 1, 2]}
+    def fixture_field_errors(self) -> None:
+        data = {
+            "vx": [nan, 1, 2],
+            "vy": [0, 1, 2]
+        }
         pytest.df = DataFrame(data)
         error_string = "The following columns contain Null values:\n"
         erratic_df = pytest.df[pytest.df.isna().any(axis=1)]
@@ -37,11 +42,36 @@ class TestCaseFieldExistenceAndErrors:
         pytest.expected_string_na_values = error_string
         pytest.expected_string_debug_False = (
             "Some columns might be initialized incorrectly.\nTo pinpoint"
-            " especific errors, add `debug=True` as a parameter")
+            " especific errors, add `debug=True` as a parameter"
+        )
+
+    @pytest.fixture
+    def fixture_std_str_join_cols(self) -> None:
+        data = {
+            "vulnerability_group": [
+                "not_vulnerable",
+                "vulnerable"
+            ],
+            "disease_group": [
+                "immune",
+                "susceptible"
+                ]
+        }
+        expected = [
+            vul + '-' + dis for (vul, dis) in zip(
+                data["vulnerability_group"], data["disease_group"]
+                )
+        ]
+        error_string = (
+                "`col1` or `col2` might be provided incorrectly.\n"
+                "Both `col1` and `col2` should have the same type"
+                "corresponding to `str` or `pandas Series`"
+        )
+        return data, expected, error_string
 
     def test_field_existence_cols_in(self, fixture_field_existence):
         """The List passed contains columns belonging to the DataFrame."""
-        assert check_field_existance(pytest.df, pytest.cols_in) == True
+        assert check_field_existance(pytest.df, pytest.cols_in) == ""
 
     def test_field_existence_cols_is_not_in(self, fixture_field_existence):
         """
@@ -57,21 +87,68 @@ class TestCaseFieldExistenceAndErrors:
         DataFrame.
         """
         with pytest.raises(
-                    ValueError, match=pytest.expected_ouput_cols_is_not_in):
+            ValueError,
+            match=pytest.expected_ouput_cols_is_not_in
+        ):
             assert check_field_existance(pytest.df, pytest.cols_is_not_in)
 
     def test_field_errors_na_values_debug_True(self, fixture_field_errors):
         """
-        Verify whether the output ValueError string corresponds to the expected
-        for Null values ==> debug True.
+        Verifies whether the output ValueError string corresponds to the
+        expected for Null values ==> debug True.
         """
         with pytest.raises(ValueError, match=pytest.expected_string_na_values):
             assert check_field_errors(pytest.df, True)
 
     def test_field_error_na_values_debug_False(self, fixture_field_errors):
         """
-        Verify whether the output ValueError string corresponds to the expected
-        for Null values ==> debug False.
+        Verifies whether the output ValueError string corresponds to the
+        expected for Null values ==> debug False.
         """
-        with pytest.raises(ValueError, match=pytest.expected_string_debug_False):
+        with pytest.raises(
+            ValueError,
+            match=pytest.expected_string_debug_False
+        ):
             assert check_field_errors(pytest.df)
+
+    def test_std_str_join_cols_str(self, fixture_std_str_join_cols):
+        """
+        Verifies whether the output ValueError string corresponds to the
+        expected for Null values ==> debug False.
+        """
+        output_str = std_str_join_cols(
+            "not_vulnerable",
+            "immune",
+        )
+        expected = "not_vulnerable-immune"
+
+        assert expected == output_str
+
+    def test_std_str_join_cols_Series(self, fixture_std_str_join_cols):
+        """
+        Verifies whether the output ValueError string corresponds to the
+        expected.
+        """
+        S1 = Series(fixture_std_str_join_cols[0]["vulnerability_group"])
+        S2 = Series(fixture_std_str_join_cols[0]["disease_group"])
+
+        output_list = std_str_join_cols(
+            S1,
+            S2,
+            )
+        expected = fixture_std_str_join_cols[1]
+
+        assert all(expected == output_list)
+
+    def test_std_str_join_cols_raise_error(self, fixture_std_str_join_cols):
+        """
+        Verifies whether the output ValueError string corresponds to the
+        expected.
+        """
+        S1 = Series(fixture_std_str_join_cols[0]["vulnerability_group"])
+
+        with pytest.raises(
+            ValueError,
+            match=fixture_std_str_join_cols[2]
+        ):
+            assert std_str_join_cols(S1, "immune")
