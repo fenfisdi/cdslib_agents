@@ -1,6 +1,6 @@
 def pytest_report_teststatus(report):
     """
-    Changes the words in the report status of the test and adds a UTF-8 symbol.
+    Changes the words in the status report of the test and adds a UTF-8 symbol.
     """
     if report.when == 'call':
         if report.passed:
