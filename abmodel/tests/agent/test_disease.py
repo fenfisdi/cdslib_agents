@@ -13,15 +13,20 @@ class TestAgentDisease:
 
     @pytest.fixture()
     def fixture_generate_key_col_iterative(self):
-        vul = ["High degree",
-                "Middle degree",
-                "Low degree"]
-        st = ["Initial stage",
-                "Middle stage",
-                "Final stage"]
-        data = {"vulnerability_group": vul,
-                "disease_state": st
-                }
+        vul = [
+            "High degree",
+            "Middle degree",
+            "Low degree"
+            ]
+        st = [
+            "Initial stage",
+            "Middle stage",
+            "Final stage"
+            ]
+        data = {
+            "vulnerability_group": vul,
+            "disease_state": st
+            }
         df = DataFrame(data)
         expected = [vul + '-' + st for (vul, st) in zip(vul, st)]
         return df, expected
@@ -52,16 +57,16 @@ class TestAgentDisease:
 
     def test_generate_key_col_raise_Exception_error(
             self, fixture_generate_key_col_iterative):
-        """Verifies whether the column `key` is created on the input DataFrame
-        and assigns correct values in vectorized mode."""
+        """Raises a ValueError when one of the columns: `disease_state` or
+        `vulnerability_group` is not a column of the input DataFrame"""
         fixture_generate_key_col_iterative[0].pop("disease_state")
-
-        with pytest.raises(
-            ValueError,
-            match = "df must contain: disease_state, vulnerability_group.\n"
+        error_message = (
+            "df must contain: disease_state, vulnerability_group.\n"
             "disease_state must be checked"
-            ):
-                df = AgentDisease().generate_key_col(
-                    fixture_generate_key_col_iterative[0],
-                    ExecutionModes.vectorized
-                    )
+            )
+
+        with pytest.raises(ValueError, match=error_message):
+            AgentDisease().generate_key_col(
+                fixture_generate_key_col_iterative[0],
+                ExecutionModes.vectorized
+                )
