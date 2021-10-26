@@ -5,6 +5,7 @@ from abmodel.utils.distributions import Distribution
 from abmodel.utils.helpers.distributions import init_distribution
 from abmodel.models.base import DistributionGroup, SimpleDistGroups
 
+
 class TestDistributionGroup:
     """Unitary test for: DistributionGroup, SimpleDistGroups and
     ComplexDistGroups class in abmodel.models.base"""
@@ -127,7 +128,7 @@ class TestDistributionGroup:
             assert DistributionGroup(
                 'Error group', tuple(fixture_DistributionGoup[1])
                 )
-                
+
     @pytest.mark.skip(reason = "Minor problem with the constructor of"
                                 "SimpleDistGroup")
     def test_SimpleDistGroups_single_dist_title_validation(
@@ -137,3 +138,4 @@ class TestDistributionGroup:
         expected_dist_title = \
             [dict["dist_title"] for dict in fixture_SimpleDistGroup]
         Groups = SimpleDistGroups(expected_dist_title, fixture_SimpleDistGroup)
+
