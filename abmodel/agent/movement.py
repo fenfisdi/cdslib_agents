@@ -1,10 +1,14 @@
+from typing import Optional
+
 from math import fmod
-from numpy import arctan2, cos, sin, pi, sqrt
+from numpy import arctan2, cos, sin, pi, sqrt, inf, frompyfunc
 from pandas.core.frame import DataFrame
 
 from abmodel.models.population import BoxSize
+from abmodel.models.disease import MobilityGroups, DistTitles
 from abmodel.utils.distributions import Distribution
-from abmodel.utils.utilities import check_field_errors, check_field_existance
+from abmodel.utils.utilities import check_field_errors
+from abmodel.utils.utilities import check_field_existance, exception_burner
 
 
 def move_individual_agent(
@@ -64,6 +68,76 @@ class AgentMovement:
         TODO
     """
     @classmethod
+    def init_required_fields(
+        cls,
+        df: DataFrame,
+        box_size: BoxSize,
+        mobility_groups: MobilityGroups
+    ) -> DataFrame:
+        """
+            TODO: Add brief explanation
+
+            Parameters
+            ----------
+            TODO
+
+            Returns
+            -------
+            TODO
+
+            Raises
+            ------
+            TODO
+
+            Notes
+            -----
+            TODO: include mathematical description and explanatory image
+
+            See Also
+            --------
+            move_individual_agent : TODO complete explanation
+
+            Examples
+            --------
+            TODO: include some examples
+        """
+        # Initialize positions
+        df["x"] = Distribution(
+            dist_type="numpy",
+            dist_name="uniform",
+            low=box_size.left,
+            high=box_size.right
+            ).sample(size=df.shape[0])
+
+        df["y"] = Distribution(
+            dist_type="numpy",
+            dist_name="uniform",
+            low=box_size.bottom,
+            high=box_size.top
+            ).sample(size=df.shape[0])
+
+        # Initialize velocities
+        df = df.assign(vx=inf)
+        df = df.assign(vy=inf)
+
+        for mobility_group in mobility_groups.items.keys():
+            df = cls.initialize_velocities(
+                df=df,
+                distribution=mobility_groups.items[
+                    mobility_group].dist[DistTitles.mobility.value],
+                angle_distribution=Distribution(
+                    dist_type="numpy",
+                    dist_name="uniform",
+                    low=0.0,
+                    high=2*pi
+                    ),
+                group_field="mobility_group",
+                group_label=mobility_group
+                )
+
+        return df
+
+    @classmethod
     def move_agents(
         cls,
         df: DataFrame,
@@ -115,8 +189,12 @@ class AgentMovement:
                 lambda row: move_individual_agent(row, box_size, dt),
                 axis=1
                 )
-        except Exception:
-            check_field_existance(df, ["x", "y", "vx", "vy"])
+
+        except Exception as error:
+            exception_burner([
+                error,
+                check_field_existance(df, ["x", "y", "vx", "vy"])
+                ])
         else:
             return df
 
@@ -153,8 +231,11 @@ class AgentMovement:
         try:
             df.loc[indexes, "vx"] = 0
             df.loc[indexes, "vy"] = 0
-        except Exception:
-            check_field_existance(df, ["vx", "vy"])
+        except Exception as error:
+            exception_burner([
+                error,
+                check_field_existance(df, ["vx", "vy"])
+                ])
         else:
             return df
 
@@ -258,17 +339,21 @@ class AgentMovement:
                 lambda row: cls.angle(row[components[0]], row[components[1]]),
                 axis=1
                 )
-        except Exception:
-            check_field_existance(df, components)
+        except Exception as error:
+            exception_burner([
+                error,
+                check_field_existance(df, components)
+                ])
         else:
             return angles
 
     @classmethod
-    def change_velocities(
+    def set_velocities(
         cls,
         df: DataFrame,
         distribution: Distribution,
-        angle_variance: float
+        angle_variance: Optional[float] = None,
+        angle_distribution: Optional[Distribution] = None
     ) -> DataFrame:
         """
             TODO: Add brief explanation
@@ -281,40 +366,170 @@ class AgentMovement:
             -------
             TODO
 
+            Raises
+            ------
+            Exception
+                TODO complete explanation
+
             Notes
             -----
             TODO: include mathematical description and explanatory image
 
             See Also
             --------
+            abmodel.utils.distributions.Distribution : TODO complete
+            explanation
+
             standardize_angle : TODO complete explanation
 
             Examples
             --------
             TODO: include some examples
         """
-        n_agents = len(df.index)
-        new_velocities_norm = distribution.sample(size=n_agents)
+        try:
+            n_agents = len(df.index)
+            new_velocities_norm = distribution.sample(size=n_agents)
 
-        angles = cls.vector_angles(df, ["vx", "vy"])
+            if angle_distribution is None:
+                # Use former angles as baseline to create new ones but modified
+                # by a normal distribution of scale equal to angle_variance
+                angles = cls.vector_angles(df, ["vx", "vy"])
 
-        delta_angles = Distribution(
-            dist_type="numpy",
-            dist_name="normal",
-            loc=0.0,
-            scale=angle_variance
-            ).sample(size=n_agents)
+                delta_angles = Distribution(
+                    dist_type="numpy",
+                    dist_name="normal",
+                    loc=0.0,
+                    scale=angle_variance
+                    ).sample(size=n_agents)
 
-        angles = angles + delta_angles
+                angles = angles + delta_angles
 
-        # Standardize angles on the interval [0, 2*pi]
-        angles = angles.apply(lambda angle: cls.standardize_angle(angle))
+                # Standardize angles on the interval [0, 2*pi]
+                angles = angles.apply(cls.standardize_angle)
+            else:
+                # Use angle_distribution to create new angles
+                # This option is used for initializing velocities
+                angles = angle_distribution.sample(size=n_agents)
 
-        df.loc[df.index, "vx"] = new_velocities_norm * cos(angles)
+                # Standardize angles on the interval [0, 2*pi]
+                standardize_angle_array = frompyfunc(
+                    cls.standardize_angle,
+                    nin=1,
+                    nout=1
+                    )
+                angles = standardize_angle_array(angles).astype(float)
 
-        df.loc[df.index, "vy"] = new_velocities_norm * sin(angles)
+            df.loc[df.index, "vx"] = new_velocities_norm * cos(angles)
 
-        return df
+            df.loc[df.index, "vy"] = new_velocities_norm * sin(angles)
+
+        except Exception as error:
+            exception_burner([
+                error,
+                check_field_existance(df, ["vx", "vy"])
+                ])
+        else:
+            return df
+
+    @classmethod
+    def initialize_velocities(
+        cls,
+        df: DataFrame,
+        distribution: Distribution,
+        angle_distribution: Distribution,
+        group_field: Optional[str] = None,
+        group_label: Optional[str] = None
+    ) -> DataFrame:
+        """
+            Initialize the velocity of a given set of agents from a given
+            mobility profile (i.e. a velocity distribution) and ...
+            TODO
+
+            Parameters
+            ----------
+            df : DataFrame
+                Dataframe to apply transformation.
+                Must have `vx` and `vy` columns.
+
+            distribution : Distribution
+                Mobility profile. This is the velocity distribution
+                to use for updating the population velocities each
+                time step.
+
+            angle_distribution : Distribution
+                TODO
+
+            group_field : str, optional
+                The field over which to filter the set of agents.
+                If not provided, then the set of agents used is
+                going to be the whole set of agents.
+
+            group_label : str, optional
+                The value of the `group_filed` used to filter
+                the set of agents. If `group_field` is not provided,
+                then this parameter is ignored.
+
+            Returns
+            -------
+            TODO
+
+            Raises
+            ------
+            TODO
+
+            Notes
+            -----
+            TODO: insert mathematical description and explanatory image
+
+            See Also
+            --------
+            set_velocities : TODO complete explanation
+
+            Examples
+            --------
+            TODO: include some examples
+        """
+        if group_field is None:
+            try:
+                # Set velocities for all the agents in df
+                df = cls.set_velocities(
+                    df=df,
+                    distribution=distribution,
+                    angle_distribution=angle_distribution
+                    )
+            except Exception as error:
+                exception_burner([
+                    error,
+                    check_field_existance(df, ["vx", "vy"])
+                    ])
+            else:
+                return df
+        else:
+            # group_field is not None
+            try:
+                if group_label in df[group_field].values:
+                    filtered_df = df.loc[df[group_field] == group_label]
+
+                    # Set velocities only for the filtered_df
+                    # Update df using filtered_df
+                    df.update(
+                        cls.set_velocities(
+                            df=filtered_df,
+                            distribution=distribution,
+                            angle_distribution=angle_distribution
+                            )
+                        )
+                else:
+                    # group_label not in df[group_field].values
+                    # Do nothing and return unaltered df
+                    pass
+            except Exception as error:
+                exception_burner([
+                    error,
+                    check_field_existance(df, [group_field, "vx", "vy"])
+                    ])
+            else:
+                return df
 
     @classmethod
     def update_velocities(
@@ -322,8 +537,8 @@ class AgentMovement:
         df: DataFrame,
         distribution: Distribution,
         angle_variance: float,
-        group_field: str = "",
-        group_label: str = ""
+        group_field: Optional[str] = None,
+        group_label: Optional[str] = None
     ) -> DataFrame:
         """
             Update the velocity of a given set of agents from a given
@@ -342,7 +557,7 @@ class AgentMovement:
                 to use for updating the population velocities each
                 time step.
 
-            angle_variation : float
+            angle_variance : float
                 Standard deviation of the normal distribution
                 used for changing the direction of the velocity
                 from its initial value
@@ -380,23 +595,29 @@ class AgentMovement:
 
             See Also
             --------
-            change_velocities : TODO complete explanation
+            set_velocities : TODO complete explanation
 
             Examples
             --------
             TODO: include some examples
         """
-        # TODO: Change group_field to be Optional using typing
-        if group_field == "":
+        if group_field is None:
             try:
                 # Change velocities for all the agents in df
-                df = cls.change_velocities(df, distribution, angle_variance)
-            except Exception:
-                check_field_existance(df, ["vx", "vy"])
+                df = cls.set_velocities(
+                    df=df,
+                    distribution=distribution,
+                    angle_variance=angle_variance
+                    )
+            except Exception as error:
+                exception_burner([
+                    error,
+                    check_field_existance(df, ["vx", "vy"])
+                    ])
             else:
                 return df
-
-        if group_field != "":
+        else:
+            # group_field is not None
             try:
                 if group_label in df[group_field].values:
                     filtered_df = df.loc[df[group_field] == group_label]
@@ -404,14 +625,21 @@ class AgentMovement:
                     # Change velocities only for the filtered_df
                     # Update df using filtered_df
                     df.update(
-                        cls.change_velocities(
-                            filtered_df,
-                            distribution,
-                            angle_variance
+                        cls.set_velocities(
+                            df=filtered_df,
+                            distribution=distribution,
+                            angle_variance=angle_variance
                             )
                         )
-            except Exception:
-                check_field_existance(df, [group_field, "vx", "vy"])
+                else:
+                    # group_label not in df[group_field].values
+                    # Do nothing and return unaltered df
+                    pass
+            except Exception as error:
+                exception_burner([
+                    error,
+                    check_field_existance(df, [group_field, "vx", "vy"])
+                    ])
             else:
                 return df
 
@@ -524,7 +752,7 @@ class AgentMovement:
             --------
             TODO: include some examples
         """
-        if check_field_existance(df, ["agent", "x", "y", "vx", "vy"]):
+        try:
             df_copy = df.copy()
 
             scared_agents = df_copy.loc[df_copy.agent.isin(
@@ -562,7 +790,14 @@ class AgentMovement:
             new_angles = scary_agents[["agent", "relative_angle"]] \
                 .groupby("agent").apply(cls.deviation_angle)
 
-            return df.apply(
+            df = df.apply(
                 lambda row: cls.replace_velocities(row, new_angles),
                 axis=1
                 )
+        except Exception as error:
+            exception_burner([
+                error,
+                check_field_existance(df, ["agent", "x", "y", "vx", "vy"])
+                ])
+        else:
+            return df

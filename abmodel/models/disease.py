@@ -73,7 +73,7 @@ class SusceptibilityGroups(SimpleDistGroups):
 
 
 @dataclass
-class MobilityGroups(SimpleDistGroups):
+class MobilityGroups(ComplexDistGroups):
     """
         Dataclass used for wrapping Mobility groups
 
@@ -92,12 +92,15 @@ class MobilityGroups(SimpleDistGroups):
             The dictionary created from the list `group_info`.
             Each key of this dictionary corresponds to a single
             group name.
+        
+        labels : list
+            TODO complete explanation
 
         See Also
         --------
         DistTitles : fundamental distribution titles
 
-        abmodel.models.base.SimpleDistGroups : Simple Distribution groups class
+        abmodel.models.base.ComplexDistGroups : TODO complete explanation
 
         Examples
         --------
@@ -105,14 +108,15 @@ class MobilityGroups(SimpleDistGroups):
     """
     def __post_init__(self):
         """
-            Validates `dist_title` to be equal to
-            `DistTitles.mobility` and then
-            performs `items` dictionary
+            This method performs `items` dictionary
             assignment from `group_info` list.
         """
-        self.single_dist_title_validation(
-            expected_dist_title=DistTitles.mobility.value
-            )
+        # TODO
+        # Include dist_title_validation
+
+        self.labels = [
+            "angle_variance"
+        ]
         super().__post_init__()
 
 
@@ -195,6 +199,14 @@ class DiseaseStates(ComplexDistGroups):
             "is_dead"
         ]
         super().__post_init__()
+
+        # Validate at least one disease_state
+        is_dead_list = [self.items[item].is_dead for item in self.items.keys()]
+
+        if not all(isinstance(elem, bool) for elem in is_dead_list):
+            raise ValueError("All values for is_dead must be boolean type")
+        if True not in is_dead_list:
+            raise ValueError("At least one value for is_dead must be True")
 
 
 @dataclass
