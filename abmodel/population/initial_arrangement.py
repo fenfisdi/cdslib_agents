@@ -2,6 +2,8 @@ from numpy import full
 from numpy.random import choice
 from pandas.core.frame import DataFrame
 
+from abmodel.models.base import SimpleGroups
+
 
 class InitialArrangement:
     """
@@ -22,8 +24,7 @@ class InitialArrangement:
         """
             I take a json-like input, a df contaning `agent` data and
             modify such df with the necessary data inside the json-like input.
-
-            TODO: Add brief explanation
+            TODO: Improve explanation
 
             Parameters
             ----------
@@ -82,5 +83,41 @@ class InitialArrangement:
                         p=probabilities,
                         size=df[eval(_condition)].shape[0]
                         )
+
+        return df
+
+    @classmethod
+    def fulfill_setup(
+        cls,
+        df: DataFrame,
+        missing_cols: list[str],
+        req_cols_dict: dict
+    ) -> DataFrame:
+        """
+            TODO: Add brief explanation
+
+            Parameters
+            ----------
+            TODO
+
+            Returns
+            -------
+            TODO
+
+            Examples
+            --------
+            TODO: include some examples
+        """
+        for group_col in missing_cols:
+            if isinstance(req_cols_dict[group_col], SimpleGroups):
+                group_values = req_cols_dict[group_col].names
+            else:
+                group_values = list(req_cols_dict[group_col].items.keys())
+
+            # Fill group_values randomly
+            df[group_col] = choice(
+                a=group_values,
+                size=df.shape[0]
+                )
 
         return df

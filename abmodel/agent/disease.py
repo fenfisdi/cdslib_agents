@@ -7,7 +7,7 @@ from pandas.core.frame import DataFrame
 from pandas.core.series import Series
 
 from abmodel.utils.execution_modes import ExecutionModes
-from abmodel.utils.utilities import check_field_existance
+from abmodel.utils.utilities import check_field_existance, exception_burner
 from abmodel.utils.utilities import std_str_join_cols
 from abmodel.models.disease import NaturalHistory, DiseaseStates
 from abmodel.models.disease import IsolationAdherenceGroups, DistTitles
@@ -919,6 +919,102 @@ class AgentDisease:
         TODO
     """
     @classmethod
+    def init_required_fields(
+        cls,
+        df: DataFrame,
+        disease_groups: DiseaseStates,
+        execmode: ExecutionModes = ExecutionModes.iterative.value
+    ) -> DataFrame:
+        """
+            TODO: Add brief explanation
+
+            Parameters
+            ----------
+            TODO
+
+            Returns
+            -------
+            TODO
+
+            Raises
+            ------
+            TODO
+
+            Notes
+            -----
+            TODO: include mathematical description and explanatory image
+
+            See Also
+            --------
+            TODO
+
+            Examples
+            --------
+            TODO: include some examples
+        """
+        # Initialize is_dead
+        df = cls.init_is_dead(df, disease_groups, execmode)
+
+        return df
+
+    @classmethod
+    def init_is_dead(
+        cls,
+        df: DataFrame,
+        disease_groups: DiseaseStates,
+        execmode: ExecutionModes = ExecutionModes.iterative.value
+    ) -> DataFrame:
+        """
+            TODO: Add brief explanation
+
+            Parameters
+            ----------
+            TODO
+
+            Returns
+            -------
+            TODO
+
+            Raises
+            ------
+            TODO
+
+            Notes
+            -----
+            TODO: include mathematical description and explanatory image
+
+            See Also
+            --------
+            abmodel.agent.execution_modes.ExecutionModes : TODO complete
+            explanation
+
+            check_field_existance : TODO complete explanation
+
+            Examples
+            --------
+            TODO: include some examples
+        """
+        try:
+            if execmode == ExecutionModes.iterative.value:
+                df["is_dead"] = df.apply(
+                    lambda row: disease_groups
+                    .items[row["disease_state"]].is_dead,
+                    axis=1
+                    )
+            else:
+                raise NotImplementedError(
+                    f"`execmode = {execmode}` is still not implemented yet"
+                    )
+        except Exception as error:
+            validation_list = ["disease_state"]
+            exception_burner([
+                error,
+                check_field_existance(df, validation_list)
+                ])
+        else:
+            return df
+
+    @classmethod
     def generate_key_col(
         cls,
         df: DataFrame,
@@ -974,9 +1070,12 @@ class AgentDisease:
                 raise NotImplementedError(
                     f"`execmode = {execmode}` is still not implemented yet"
                     )
-        except Exception:
+        except Exception as error:
             validation_list = ["disease_state", "vulnerability_group"]
-            check_field_existance(df, validation_list)
+            exception_burner([
+                error,
+                check_field_existance(df, validation_list)
+                ])
         else:
             return df
 
@@ -1040,9 +1139,12 @@ class AgentDisease:
                 raise NotImplementedError(
                     f"`execmode = {execmode}` is still not implemented yet"
                     )
-        except Exception:
+        except Exception as error:
             validation_list = ["key", "do_calculate_max_time"]
-            check_field_existance(df, validation_list)
+            exception_burner([
+                error,
+                check_field_existance(df, validation_list)
+                ])
         else:
             # Call determine_disease_state_max_time function in order
             # to calculate it for those agents who are infected
@@ -1114,10 +1216,13 @@ class AgentDisease:
                 raise NotImplementedError(
                     f"`execmode = {execmode}` is still not implemented yet"
                     )
-        except Exception:
+        except Exception as error:
             validation_list = ["disease_state_max_time", "key",
                                "do_calculate_max_time"]
-            check_field_existance(df, validation_list)
+            exception_burner([
+                error,
+                check_field_existance(df, validation_list)
+                ])
         else:
             # Restart do_calculate_max_time
             df = df.assign(do_calculate_max_time=False)
@@ -1195,10 +1300,13 @@ class AgentDisease:
                 df, natural_history, execmode
             )
 
-        except Exception:
+        except Exception as error:
             validation_list = ["disease_state", "disease_state_time", "key"
                                "disease_state_max_time"]
-            check_field_existance(df, validation_list)
+            exception_burner([
+                error,
+                check_field_existance(df, validation_list)
+                ])
         else:
             return df
 
@@ -1255,9 +1363,12 @@ class AgentDisease:
                 raise NotImplementedError(
                     f"`execmode = {execmode}` is still not implemented yet"
                     )
-        except Exception:
+        except Exception as error:
             validation_list = ["disease_state", "is_diagnosed"]
-            check_field_existance(df, validation_list)
+            exception_burner([
+                error,
+                check_field_existance(df, validation_list)
+                ])
         else:
             return df
 
@@ -1333,11 +1444,14 @@ class AgentDisease:
                 raise NotImplementedError(
                     f"`execmode = {execmode}` is still not implemented yet"
                     )
-        except Exception:
+        except Exception as error:
             validation_list = ["disease_state", "isolation_adherence_group",
                                "is_isolated", "is_diagnosed", "isolation_time",
                                "isolation_max_time"]
-            check_field_existance(df, validation_list)
+            exception_burner([
+                error,
+                check_field_existance(df, validation_list)
+                ])
         else:
             return df
 
@@ -1398,10 +1512,13 @@ class AgentDisease:
                 raise NotImplementedError(
                     f"`execmode = {execmode}` is still not implemented yet"
                     )
-        except Exception:
+        except Exception as error:
             validation_list = ["disease_state", "is_in_ICU", "disease_states",
                                "is_dead"]
-            check_field_existance(df, validation_list)
+            exception_burner([
+                error,
+                check_field_existance(df, validation_list)
+                ])
         else:
             return df
 
@@ -1481,12 +1598,14 @@ class AgentDisease:
             df = cls.determine_disease_state_max_time(
                 df, natural_history, execmode
             )
-
-        except Exception:
+        except Exception as error:
             validation_list = ["step", "agent", "x", "y", "immunization_level",
                                "key", "disease_state", "times_infected",
                                "infected_info", "disease_state_time"]
-            check_field_existance(df, validation_list)
+            exception_burner([
+                error,
+                check_field_existance(df, validation_list)
+                ])
         else:
             return df
 
@@ -1548,12 +1667,15 @@ class AgentDisease:
                 raise NotImplementedError(
                     f"`execmode = {execmode}` is still not implemented yet"
                     )
-        except Exception:
+        except Exception as error:
             validation_list = ["key", "immunization_level",
                                "immunization_level_start",
                                "immunization_max_time",
                                "do_update_immunization_params"]
-            check_field_existance(df, validation_list)
+            exception_burner([
+                error,
+                check_field_existance(df, validation_list)
+                ])
         else:
             # Restart do_calculate_max_time
             df = df.assign(do_update_immunization_params=False)
@@ -1614,10 +1736,13 @@ class AgentDisease:
                 raise NotImplementedError(
                     f"`execmode = {execmode}` is still not implemented yet"
                     )
-        except Exception:
+        except Exception as error:
             validation_list = ["disease_state_max_time", "key",
                                "do_update_immunization_level"]
-            check_field_existance(df, validation_list)
+            exception_burner([
+                error,
+                check_field_existance(df, validation_list)
+                ])
         else:
             # Remove unnecessary column
             df.drop(columns=["do_update_immunization_level"], inplace=True)

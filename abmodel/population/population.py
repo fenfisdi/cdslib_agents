@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Optional, Literal
+from typing import Optional
 
 from numpy import array, nan_to_num, inf, maximum, floor, setdiff1d
 from scipy.spatial import KDTree
@@ -17,6 +17,8 @@ from abmodel.models.mobility_restrictions import MRTracingPolicies
 from abmodel.models.mobility_restrictions import GlobalCyclicMR
 from abmodel.models.mobility_restrictions import CyclicMRPolicies
 from abmodel.models.disease import IsolationAdherenceGroups
+from abmodel.agent.movement import AgentMovement
+from abmodel.agent.disease import AgentDisease
 from abmodel.agent.neighbors import AgentNeighbors
 
 
@@ -98,6 +100,16 @@ class Population:
         self.execmode = execmode
         self.evolmode = evolmode
 
+        # Required columns
+        self.__req_cols_dict = {
+            "age_group": self.age_groups,
+            "disease_state": self.disease_groups,
+            "mr_group": self.mr_groups,
+            "vulnerability_group": self.vulnerability_groups,
+            "mobility_group": self.mobility_groups,
+            "susceptibility_group": self.susceptibility_groups
+            }
+
         # TODO
         # Handle units
 
@@ -135,23 +147,44 @@ class Population:
                 **initial_population_setup,
                 )
 
+        # Take care of required columns not initialized yet
+        missing_cols = setdiff1d(
+            list(self.__req_cols_dict.keys()),
+            self.__df.columns.to_list()
+            ).tolist()
+
+        if missing_cols != []:
+            self.__df = InitialArrangement.fulfill_setup(
+                df=self.__df,
+                missing_cols=missing_cols,
+                req_cols_dict=self.__req_cols_dict
+                )
+
         # =====================================================================
         # Store step information in a private attribute
         # for checking purposes
         self.__step = 0
 
         # Initialize time columns
-        self.__df = self.__df.insert(loc=0, column="step", value=self.__step)
-        self.__df = self.__df.insert(loc=1, column="datetime",
-                                     value=self.configuration.initial_date)
+        self.__df.insert(loc=0, column="step", value=self.__step)
+        self.__df.insert(loc=1, column="datetime",
+                         value=self.configuration.initial_date)
 
         # =====================================================================
         # Initialize movement related columns
-        pass
+        self.__df = AgentMovement.init_required_fields(
+            df=self.__df,
+            box_size=self.configuration.box_size,
+            mobility_groups=self.mobility_groups
+            )
 
         # =====================================================================
         # Initialize disease related columns
-        pass
+        self.__df = AgentDisease.init_required_fields(
+            df=self.__df,
+            disease_groups=self.disease_groups,
+            execmode=self.execmode
+            )
 
         # =====================================================================
         # Initialize disease related columns
@@ -192,12 +225,17 @@ class Population:
                     ignore_index=True
                     )
 
+    def __remove_dead_agents(self):
+        """
+        """
+        pass
+
     def __evolve_single_step(self):
         """
         """
         # =====================================================================
         # Remove dead agents before evolving population dataframe
-        # TODO self.__remove_dead_agents()
+        self.__remove_dead_agents()
 
         # =====================================================================
         # Evolve step

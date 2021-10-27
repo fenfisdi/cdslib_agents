@@ -4,7 +4,7 @@ from numpy import array, setdiff1d, concatenate
 from pandas.core.frame import DataFrame
 
 from abmodel.utils.execution_modes import ExecutionModes
-from abmodel.utils.utilities import check_field_existance
+from abmodel.utils.utilities import check_field_existance, exception_burner
 from abmodel.models.disease import DiseaseStates
 
 
@@ -221,11 +221,14 @@ class AgentNeighbors:
                 raise NotImplementedError(
                     f"`execmode = {execmode}` is still not implemented yet"
                     )
-        except Exception:
+        except Exception as error:
             validation_list = ["susceptible_neighbors",
                                "infected_spreader_neighbors",
                                "infected_non_spreader_neighbors",
                                "immune_neighbors", "total_neighbors"]
-            check_field_existance(df, validation_list)
+            exception_burner([
+                error,
+                check_field_existance(df, validation_list)
+                ])
         else:
             return df
