@@ -7,6 +7,7 @@ from pandas.core.frame import DataFrame
 from pandas import concat
 
 from abmodel.utils.execution_modes import ExecutionModes
+from abmodel.utils.units import timedelta_to_days
 from abmodel.models.population import Configutarion
 from abmodel.models.health_system import HealthSystem
 from abmodel.models.base import SimpleGroups
@@ -165,6 +166,9 @@ class Population:
         # for checking purposes
         self.__step = 0
 
+        # Convert timedelta to days (float)
+        self.dt = timedelta_to_days(self.configuration.iteration_time)
+
         # Initialize time columns
         self.__df.insert(loc=0, column="step", value=self.__step)
         self.__df.insert(loc=1, column="datetime",
@@ -183,6 +187,7 @@ class Population:
         self.__df = AgentDisease.init_required_fields(
             df=self.__df,
             disease_groups=self.disease_groups,
+            natural_history=self.natural_history,
             execmode=self.execmode
             )
 
@@ -228,7 +233,7 @@ class Population:
     def __remove_dead_agents(self):
         """
         """
-        pass
+        self.__df = self.__df[~self.__df["is_dead"]]
 
     def __evolve_single_step(self):
         """
@@ -246,12 +251,40 @@ class Population:
         self.__df["datetime"] += self.configuration.iteration_time
 
         # =====================================================================
-        # Change population states by means of state transition
-        # and update diagnosis and hospitalization states
-        # TODO
+        # Update population states by means of state transition
+        self.__df = AgentDisease.disease_state_transition(
+            df=self.__df,
+            dt=self.dt,
+            natural_history=self.natural_history,
+            execmode=self.execmode
+            )
 
         # =====================================================================
-        # Quarantine
+        # Update diagnosis status
+        self.__df = AgentDisease.to_diagnose_agents(
+            df=self.__df,
+            disease_groups=self.disease_groups,
+            execmode=self.execmode
+            )
+
+        # =====================================================================
+        # Update isolation status
+        # TODO
+        # self.__df = AgentDiseaseto_isolate_agents(
+        #     df: DataFrame,
+        #     dt: float,
+        #     disease_groups: DiseaseStates,
+        #     isolation_adherence_groups:
+        #     execmode: ExecutionModes = ExecutionModes.iterative.value,
+        # )
+
+        # =====================================================================
+        # Hospitalization
+        # TODO
+        # self.__df = AgentDisease
+
+        # =====================================================================
+        # Mobility Restrictions
         # TODO
 
         # =====================================================================
@@ -276,7 +309,14 @@ class Population:
 
         # =====================================================================
         # Change population states by means of contagion
-        # TODO
+        self.__df = AgentDisease.disease_state_transition_by_contagion(
+            df=self.__df,
+            kdtree_by_disease_state=self.kdtree_by_disease_state,
+            agents_labels_by_disease_state=self.agents_labels_by_disease_state,
+            natural_history=self.natural_history,
+            disease_groups=self.disease_groups,
+            execmode=self.execmode
+            )
 
         # =====================================================================
         # Update agents' positions and velocities

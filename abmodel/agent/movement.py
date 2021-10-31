@@ -132,7 +132,8 @@ class AgentMovement:
                     high=2*pi
                     ),
                 group_field="mobility_group",
-                group_label=mobility_group
+                group_label=mobility_group,
+                preserve_dtypes_dict={"step": int, "agent": int}
                 )
 
         return df
@@ -438,7 +439,8 @@ class AgentMovement:
         distribution: Distribution,
         angle_distribution: Distribution,
         group_field: Optional[str] = None,
-        group_label: Optional[str] = None
+        group_label: Optional[str] = None,
+        preserve_dtypes_dict: Optional[dict] = None
     ) -> DataFrame:
         """
             Initialize the velocity of a given set of agents from a given
@@ -519,6 +521,8 @@ class AgentMovement:
                             angle_distribution=angle_distribution
                             )
                         )
+                    if preserve_dtypes_dict:
+                        df = df.astype(preserve_dtypes_dict)
                 else:
                     # group_label not in df[group_field].values
                     # Do nothing and return unaltered df
@@ -538,7 +542,8 @@ class AgentMovement:
         distribution: Distribution,
         angle_variance: float,
         group_field: Optional[str] = None,
-        group_label: Optional[str] = None
+        group_label: Optional[str] = None,
+        preserve_dtypes_dict: Optional[dict] = None
     ) -> DataFrame:
         """
             Update the velocity of a given set of agents from a given
@@ -631,6 +636,8 @@ class AgentMovement:
                             angle_variance=angle_variance
                             )
                         )
+                    if preserve_dtypes_dict:
+                        df = df.astype(preserve_dtypes_dict)
                 else:
                     # group_label not in df[group_field].values
                     # Do nothing and return unaltered df

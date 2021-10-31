@@ -1,7 +1,8 @@
-from typing import Optional
+from typing import Union, Optional
 from copy import deepcopy
 
 from numpy import where, full, ndarray, isin, concatenate, setdiff1d
+from numpy import isnan, nan
 from numpy.random import choice, random_sample
 from pandas.core.frame import DataFrame
 from pandas.core.series import Series
@@ -48,7 +49,7 @@ def init_calculate_max_time_iterative(
 
 
 def init_calculate_max_time_vectorized(
-    key: str,
+    key: Series,  # str
     natural_history: NaturalHistory
 ) -> Series:
     """
@@ -86,9 +87,10 @@ def init_calculate_max_time_vectorized(
 def calculate_max_time_iterative(
     key: str,
     do_calculate_max_time: bool,
-    disease_state_max_time: float,
+    disease_state_time: Union[float, None],
+    disease_state_max_time: Union[float, None],
     natural_history: NaturalHistory
-) -> float:
+) -> tuple[float, float]:
     """
         TODO: Add brief explanation
 
@@ -113,17 +115,21 @@ def calculate_max_time_iterative(
         TODO: include some examples
     """
     if do_calculate_max_time:
-        return natural_history.items[key] \
-            .dist[DistTitles.time.value] \
-            .sample()
+        return Series([0,
+                       natural_history.items[key].dist[DistTitles.time.value]
+                       .sample()
+                       ])
     else:
-        return disease_state_max_time
+        return Series([disease_state_time, disease_state_max_time])
 
 
+# TODO
+# Reimplement this function in order to also return disease_state_time
 def calculate_max_time_vectorized(
     key: Series,  # str
     do_calculate_max_time: Series,  # bool
-    disease_state_max_time: Series,  # float
+    disease_state_time: Series,  # float or None
+    disease_state_max_time: Series,  # float or None
     natural_history: NaturalHistory
 ) -> Series:  # Series of float
     """
@@ -160,6 +166,7 @@ def calculate_max_time_vectorized(
 
 # =============================================================================
 def transition_function(
+    disease_state: str,
     disease_state_time: float,
     disease_state_max_time: float,
     key: str,
@@ -201,7 +208,7 @@ def transition_function(
         for transition in disease_states
         ]
 
-    if disease_state_max_time is not None:
+    if not isnan(disease_state_max_time):
         if disease_state_time >= disease_state_max_time:
             # disease state must change
             # Verify: becomes into? ... Throw the dice
@@ -212,13 +219,17 @@ def transition_function(
 
             # Set the time elapsed since it changed disease state
             # in zero
-            disease_state_time = 0
+            # TODO: Remove this comment. This statement has been moved to the
+            # functions:
+            # calculate_max_time_iterative/calculate_max_time_vectorized
+            #
+            # disease_state_time = 0
 
             # Set True the flag that forces to calculate
             # disease state max time
             do_calculate_max_time = True
 
-    return disease_state, disease_state_time, do_calculate_max_time
+    return Series([disease_state, disease_state_time, do_calculate_max_time])
 
 
 # =============================================================================
@@ -328,9 +339,10 @@ def isolation_handler(
     is_isolated: bool,
     isolation_time: float,
     isolation_max_time: float,
+    adheres_to_isolation: bool,
     disease_groups: DiseaseStates,
     isolation_adherence_groups: Optional[IsolationAdherenceGroups] = None
-) -> tuple[bool, bool, float, float]:
+) -> tuple[bool, bool, float, float, bool]:
     """
         TODO: Add brief explanation
 
@@ -375,6 +387,9 @@ def isolation_handler(
         else:
             # it is not isolated
             if isolation_adherence_groups is None:
+                # Agent always adheres to isolation
+                adheres_to_isolation = True
+
                 (is_isolated, isolation_time,
                     isolation_max_time) = isolation_function(
                     disease_state,
@@ -394,18 +409,21 @@ def isolation_handler(
                         ].sample()
 
                 if dice <= adherence_prob:
-                    # Agent adheres to be isolated
+                    # Agent adheres to isolation
+                    adheres_to_isolation = True
+
                     (is_isolated, isolation_time,
                         isolation_max_time) = isolation_function(
                         disease_state,
                         disease_groups
                     )
                 else:
-                    # Agent doesn't adhere to be isolated
+                    # Agent doesn't adhere to isolation
                     # do nothing
-                    pass
+                    adheres_to_isolation = False
 
-    return is_diagnosed, is_isolated, isolation_time, isolation_max_time
+    return Series([is_diagnosed, is_isolated, isolation_time,
+                   isolation_max_time, adheres_to_isolation])
 
 
 # =============================================================================
@@ -923,6 +941,8 @@ class AgentDisease:
         cls,
         df: DataFrame,
         disease_groups: DiseaseStates,
+        natural_history: NaturalHistory,
+        isolation_adherence_groups: Optional[IsolationAdherenceGroups] = None,
         execmode: ExecutionModes = ExecutionModes.iterative.value
     ) -> DataFrame:
         """
@@ -954,6 +974,26 @@ class AgentDisease:
         """
         # Initialize is_dead
         df = cls.init_is_dead(df, disease_groups, execmode)
+
+        # Generate key column
+        df = cls.generate_key_col(df, execmode)
+
+        # Init disease_state_max_time
+        df = cls.init_disease_state_max_time(df, natural_history, execmode)
+
+        # Init is_diagnosed
+        df = df.assign(is_diagnosed=False)
+        df = cls.to_diagnose_agents(df, disease_groups, execmode)
+
+        # Init is_isolated
+        df = df.assign(is_isolated=False)
+        df = df.assign(isolation_time=nan)
+        df = df.assign(isolation_max_time=nan)
+        df = df.assign(adheres_to_isolation=True)
+        dt = 0.0  # Set dt to zero
+        df = cls.to_isolate_agents(
+            df, dt, disease_groups, isolation_adherence_groups, execmode
+            )
 
         return df
 
@@ -1121,6 +1161,10 @@ class AgentDisease:
             TODO: include some examples
         """
         try:
+            # Init disease_state_time and disease_state_max_time with None
+            df = df.assign(disease_state_time=nan)
+            df = df.assign(disease_state_max_time=nan)
+
             if execmode == ExecutionModes.iterative.value:
                 df["do_calculate_max_time"] = df.apply(
                     lambda row: init_calculate_max_time_iterative(
@@ -1140,7 +1184,7 @@ class AgentDisease:
                     f"`execmode = {execmode}` is still not implemented yet"
                     )
         except Exception as error:
-            validation_list = ["key", "do_calculate_max_time"]
+            validation_list = ["key"]
             exception_burner([
                 error,
                 check_field_existance(df, validation_list)
@@ -1153,6 +1197,8 @@ class AgentDisease:
             )
             return df
 
+    # TODO
+    # Reimplement calculate_max_time_vectorized
     @classmethod
     def determine_disease_state_max_time(
         cls,
@@ -1196,29 +1242,33 @@ class AgentDisease:
         """
         try:
             if execmode == ExecutionModes.iterative.value:
-                df["disease_state_max_time"] = df.apply(
+                df[["disease_state_time",
+                    "disease_state_max_time"]] = df.apply(
                     lambda row: calculate_max_time_iterative(
                         row["key"],
                         row["do_calculate_max_time"],
+                        row["disease_state_time"],
                         row["disease_state_max_time"],
                         natural_history
                         ),
                     axis=1
                     )
-            elif execmode == ExecutionModes.vectorized.value:
-                df["disease_state_max_time"] = calculate_max_time_vectorized(
-                    df["key"],
-                    df["do_calculate_max_time"],
-                    df["disease_state_max_time"],
-                    natural_history
-                    )
+            # TODO
+            # Reimplement calculate_max_time_vectorized
+            # elif execmode == ExecutionModes.vectorized.value:
+            #     df["disease_state_max_time"] = calculate_max_time_vectorized(
+            #         df["key"],
+            #         df["do_calculate_max_time"],
+            #         df["disease_state_max_time"],
+            #         natural_history
+            #         )
             else:
                 raise NotImplementedError(
                     f"`execmode = {execmode}` is still not implemented yet"
                     )
         except Exception as error:
-            validation_list = ["disease_state_max_time", "key",
-                               "do_calculate_max_time"]
+            validation_list = ["disease_state_max_time", "disease_state_time",
+                               "key", "do_calculate_max_time"]
             exception_burner([
                 error,
                 check_field_existance(df, validation_list)
@@ -1274,14 +1324,12 @@ class AgentDisease:
         try:
             if execmode == ExecutionModes.iterative.value:
                 # Update disease state time
-                df["disease_state_time"] = list(map(
-                    lambda t: t + dt if t is not None else None,
-                    df["disease_state_time"]
-                ))
+                df["disease_state_time"] = df["disease_state_time"] + dt
 
                 df[["disease_state", "disease_state_time",
                     "do_calculate_max_time"]] = df.apply(
                     lambda row: transition_function(
+                        row["disease_state"],
                         row["disease_state_time"],
                         row["disease_state_max_time"],
                         row["key"],
@@ -1301,7 +1349,7 @@ class AgentDisease:
             )
 
         except Exception as error:
-            validation_list = ["disease_state", "disease_state_time", "key"
+            validation_list = ["disease_state", "disease_state_time", "key",
                                "disease_state_max_time"]
             exception_burner([
                 error,
@@ -1380,8 +1428,8 @@ class AgentDisease:
         df: DataFrame,
         dt: float,
         disease_groups: DiseaseStates,
-        execmode: ExecutionModes = ExecutionModes.iterative.value,
-        isolation_adherence_groups: Optional[IsolationAdherenceGroups] = None
+        isolation_adherence_groups: Optional[IsolationAdherenceGroups] = None,
+        execmode: ExecutionModes = ExecutionModes.iterative.value
     ) -> DataFrame:
         """
             TODO: Add brief explanation
@@ -1421,13 +1469,10 @@ class AgentDisease:
 
             if execmode == ExecutionModes.iterative.value:
                 # Update isolation time
-                df["isolation_time"] = list(map(
-                    lambda t: t + dt if t is not None else None,
-                    df["isolation_time"]
-                ))
+                df["isolation_time"] = df["isolation_time"] + dt
 
                 df[["is_diagnosed", "is_isolated", "isolation_time",
-                   "isolation_max_time"]] = df.apply(
+                   "isolation_max_time", "adheres_to_isolation"]] = df.apply(
                     lambda row: isolation_handler(
                         row["disease_state"],
                         row["isolation_adherence_group"],
@@ -1435,6 +1480,7 @@ class AgentDisease:
                         row["is_isolated"],
                         row["isolation_time"],
                         row["isolation_max_time"],
+                        row["adheres_to_isolation"],
                         disease_groups,
                         isolation_adherence_groups
                         ),
@@ -1447,7 +1493,7 @@ class AgentDisease:
         except Exception as error:
             validation_list = ["disease_state", "isolation_adherence_group",
                                "is_isolated", "is_diagnosed", "isolation_time",
-                               "isolation_max_time"]
+                               "isolation_max_time", "adheres_to_isolation"]
             exception_burner([
                 error,
                 check_field_existance(df, validation_list)
