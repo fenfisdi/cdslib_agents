@@ -316,11 +316,16 @@ class AgentMovement:
 
             Parameters
             ----------
-            TODO
+            x : float
+                'x' component of the angle
+
+            y : float 
+                'y' component of the angle 
 
             Returns
             -------
-            TODO
+            angle : float
+                standardized angle formed by the components 'x' and 'y'
 
             Notes
             -----
