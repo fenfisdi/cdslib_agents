@@ -1,7 +1,7 @@
-from typing import Optional
+from typing import Optional, Union
 
 from math import fmod
-from numpy import arctan2, cos, sin, pi, sqrt, inf, frompyfunc
+from numpy import ndarray, arctan2, cos, sin, pi, sqrt, inf, frompyfunc
 from pandas.core.frame import DataFrame
 
 from abmodel.models.population import BoxSize
@@ -200,7 +200,11 @@ class AgentMovement:
             return df
 
     @classmethod
-    def stop_agents(cls, df: DataFrame, indexes: list) -> DataFrame:
+    def stop_agents(
+        cls,
+        df: DataFrame,
+        indexes: Union[list, ndarray]
+    ) -> DataFrame:
         """
             Set the velocity of a given set of agents to zero.
 

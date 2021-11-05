@@ -108,7 +108,8 @@ class Population:
             "mr_group": self.mr_groups,
             "vulnerability_group": self.vulnerability_groups,
             "mobility_group": self.mobility_groups,
-            "susceptibility_group": self.susceptibility_groups
+            "susceptibility_group": self.susceptibility_groups,
+            "isolation_adherence_group": self.isolation_adherence_groups
             }
 
         # TODO
@@ -186,8 +187,10 @@ class Population:
         # Initialize disease related columns
         self.__df = AgentDisease.init_required_fields(
             df=self.__df,
+            dead_disease_group=self.dead_disease_group,
             disease_groups=self.disease_groups,
             natural_history=self.natural_history,
+            health_system=self.health_system,
             execmode=self.execmode
             )
 
@@ -233,7 +236,7 @@ class Population:
     def __remove_dead_agents(self):
         """
         """
-        self.__df = self.__df[~self.__df["is_dead"]]
+        self.__df = self.__df[self.__df["is_dead"] == False]
 
     def __evolve_single_step(self):
         """
@@ -255,8 +258,19 @@ class Population:
         self.__df = AgentDisease.disease_state_transition(
             df=self.__df,
             dt=self.dt,
+            disease_groups=self.disease_groups,
             natural_history=self.natural_history,
             execmode=self.execmode
+            )
+
+        # =====================================================================
+        # Update Hospitalization and ICU status
+        self.__df = AgentDisease.to_hospitalize_agents(
+            df=self.__df,
+            dead_disease_group=self.dead_disease_group,
+            disease_groups=self.disease_groups,
+            health_system=self.health_system,
+            execmode=ExecutionModes.vectorized.value
             )
 
         # =====================================================================
@@ -269,23 +283,22 @@ class Population:
 
         # =====================================================================
         # Update isolation status
-        # TODO
-        # self.__df = AgentDiseaseto_isolate_agents(
-        #     df: DataFrame,
-        #     dt: float,
-        #     disease_groups: DiseaseStates,
-        #     isolation_adherence_groups:
-        #     execmode: ExecutionModes = ExecutionModes.iterative.value,
-        # )
+        self.__df = AgentDisease.to_isolate_agents(
+            df=self.__df,
+            dt=self.dt,
+            disease_groups=self.disease_groups,
+            isolation_adherence_groups=self.isolation_adherence_groups,
+            execmode=self.execmode
+            )
 
         # =====================================================================
-        # Hospitalization
-        # TODO
-        # self.__df = AgentDisease
+        # Stop isolated and hospitalized agents
+        indexes = self.__df.query(
+            "is_isolated == False | is_hospitalized == False"
+            ).index.values
 
-        # =====================================================================
-        # Mobility Restrictions
-        # TODO
+        if len(indexes) != 0:
+            self.__df = AgentMovement.stop_agents(self.__df, indexes)
 
         # =====================================================================
         # Create KDTree for agents of each alive disease state
@@ -315,8 +328,13 @@ class Population:
             agents_labels_by_disease_state=self.agents_labels_by_disease_state,
             natural_history=self.natural_history,
             disease_groups=self.disease_groups,
+            susceptibility_groups=self.susceptibility_groups,
             execmode=self.execmode
             )
+
+        # =====================================================================
+        # Mobility Restrictions
+        # TODO
 
         # =====================================================================
         # Update agents' positions and velocities
@@ -449,3 +467,8 @@ class Population:
                 # n_points == 0
                 self.kdtree_by_disease_state[disease_state] = None
                 self.agents_labels_by_disease_state[disease_state] = None
+
+    def aggregate_data(self):
+        """
+        """
+        pass

@@ -109,15 +109,21 @@ class InitialArrangement:
             TODO: include some examples
         """
         for group_col in missing_cols:
-            if isinstance(req_cols_dict[group_col], SimpleGroups):
-                group_values = req_cols_dict[group_col].names
-            else:
-                group_values = list(req_cols_dict[group_col].items.keys())
+            if req_cols_dict[group_col] is not None:
+                if isinstance(req_cols_dict[group_col], SimpleGroups):
+                    group_values = req_cols_dict[group_col].names
+                else:
+                    group_values = list(req_cols_dict[group_col].items.keys())
 
-            # Fill group_values randomly
-            df[group_col] = choice(
-                a=group_values,
-                size=df.shape[0]
-                )
+                # Fill group_values randomly
+                df[group_col] = choice(
+                    a=group_values,
+                    size=df.shape[0]
+                    )
+            else:
+                # req_cols_dict[group_col] is None
+
+                # Fill group_values with None
+                df[group_col] = None
 
         return df
