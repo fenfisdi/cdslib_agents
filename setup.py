@@ -6,7 +6,7 @@ with open('README.md', 'r') as readme_file:
 
 setup(
     name='cdslib_agents',
-    version='0.0.2-pre1',
+    version='0.0.2-pre2',
     maintainer='Developers of the CDS team of FEnFiSDi group',
     maintainer_email='camilo.hincapie@udea.edu.co',
     description='Contagious diseases simulation using Agent-Based Models',
@@ -27,7 +27,6 @@ setup(
         'Natural Language :: English',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: Implementation :: CPython',
         'Topic :: Education',
@@ -44,7 +43,7 @@ setup(
         'Nonlinear dynamics',
         'Agent Based Models'
         ],
-    python_requires='>=3.8',
+    python_requires='>=3.9',
     install_requires=[
         'numpy>=1.20.2',
         'pandas>=1.2.4',

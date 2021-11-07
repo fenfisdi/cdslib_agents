@@ -1,4 +1,3 @@
-from enum import Enum
 from typing import Optional
 
 from numpy import array, nan_to_num, inf, maximum, floor, setdiff1d
@@ -6,30 +5,24 @@ from scipy.spatial import KDTree
 from pandas.core.frame import DataFrame
 from pandas import concat
 
-from abmodel.utils.execution_modes import ExecutionModes
-from abmodel.models.population import Configutarion
-from abmodel.models.health_system import HealthSystem
-from abmodel.models.base import SimpleGroups
-from abmodel.models.disease import SusceptibilityGroups, MobilityGroups
-from abmodel.models.disease import NaturalHistory, DiseaseStates
-from abmodel.population.initial_arrangement import InitialArrangement
-from abmodel.models.mobility_restrictions import MRTracingPolicies
-from abmodel.models.mobility_restrictions import GlobalCyclicMR
-from abmodel.models.mobility_restrictions import CyclicMRPolicies
-from abmodel.models.disease import IsolationAdherenceGroups
-from abmodel.agent.movement import AgentMovement
-from abmodel.agent.disease import AgentDisease
-from abmodel.agent.neighbors import AgentNeighbors
-
-
-class EvolutionModes(Enum):
-    """
-        This class enumerates the evolution modes that can be used in
-        the method Population.evolve() and determines if cumulative
-        storing data or not.
-    """
-    steps = "steps"
-    cumulative = "cumulative"
+from abmodel.utils import ExecutionModes
+from abmodel.utils import EvolutionModes
+from abmodel.utils import timedelta_to_days
+from abmodel.models import Configutarion
+from abmodel.models import HealthSystem
+from abmodel.models import SimpleGroups
+from abmodel.models import SusceptibilityGroups
+from abmodel.models import MobilityGroups
+from abmodel.models import NaturalHistory
+from abmodel.models import DiseaseStates
+from abmodel.models import MRTracingPolicies
+from abmodel.models import GlobalCyclicMR
+from abmodel.models import CyclicMRPolicies
+from abmodel.models import IsolationAdherenceGroups
+from abmodel.agent import AgentMovement
+from abmodel.agent import AgentDisease
+from abmodel.agent import AgentNeighbors
+from .initial_arrangement import InitialArrangement
 
 
 class Population:
@@ -107,7 +100,8 @@ class Population:
             "mr_group": self.mr_groups,
             "vulnerability_group": self.vulnerability_groups,
             "mobility_group": self.mobility_groups,
-            "susceptibility_group": self.susceptibility_groups
+            "susceptibility_group": self.susceptibility_groups,
+            "isolation_adherence_group": self.isolation_adherence_groups
             }
 
         # TODO
@@ -165,6 +159,9 @@ class Population:
         # for checking purposes
         self.__step = 0
 
+        # Convert timedelta to days (float)
+        self.dt = timedelta_to_days(self.configuration.iteration_time)
+
         # Initialize time columns
         self.__df.insert(loc=0, column="step", value=self.__step)
         self.__df.insert(loc=1, column="datetime",
@@ -182,7 +179,10 @@ class Population:
         # Initialize disease related columns
         self.__df = AgentDisease.init_required_fields(
             df=self.__df,
+            dead_disease_group=self.dead_disease_group,
             disease_groups=self.disease_groups,
+            natural_history=self.natural_history,
+            health_system=self.health_system,
             execmode=self.execmode
             )
 
@@ -219,7 +219,7 @@ class Population:
         for step in range(iterations):
             self.__evolve_single_step()
 
-            if self.evolmode == ExecutionModes.cumulative.value:
+            if self.evolmode == EvolutionModes.cumulative.value:
                 self.__accumulated_df = concat(
                     [self.__accumulated_df, self.__df],
                     ignore_index=True
@@ -228,7 +228,7 @@ class Population:
     def __remove_dead_agents(self):
         """
         """
-        pass
+        self.__df = self.__df[self.__df["is_dead"] == False]
 
     def __evolve_single_step(self):
         """
@@ -246,13 +246,51 @@ class Population:
         self.__df["datetime"] += self.configuration.iteration_time
 
         # =====================================================================
-        # Change population states by means of state transition
-        # and update diagnosis and hospitalization states
-        # TODO
+        # Update population states by means of state transition
+        self.__df = AgentDisease.disease_state_transition(
+            df=self.__df,
+            dt=self.dt,
+            disease_groups=self.disease_groups,
+            natural_history=self.natural_history,
+            execmode=self.execmode
+            )
 
         # =====================================================================
-        # Quarantine
-        # TODO
+        # Update Hospitalization and ICU status
+        self.__df = AgentDisease.to_hospitalize_agents(
+            df=self.__df,
+            dead_disease_group=self.dead_disease_group,
+            disease_groups=self.disease_groups,
+            health_system=self.health_system,
+            execmode=ExecutionModes.vectorized.value
+            )
+
+        # =====================================================================
+        # Update diagnosis status
+        self.__df = AgentDisease.to_diagnose_agents(
+            df=self.__df,
+            disease_groups=self.disease_groups,
+            execmode=self.execmode
+            )
+
+        # =====================================================================
+        # Update isolation status
+        self.__df = AgentDisease.to_isolate_agents(
+            df=self.__df,
+            dt=self.dt,
+            disease_groups=self.disease_groups,
+            isolation_adherence_groups=self.isolation_adherence_groups,
+            execmode=self.execmode
+            )
+
+        # =====================================================================
+        # Stop isolated and hospitalized agents
+        indexes = self.__df.query(
+            "is_isolated == False | is_hospitalized == False"
+            ).index.values
+
+        if len(indexes) != 0:
+            self.__df = AgentMovement.stop_agents(self.__df, indexes)
 
         # =====================================================================
         # Create KDTree for agents of each alive disease state
@@ -276,6 +314,18 @@ class Population:
 
         # =====================================================================
         # Change population states by means of contagion
+        self.__df = AgentDisease.disease_state_transition_by_contagion(
+            df=self.__df,
+            kdtree_by_disease_state=self.kdtree_by_disease_state,
+            agents_labels_by_disease_state=self.agents_labels_by_disease_state,
+            natural_history=self.natural_history,
+            disease_groups=self.disease_groups,
+            susceptibility_groups=self.susceptibility_groups,
+            execmode=self.execmode
+            )
+
+        # =====================================================================
+        # Mobility Restrictions
         # TODO
 
         # =====================================================================
@@ -371,12 +421,12 @@ class Population:
         for disease_state in self.disease_groups_alive:
             # Filter population
             # Exclude those agents hospitalized and those that are dead
-            filtered_df = self.population.loc[
-                (self.population["disease_state"] == disease_state)
+            filtered_df = self.__df.loc[
+                (self.__df["disease_state"] == disease_state)
                 &
-                (~self.population["is_hospitalized"])
+                (~self.__df["is_hospitalized"])
                 &
-                (~self.population["is_dead"])
+                (~self.__df["is_dead"])
                 ][["agent", "x", "y"]].copy()
 
             # Calculate how many points were retrieved
@@ -409,3 +459,8 @@ class Population:
                 # n_points == 0
                 self.kdtree_by_disease_state[disease_state] = None
                 self.agents_labels_by_disease_state[disease_state] = None
+
+    def aggregate_data(self):
+        """
+        """
+        pass

@@ -4,7 +4,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, root_validator
 
-from abmodel.models.base import SimpleGroups
+from abmodel.models import SimpleGroups
 
 # ============================================================================
 # Mobility restrictions by tracing interest variables
