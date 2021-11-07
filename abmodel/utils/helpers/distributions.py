@@ -1,6 +1,6 @@
 from typing import Any
 
-from abmodel.utils.distributions import Distribution
+from abmodel.utils import Distribution
 
 
 def init_distribution(dist_dict: dict[str, Any]) -> Distribution:

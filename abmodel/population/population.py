@@ -1,4 +1,3 @@
-from enum import Enum
 from typing import Optional
 
 from numpy import array, nan_to_num, inf, maximum, floor, setdiff1d
@@ -6,31 +5,24 @@ from scipy.spatial import KDTree
 from pandas.core.frame import DataFrame
 from pandas import concat
 
-from abmodel.utils.execution_modes import ExecutionModes
-from abmodel.utils.units import timedelta_to_days
-from abmodel.models.population import Configutarion
-from abmodel.models.health_system import HealthSystem
-from abmodel.models.base import SimpleGroups
-from abmodel.models.disease import SusceptibilityGroups, MobilityGroups
-from abmodel.models.disease import NaturalHistory, DiseaseStates
-from abmodel.population.initial_arrangement import InitialArrangement
-from abmodel.models.mobility_restrictions import MRTracingPolicies
-from abmodel.models.mobility_restrictions import GlobalCyclicMR
-from abmodel.models.mobility_restrictions import CyclicMRPolicies
-from abmodel.models.disease import IsolationAdherenceGroups
-from abmodel.agent.movement import AgentMovement
-from abmodel.agent.disease import AgentDisease
-from abmodel.agent.neighbors import AgentNeighbors
-
-
-class EvolutionModes(Enum):
-    """
-        This class enumerates the evolution modes that can be used in
-        the method Population.evolve() and determines if cumulative
-        storing data or not.
-    """
-    steps = "steps"
-    cumulative = "cumulative"
+from abmodel.utils import ExecutionModes
+from abmodel.utils import EvolutionModes
+from abmodel.utils import timedelta_to_days
+from abmodel.models import Configutarion
+from abmodel.models import HealthSystem
+from abmodel.models import SimpleGroups
+from abmodel.models import SusceptibilityGroups
+from abmodel.models import MobilityGroups
+from abmodel.models import NaturalHistory
+from abmodel.models import DiseaseStates
+from abmodel.models import MRTracingPolicies
+from abmodel.models import GlobalCyclicMR
+from abmodel.models import CyclicMRPolicies
+from abmodel.models import IsolationAdherenceGroups
+from abmodel.agent import AgentMovement
+from abmodel.agent import AgentDisease
+from abmodel.agent import AgentNeighbors
+from .initial_arrangement import InitialArrangement
 
 
 class Population:
@@ -227,7 +219,7 @@ class Population:
         for step in range(iterations):
             self.__evolve_single_step()
 
-            if self.evolmode == ExecutionModes.cumulative.value:
+            if self.evolmode == EvolutionModes.cumulative.value:
                 self.__accumulated_df = concat(
                     [self.__accumulated_df, self.__df],
                     ignore_index=True
@@ -429,12 +421,12 @@ class Population:
         for disease_state in self.disease_groups_alive:
             # Filter population
             # Exclude those agents hospitalized and those that are dead
-            filtered_df = self.population.loc[
-                (self.population["disease_state"] == disease_state)
+            filtered_df = self.__df.loc[
+                (self.__df["disease_state"] == disease_state)
                 &
-                (~self.population["is_hospitalized"])
+                (~self.__df["is_hospitalized"])
                 &
-                (~self.population["is_dead"])
+                (~self.__df["is_dead"])
                 ][["agent", "x", "y"]].copy()
 
             # Calculate how many points were retrieved

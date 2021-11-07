@@ -2,7 +2,7 @@ from numpy import full
 from numpy.random import choice
 from pandas.core.frame import DataFrame
 
-from abmodel.models.base import SimpleGroups
+from abmodel.models import SimpleGroups
 
 
 class InitialArrangement:

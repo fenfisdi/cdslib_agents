@@ -2,8 +2,9 @@ from enum import Enum
 from dataclasses import dataclass
 from copy import deepcopy
 
-from abmodel.models.base import SimpleDistGroups, ComplexDistGroups
-from abmodel.utils.utilities import std_str_join_cols
+from abmodel.models import SimpleDistGroups
+from abmodel.models import ComplexDistGroups
+from abmodel.utils import std_str_join_cols
 
 
 # ============================================================================
@@ -92,7 +93,7 @@ class MobilityGroups(ComplexDistGroups):
             The dictionary created from the list `group_info`.
             Each key of this dictionary corresponds to a single
             group name.
-        
+
         labels : list
             TODO complete explanation
 

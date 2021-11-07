@@ -11,3 +11,13 @@ class ExecutionModes(Enum):
     vectorized = "vectorized"
     dask = "dask"
     swifter = "swifter"
+
+
+class EvolutionModes(Enum):
+    """
+        This class enumerates the evolution modes that can be used in
+        the method Population.evolve() and determines if cumulative
+        storing data or not.
+    """
+    steps = "steps"
+    cumulative = "cumulative"

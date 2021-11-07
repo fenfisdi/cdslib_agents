@@ -7,14 +7,17 @@ from numpy.random import choice, random_sample
 from pandas.core.frame import DataFrame
 from pandas.core.series import Series
 
-from abmodel.utils.execution_modes import ExecutionModes
-from abmodel.utils.utilities import check_field_existance, exception_burner
-from abmodel.utils.utilities import std_str_join_cols
-from abmodel.models.disease import NaturalHistory, DiseaseStates
-from abmodel.models.disease import SusceptibilityGroups, MobilityGroups
-from abmodel.models.disease import IsolationAdherenceGroups, DistTitles
-from abmodel.models.health_system import HealthSystem
-from abmodel.agent.movement import AgentMovement
+from abmodel.utils import ExecutionModes
+from abmodel.utils import check_field_existance
+from abmodel.utils import exception_burner
+from abmodel.utils import std_str_join_cols
+from abmodel.models import DistTitles
+from abmodel.models import NaturalHistory
+from abmodel.models import DiseaseStates
+from abmodel.models import SusceptibilityGroups
+from abmodel.models import MobilityGroups
+from abmodel.models import IsolationAdherenceGroups
+from abmodel.models import HealthSystem
 
 
 # =============================================================================
@@ -213,7 +216,7 @@ def transition_function(
 
     # Get disease_states enabled for the probable transition and
     # their corresponding probabilities
-    disease_states = transitions.keys()
+    disease_states = list(transitions.keys())
     probabilities = [
         transitions[transition].probability
         for transition in disease_states
@@ -723,7 +726,7 @@ def contagion_function(
 
         # Get disease_states enabled for the probable transition
         # after contagion and and their corresponding probabilities
-        disease_states = transitions.keys()
+        disease_states = list(transitions.keys())
         probabilities = [
             transitions[transition].probability
             for transition in disease_states

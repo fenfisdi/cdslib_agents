@@ -5,8 +5,8 @@ from copy import deepcopy
 from munch import Munch
 from pydantic import BaseModel
 
-from abmodel.utils.distributions import Distribution
-from abmodel.utils.helpers.distributions import init_distribution
+from abmodel.utils import Distribution
+from abmodel.utils import init_distribution
 
 
 # ============================================================================
