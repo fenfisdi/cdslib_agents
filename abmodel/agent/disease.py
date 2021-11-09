@@ -940,6 +940,116 @@ def calculate_immunization_level_iterative(
 
 
 # =============================================================================
+def alertness_function(
+    agent: int,
+    key: str,
+    x: float,
+    y: float,
+    is_dead: bool,
+    vulnerability_group: str,
+    disease_state: str,
+    natural_history: NaturalHistory,
+    disease_groups: DiseaseStates,
+    kdtree_by_disease_state: dict,
+    agents_labels_by_disease_state: dict
+) -> float:
+    """
+        TODO: Add brief explanation
+
+        Parameters
+        ----------
+        TODO
+
+        Returns
+        -------
+        TODO
+
+        Notes
+        -----
+        TODO: include mathematical description and explanatory image
+
+        Examples
+        --------
+        TODO: include some examples
+    """
+    if is_dead:
+        pass
+    else:
+        all_avoidable_neighbors = array([])
+        is_alert = False
+        alerted_by = []
+
+        # Agent location
+        agent_location = [x, y]
+
+        # =============================================
+        # Cycle through each state of the neighbors to see if the agent
+        # should be alert
+
+        for avoidable_state in disease_groups.items.keys():
+            # Compute avoidable_agent_key
+            avoidable_agent_key = std_str_join_cols(
+                vulnerability_group,
+                avoidable_state
+                )
+
+            # Get radius to avoid an avoidable_agent (avoidance_radius)
+            avoidance_radius = natural_history \
+                .items[avoidable_agent_key].avoidance_radius
+
+            if (avoidance_radius != 0
+               and kdtree_by_disease_state[avoidable_state]):
+                # Detect if any avoidable agent is inside a distance
+                # equal to the corresponding avoidance_radius
+                points_inside_radius_array = \
+                    kdtree_by_disease_state[avoidable_state].query_ball_point(
+                        agent_location,
+                        avoidance_radius
+                        )
+
+                avoidable_neighbors = setdiff1d(
+                    agents_labels_by_disease_state[
+                        avoidable_state][
+                        points_inside_radius_array],
+                    agent
+                    )
+
+                if len(avoidable_neighbors) != 0:
+
+                    all_avoidable_neighbors = concatenate(
+                        (all_avoidable_neighbors, avoidable_neighbors),
+                        axis=None
+                        )
+
+                    for avoidable_agent_index in avoidable_neighbors:
+                        # Calculate alertness probability
+                        probability = natural_history.items[key] \
+                           .dist[DistTitles.time.value].sample()
+
+                        # Must agent be alert ? ... Throw the dice
+                        dice = random_sample()
+
+                        # Note that alertness depends on a probability,
+                        # which tries to model the probability that an
+                        # agent with a defined group and state is alert
+                        if dice <= probability:
+
+                            # Agent is alerted !!!
+                            is_alert = True
+
+                            # Append avoidable_agent_index in alerted_by
+                            alerted_by.append(avoidable_agent_index)
+
+        # float to int
+        all_avoidable_neighbors = all_avoidable_neighbors.astype(int)
+
+        # ndarray to list
+        all_avoidable_neighbors = all_avoidable_neighbors.tolist()
+
+    return is_alert, alerted_by
+
+
+# =============================================================================
 class AgentDisease:
     """
         TODO: Add brief explanation
@@ -1884,8 +1994,67 @@ class AgentDisease:
 
             return df
 
-    # def update_alertness_state
+    @classmethod
+    def update_alertness_state(
+        cls,
+        df: DataFrame,
+        kdtree_by_disease_state: dict,
+        agents_labels_by_disease_state: dict,
+        natural_history: NaturalHistory,
+        disease_groups: DiseaseStates,
+        susceptibility_groups: SusceptibilityGroups,
+        execmode: ExecutionModes = ExecutionModes.iterative.value
+    ) -> DataFrame:
+        """
+            TODO: Add brief explanation
+
+            Parameters
+            ----------
+            TODO
+
+            Returns
+            -------
+            TODO
+
+            Raises
+            ------
+            TODO
+
+            Notes
+            -----
+            TODO: include mathematical description and explanatory image
+
+            See Also
+            --------
+            abmodel.agent.execution_modes.ExecutionModes : TODO complete
+            explanation
+
+            check_field_existance : TODO complete explanation
+
+            alertness_function : TODO complete explanation
+
+            Examples
+            --------
+            TODO: include some examples
+        """
+        try:
+            if execmode == ExecutionModes.iterative.value:
+                df[[]] = df.apply(
+                    lambda row: alertness_function(
+                        ),
+                    axis=1
+                    )
+            else:
+                raise NotImplementedError(
+                    f"`execmode = {execmode}` is still not implemented yet"
+                    )
+        except Exception as error:
+            validation_list = []
+            exception_burner([
+                error,
+                check_field_existance(df, validation_list)
+                ])
+        else:
+            return df
 
     # def quarantine_by_government_decrees
-
-    # def init_columns

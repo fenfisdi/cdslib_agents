@@ -1,13 +1,15 @@
 from typing import Optional
 
-from numpy import array, nan_to_num, inf, maximum, floor, setdiff1d
+from numpy import array, nan_to_num, inf, maximum, floor, setdiff1d, isin, pi
 from scipy.spatial import KDTree
 from pandas.core.frame import DataFrame
 from pandas import concat
 
+from abmodel.utils import Distribution
 from abmodel.utils import ExecutionModes
 from abmodel.utils import EvolutionModes
 from abmodel.utils import timedelta_to_days
+from abmodel.models import DistTitles
 from abmodel.models import Configutarion
 from abmodel.models import HealthSystem
 from abmodel.models import SimpleGroups
@@ -236,6 +238,7 @@ class Population:
         # =====================================================================
         # Remove dead agents before evolving population dataframe
         self.__remove_dead_agents()
+        former_df = self.__df.copy()
 
         # =====================================================================
         # Evolve step
@@ -286,11 +289,39 @@ class Population:
         # =====================================================================
         # Stop isolated and hospitalized agents
         indexes = self.__df.query(
-            "is_isolated == False | is_hospitalized == False"
+            "is_isolated == True | is_hospitalized == True"
             ).index.values
 
         if len(indexes) != 0:
             self.__df = AgentMovement.stop_agents(self.__df, indexes)
+
+        # =====================================================================
+        # Initialize velocities for formerly isolated and formerly hospitalized
+        # agents
+        former_indexes = former_df.query(
+            "is_isolated == True | is_hospitalized == True"
+            ).index.values
+
+        mask = isin(former_indexes, indexes, invert=True)
+        should_init_indexes = former_indexes[mask]
+
+        if len(should_init_indexes) != 0:
+            for mobility_group in self.mobility_groups.items.keys():
+                self.__df = AgentMovement.initialize_velocities(
+                    df=self.__df,
+                    distribution=self.mobility_groups.items[
+                        mobility_group].dist[DistTitles.mobility.value],
+                    angle_distribution=Distribution(
+                        dist_type="numpy",
+                        dist_name="uniform",
+                        low=0.0,
+                        high=2*pi
+                        ),
+                    indexes=should_init_indexes,
+                    group_field="mobility_group",
+                    group_label=mobility_group,
+                    preserve_dtypes_dict={"step": int, "agent": int}
+                    )
 
         # =====================================================================
         # Create KDTree for agents of each alive disease state
@@ -298,15 +329,15 @@ class Population:
 
         # =====================================================================
         # Trace neighbors to susceptible agents
-        # self.__df = AgentNeighbors.trace_neighbors_to_susceptibles(
-        #     df: DataFrame,
-        #     tracing_radius: float,
-        #     kdtree_by_disease_state: dict,
-        #     agents_labels_by_disease_state: dict,
-        #     dead_disease_group: str,
-        #     disease_groups: DiseaseStates,
-        #     execmode: ExecutionModes = ExecutionModes.vectorized.value
-        #     )
+        self.__df = AgentNeighbors.trace_neighbors_to_susceptibles(
+            df=self.__df,
+            tracing_radius=self.tracing_radius,
+            kdtree_by_disease_state=self.kdtree_by_disease_state,
+            agents_labels_by_disease_state=self.agents_labels_by_disease_state,
+            dead_disease_group=self.dead_disease_group,
+            disease_groups=self.disease_groups,
+            execmode=ExecutionModes.vectorized.value
+            )
 
         # =====================================================================
         # Update alertness states and avoid avoidable agents
@@ -459,8 +490,3 @@ class Population:
                 # n_points == 0
                 self.kdtree_by_disease_state[disease_state] = None
                 self.agents_labels_by_disease_state[disease_state] = None
-
-    def aggregate_data(self):
-        """
-        """
-        pass
