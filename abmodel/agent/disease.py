@@ -2149,6 +2149,7 @@ class AgentDisease:
                     "do_update_immunization_params"]] = df.apply(
                     lambda row: update_immunization_params_iterative(
                         row["key"],  # In this case, this key is the old one
+                        row["disease_state"],
                         row["immunization_level"],
                         row["immunization_slope"],
                         row["immunization_time"],  # In scale of days
@@ -2163,7 +2164,7 @@ class AgentDisease:
                     f"`execmode = {execmode}` is still not implemented yet"
                     )
         except Exception as error:
-            validation_list = ["key", "immunization_level",
+            validation_list = ["key", "disease_state", "immunization_level",
                                "immunization_slope", "immunization_time",
                                "immunization_max_time",
                                "do_update_immunization_params"]
