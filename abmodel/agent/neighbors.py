@@ -1,4 +1,4 @@
-from numpy import array, setdiff1d, concatenate
+from numpy import array, setdiff1d, concatenate, transpose
 # where, full, ndarray, isin, concatenate
 # from numpy.random import choice, random_sample
 from pandas.core.frame import DataFrame
@@ -15,7 +15,7 @@ def trace_neighbors_vectorized(
     agents_labels_by_disease_state: dict,
     dead_disease_group: str,
     disease_groups: DiseaseStates
-) -> tuple[list, list, list, list, list]:
+) -> DataFrame:
     """
         TODO: Add brief explanation
 
@@ -81,11 +81,11 @@ def trace_neighbors_vectorized(
                 # Now we have to get the corresponding agents labels
                 # excluding the agent's own index
                 agents_labels_inside_radius_list = [
-                    list(setdiff1d(
+                    setdiff1d(
                         agents_labels_by_disease_state[disease_state][
                             points_inside_radius_array[i]],
                         agents_labels[i]
-                        ))
+                        ).astype(int)
                     for i in range(n_agents)
                     ]
 
@@ -156,9 +156,12 @@ def trace_neighbors_vectorized(
         for i in range(n_agents)
         ]
 
-    return (susceptible_neighbors, infected_spreader_neighbors,
-            infected_non_spreader_neighbors, immune_neighbors,
-            total_neighbors)
+    data = array([susceptible_neighbors, infected_spreader_neighbors,
+                  infected_non_spreader_neighbors, immune_neighbors,
+                  total_neighbors], dtype="object")
+    data_transposed = transpose(data)
+
+    return DataFrame(data_transposed)
 
 
 class AgentNeighbors:

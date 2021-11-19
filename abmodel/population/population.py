@@ -1,17 +1,20 @@
 from typing import Optional
 
-from numpy import array, nan_to_num, inf, maximum, floor, setdiff1d
+from numpy import array, nan_to_num, inf, maximum, floor, setdiff1d, isin, pi
 from scipy.spatial import KDTree
 from pandas.core.frame import DataFrame
 from pandas import concat
 
+from abmodel.utils import Distribution
 from abmodel.utils import ExecutionModes
 from abmodel.utils import EvolutionModes
 from abmodel.utils import timedelta_to_days
+from abmodel.models import DistTitles
 from abmodel.models import Configutarion
 from abmodel.models import HealthSystem
 from abmodel.models import SimpleGroups
 from abmodel.models import SusceptibilityGroups
+from abmodel.models import ImmunizationGroups
 from abmodel.models import MobilityGroups
 from abmodel.models import NaturalHistory
 from abmodel.models import DiseaseStates
@@ -52,6 +55,7 @@ class Population:
         mrt_policies: Optional[MRTracingPolicies] = None,
         global_cyclic_mr: Optional[GlobalCyclicMR] = None,
         cyclic_mr_policies: Optional[CyclicMRPolicies] = None,
+        immunization_groups: Optional[ImmunizationGroups] = None,
         isolation_adherence_groups: Optional[IsolationAdherenceGroups] = None,
         execmode: ExecutionModes = ExecutionModes.iterative.value,
         evolmode: EvolutionModes = EvolutionModes.steps.value
@@ -89,6 +93,7 @@ class Population:
         self.mrt_policies = mrt_policies
         self.global_cyclic_mr = global_cyclic_mr
         self.cyclic_mr_policies = cyclic_mr_policies
+        self.immunization_groups = immunization_groups
         self.isolation_adherence_groups = isolation_adherence_groups
         self.execmode = execmode
         self.evolmode = evolmode
@@ -101,11 +106,11 @@ class Population:
             "vulnerability_group": self.vulnerability_groups,
             "mobility_group": self.mobility_groups,
             "susceptibility_group": self.susceptibility_groups,
+            "immunization_group": self.immunization_groups,
             "isolation_adherence_group": self.isolation_adherence_groups
             }
 
-        # TODO
-        # Handle units
+        # TODO: Handle units
 
         # =====================================================================
         # Setup internal variables
@@ -183,6 +188,8 @@ class Population:
             disease_groups=self.disease_groups,
             natural_history=self.natural_history,
             health_system=self.health_system,
+            immunization_groups=self.immunization_groups,
+            isolation_adherence_groups=self.isolation_adherence_groups,
             execmode=self.execmode
             )
 
@@ -228,7 +235,9 @@ class Population:
     def __remove_dead_agents(self):
         """
         """
-        self.__df = self.__df[self.__df["is_dead"] == False]
+        self.__df = self.__df[
+            ~self.__df[["is_dead"]].any(axis="columns")
+            ]
 
     def __evolve_single_step(self):
         """
@@ -236,6 +245,7 @@ class Population:
         # =====================================================================
         # Remove dead agents before evolving population dataframe
         self.__remove_dead_agents()
+        former_df = self.__df.copy()
 
         # =====================================================================
         # Evolve step
@@ -260,6 +270,7 @@ class Population:
         self.__df = AgentDisease.to_hospitalize_agents(
             df=self.__df,
             dead_disease_group=self.dead_disease_group,
+            alpha=self.configuration.alpha,
             disease_groups=self.disease_groups,
             health_system=self.health_system,
             execmode=ExecutionModes.vectorized.value
@@ -278,6 +289,7 @@ class Population:
         self.__df = AgentDisease.to_isolate_agents(
             df=self.__df,
             dt=self.dt,
+            beta=self.configuration.beta,
             disease_groups=self.disease_groups,
             isolation_adherence_groups=self.isolation_adherence_groups,
             execmode=self.execmode
@@ -286,11 +298,39 @@ class Population:
         # =====================================================================
         # Stop isolated and hospitalized agents
         indexes = self.__df.query(
-            "is_isolated == False | is_hospitalized == False"
+            "is_isolated == True | is_hospitalized == True"
             ).index.values
 
         if len(indexes) != 0:
             self.__df = AgentMovement.stop_agents(self.__df, indexes)
+
+        # =====================================================================
+        # Initialize velocities for formerly isolated and formerly hospitalized
+        # agents
+        former_indexes = former_df.query(
+            "is_isolated == True | is_hospitalized == True"
+            ).index.values
+
+        mask = isin(former_indexes, indexes, invert=True)
+        should_init_indexes = former_indexes[mask]
+
+        if len(should_init_indexes) != 0:
+            for mobility_group in self.mobility_groups.items.keys():
+                self.__df = AgentMovement.initialize_velocities(
+                    df=self.__df,
+                    distribution=self.mobility_groups.items[
+                        mobility_group].dist[DistTitles.mobility.value],
+                    angle_distribution=Distribution(
+                        dist_type="numpy",
+                        dist_name="uniform",
+                        low=0.0,
+                        high=2*pi
+                        ),
+                    indexes=should_init_indexes,
+                    group_field="mobility_group",
+                    group_label=mobility_group,
+                    preserve_dtypes_dict={"step": int, "agent": int}
+                    )
 
         # =====================================================================
         # Create KDTree for agents of each alive disease state
@@ -298,19 +338,27 @@ class Population:
 
         # =====================================================================
         # Trace neighbors to susceptible agents
-        # self.__df = AgentNeighbors.trace_neighbors_to_susceptibles(
-        #     df: DataFrame,
-        #     tracing_radius: float,
-        #     kdtree_by_disease_state: dict,
-        #     agents_labels_by_disease_state: dict,
-        #     dead_disease_group: str,
-        #     disease_groups: DiseaseStates,
-        #     execmode: ExecutionModes = ExecutionModes.vectorized.value
-        #     )
+        self.__df = AgentNeighbors.trace_neighbors_to_susceptibles(
+            df=self.__df,
+            tracing_radius=self.tracing_radius,
+            kdtree_by_disease_state=self.kdtree_by_disease_state,
+            agents_labels_by_disease_state=self.agents_labels_by_disease_state,
+            dead_disease_group=self.dead_disease_group,
+            disease_groups=self.disease_groups,
+            execmode=ExecutionModes.vectorized.value
+            )
 
         # =====================================================================
-        # Update alertness states and avoid avoidable agents
-        # TODO
+        # Update alertness states for avoiding avoidable agents
+        self.__df = AgentDisease.update_alertness_state(
+            df=self.__df,
+            kdtree_by_disease_state=self.kdtree_by_disease_state,
+            agents_labels_by_disease_state=self.agents_labels_by_disease_state,
+            natural_history=self.natural_history,
+            disease_groups=self.disease_groups,
+            dead_disease_group=self.dead_disease_group,
+            execmode=self.execmode
+            )
 
         # =====================================================================
         # Change population states by means of contagion
@@ -325,12 +373,53 @@ class Population:
             )
 
         # =====================================================================
+        # Update immunization level
+        self.__df = AgentDisease.update_immunization_level(
+            df=self.__df,
+            dt=self.dt,
+            natural_history=self.natural_history,
+            execmode=self.execmode
+            )
+
+        # =====================================================================
         # Mobility Restrictions
         # TODO
 
         # =====================================================================
-        # Update agents' positions and velocities
-        # TODO
+        # Avoid avoidable agents
+        filtered_df = self.__df[self.__df["is_alert"]][["agent", "alerted_by"]]
+        df_to_avoid = filtered_df \
+            .explode("alerted_by") \
+            .rename(columns={"alerted_by": "agent_to_avoid"})
+
+        self.__df = AgentMovement.avoid_agents(
+            df=self.__df,
+            df_to_avoid=df_to_avoid
+            )
+
+        # =====================================================================
+        # Update agents' positions
+        # NOTE: mobility_profile should be in iteration_time units, so the
+        # value we should use for dt here is dt=1.0
+        self.__df = AgentMovement.move_agents(
+            df=self.__df,
+            box_size=self.configuration.box_size,
+            dt=1.0
+            )
+
+        # =====================================================================
+        # Update agents' velocities
+        for mobility_group in self.mobility_groups.items.keys():
+            self.__df = AgentMovement.update_velocities(
+                df=self.__df,
+                distribution=self.mobility_groups
+                .items[mobility_group].dist[DistTitles.mobility.value],
+                angle_variance=self.mobility_groups
+                .items[mobility_group].angle_variance,
+                group_field="mobility_group",
+                group_label=mobility_group,
+                preserve_dtypes_dict={"step": int, "agent": int}
+                )
 
     def __get_disease_groups_alive(self) -> None:
         """
@@ -459,8 +548,3 @@ class Population:
                 # n_points == 0
                 self.kdtree_by_disease_state[disease_state] = None
                 self.agents_labels_by_disease_state[disease_state] = None
-
-    def aggregate_data(self):
-        """
-        """
-        pass

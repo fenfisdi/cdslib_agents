@@ -1,7 +1,12 @@
+"""Contagious diseases simulation using Agent-Based Models"""
+
+__version__ = "0.0.2-pre2"
+
 from abmodel import agent
 from abmodel import models
 from abmodel.analysis import Aggregator
 from abmodel.population import Population
+from abmodel.utils import Distribution
 from abmodel.utils import ExecutionModes
 from abmodel.utils import EvolutionModes
 
@@ -11,9 +16,7 @@ __all__ = [
     "models",
     "Aggregator",
     "Population",
+    "Distribution",
     "ExecutionModes",
     "EvolutionModes"
     ]
-
-__version__ = "0.0.2-pre2"
-__author__ = "Camilo Hincapié Gutiérrez"

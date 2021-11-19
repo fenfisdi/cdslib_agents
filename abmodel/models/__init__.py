@@ -3,6 +3,7 @@ from .base import SimpleDistGroups
 from .base import ComplexDistGroups
 from .disease import DistTitles
 from .disease import SusceptibilityGroups
+from .disease import ImmunizationGroups
 from .disease import MobilityGroups
 from .disease import IsolationAdherenceGroups
 from .disease import DiseaseStates
@@ -21,6 +22,7 @@ __all__ = [
     "ComplexDistGroups",
     "DistTitles",
     "SusceptibilityGroups",
+    "ImmunizationGroups",
     "MobilityGroups",
     "IsolationAdherenceGroups",
     "DiseaseStates",
@@ -30,5 +32,5 @@ __all__ = [
     "GlobalCyclicMR",
     "CyclicMRPolicies",
     "BoxSize",
-    "Configutarion"
+    "Configutarion",
     ]

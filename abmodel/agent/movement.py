@@ -143,7 +143,7 @@ class AgentMovement:
         cls,
         df: DataFrame,
         box_size: BoxSize,
-        dt: float
+        dt: float  # In scale of the mobility_profile
     ) -> DataFrame:
         """
             Function to apply as transformation in a pandas Dataframe to update
@@ -442,6 +442,7 @@ class AgentMovement:
         df: DataFrame,
         distribution: Distribution,
         angle_distribution: Distribution,
+        indexes: Union[list, ndarray, None] = None,
         group_field: Optional[str] = None,
         group_label: Optional[str] = None,
         preserve_dtypes_dict: Optional[dict] = None
@@ -464,6 +465,8 @@ class AgentMovement:
 
             angle_distribution : Distribution
                 TODO
+
+            indexes : TODO
 
             group_field : str, optional
                 The field over which to filter the set of agents.
@@ -495,14 +498,55 @@ class AgentMovement:
             --------
             TODO: include some examples
         """
-        if group_field is None:
+        if indexes is not None and group_field is not None:
             try:
-                # Set velocities for all the agents in df
-                df = cls.set_velocities(
-                    df=df,
-                    distribution=distribution,
-                    angle_distribution=angle_distribution
+                if group_label in df[group_field].values:
+                    filtered_df = df.loc[df[group_field] == group_label].copy()
+
+                    # Filter agents by index
+                    filtered_df = filtered_df[
+                        filtered_df.index.isin(indexes)
+                        ].copy()
+
+                    if filtered_df.shape[0] != 0:
+                        # Set velocities only for the filtered_df
+                        # Update df using filtered_df
+                        df.update(
+                            cls.set_velocities(
+                                df=filtered_df,
+                                distribution=distribution,
+                                angle_distribution=angle_distribution
+                                )
+                            )
+                        if preserve_dtypes_dict:
+                            df = df.astype(preserve_dtypes_dict)
+                else:
+                    # group_label not in df[group_field].values
+                    # Do nothing and return unaltered df
+                    pass
+            except Exception as error:
+                exception_burner([
+                    error,
+                    check_field_existance(df, [group_field, "vx", "vy"])
+                    ])
+            else:
+                return df
+        elif indexes is not None:
+            try:
+                # Filter agents by index
+                filtered_df = df.iloc[indexes, :].copy()
+
+                # Set velocities only for the filtered_df
+                # Update df using filtered_df
+                df.update(
+                    cls.set_velocities(
+                        df=filtered_df,
+                        distribution=distribution,
+                        angle_distribution=angle_distribution
+                        )
                     )
+                if preserve_dtypes_dict:
+                    df = df.astype(preserve_dtypes_dict)
             except Exception as error:
                 exception_burner([
                     error,
@@ -510,11 +554,10 @@ class AgentMovement:
                     ])
             else:
                 return df
-        else:
-            # group_field is not None
+        elif group_field is not None:
             try:
                 if group_label in df[group_field].values:
-                    filtered_df = df.loc[df[group_field] == group_label]
+                    filtered_df = df.loc[df[group_field] == group_label].copy()
 
                     # Set velocities only for the filtered_df
                     # Update df using filtered_df
@@ -538,6 +581,21 @@ class AgentMovement:
                     ])
             else:
                 return df
+        else:
+            try:
+                # Set velocities for all the agents in df
+                df = cls.set_velocities(
+                    df=df,
+                    distribution=distribution,
+                    angle_distribution=angle_distribution
+                    )
+            except Exception as error:
+                exception_burner([
+                    error,
+                    check_field_existance(df, ["vx", "vy"])
+                    ])
+            else:
+                return df
 
     @classmethod
     def update_velocities(
@@ -545,6 +603,7 @@ class AgentMovement:
         df: DataFrame,
         distribution: Distribution,
         angle_variance: float,
+        indexes: Union[list, ndarray, None] = None,
         group_field: Optional[str] = None,
         group_label: Optional[str] = None,
         preserve_dtypes_dict: Optional[dict] = None
@@ -570,6 +629,8 @@ class AgentMovement:
                 Standard deviation of the normal distribution
                 used for changing the direction of the velocity
                 from its initial value
+
+            indexes : TODO
 
             group_field : str, optional
                 The field over which to filter the set of agents.
@@ -610,14 +671,55 @@ class AgentMovement:
             --------
             TODO: include some examples
         """
-        if group_field is None:
+        if indexes is not None and group_field is not None:
             try:
-                # Change velocities for all the agents in df
-                df = cls.set_velocities(
-                    df=df,
-                    distribution=distribution,
-                    angle_variance=angle_variance
+                if group_label in df[group_field].values:
+                    filtered_df = df.loc[df[group_field] == group_label].copy()
+
+                    # Filter agents by index
+                    filtered_df = filtered_df[
+                        filtered_df.index.isin(indexes)
+                        ].copy()
+
+                    if filtered_df.shape[0] != 0:
+                        # Set velocities only for the filtered_df
+                        # Update df using filtered_df
+                        df.update(
+                            cls.set_velocities(
+                                df=filtered_df,
+                                distribution=distribution,
+                                angle_variance=angle_variance
+                                )
+                            )
+                        if preserve_dtypes_dict:
+                            df = df.astype(preserve_dtypes_dict)
+                else:
+                    # group_label not in df[group_field].values
+                    # Do nothing and return unaltered df
+                    pass
+            except Exception as error:
+                exception_burner([
+                    error,
+                    check_field_existance(df, [group_field, "vx", "vy"])
+                    ])
+            else:
+                return df
+        elif indexes is not None:
+            try:
+                # Filter agents by index
+                filtered_df = df.iloc[indexes, :].copy()
+
+                # Set velocities only for the filtered_df
+                # Update df using filtered_df
+                df.update(
+                    cls.set_velocities(
+                        df=filtered_df,
+                        distribution=distribution,
+                        angle_variance=angle_variance
+                        )
                     )
+                if preserve_dtypes_dict:
+                    df = df.astype(preserve_dtypes_dict)
             except Exception as error:
                 exception_burner([
                     error,
@@ -625,11 +727,11 @@ class AgentMovement:
                     ])
             else:
                 return df
-        else:
+        elif group_field is not None:
             # group_field is not None
             try:
                 if group_label in df[group_field].values:
-                    filtered_df = df.loc[df[group_field] == group_label]
+                    filtered_df = df.loc[df[group_field] == group_label].copy()
 
                     # Change velocities only for the filtered_df
                     # Update df using filtered_df
@@ -650,6 +752,21 @@ class AgentMovement:
                 exception_burner([
                     error,
                     check_field_existance(df, [group_field, "vx", "vy"])
+                    ])
+            else:
+                return df
+        else:
+            try:
+                # Change velocities for all the agents in df
+                df = cls.set_velocities(
+                    df=df,
+                    distribution=distribution,
+                    angle_variance=angle_variance
+                    )
+            except Exception as error:
+                exception_burner([
+                    error,
+                    check_field_existance(df, ["vx", "vy"])
                     ])
             else:
                 return df
