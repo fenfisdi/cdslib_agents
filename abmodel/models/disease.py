@@ -27,6 +27,7 @@ class DistTitles(Enum):
     immunization_time = "immunization_time_distribution"
     time = "time_dist"
     alertness = "alertness_prob"
+    immunization_level = "immunization_level_dist"
 
 
 @dataclass
@@ -74,6 +75,43 @@ class SusceptibilityGroups(SimpleDistGroups):
 
 
 @dataclass
+class ImmunizationGroups(SimpleDistGroups):
+    """
+        Dataclass used for wrapping Immunization groups
+
+        Attributes
+        ----------
+        TODO
+
+        group_info : list of dict
+            The list of different single group
+            information required to instantiate
+            a DistributionGroup.
+
+        items : dict
+            The dictionary created from the list `group_info`.
+            Each key of this dictionary corresponds to a single
+            group name.
+
+        See Also
+        --------
+        DistTitles : fundamental distribution titles
+
+        abmodel.models.base.SimpleDistGroups : Simple Distribution groups class
+
+        Examples
+        --------
+        TODO: include some examples
+    """
+    def __post_init__(self):
+        """
+            TODO
+        """
+        # TODO: Include dist_title_validation
+        super().__post_init__()
+
+
+@dataclass
 class MobilityGroups(ComplexDistGroups):
     """
         Dataclass used for wrapping Mobility groups
@@ -112,8 +150,7 @@ class MobilityGroups(ComplexDistGroups):
             This method performs `items` dictionary
             assignment from `group_info` list.
         """
-        # TODO
-        # Include dist_title_validation
+        # TODO: Include dist_title_validation
 
         self.labels = [
             "angle_variance"
@@ -187,8 +224,7 @@ class DiseaseStates(ComplexDistGroups):
             This method performs `items` dictionary
             assignment from `group_info` list.
         """
-        # TODO
-        # Include dist_title_validation
+        # TODO: Include dist_title_validation
 
         self.labels = [
             "can_get_infected",
@@ -232,8 +268,7 @@ class Transitions(ComplexDistGroups):
             This method performs `items` dictionary
             assignment from `group_info` list.
         """
-        # TODO
-        # Include dist_title_validation
+        # TODO: Include dist_title_validation
 
         self.labels = [
             "probability",
@@ -271,8 +306,7 @@ class NaturalHistory(ComplexDistGroups):
             This method performs `items` dictionary
             assignment from `group_info` list.
         """
-        # TODO
-        # Include dist_title_validation
+        # TODO: Include dist_title_validation
 
         self.labels = [
             "avoidance_radius",

@@ -23,4 +23,6 @@ class Configutarion(BaseModel):
     initial_date: datetime
     iteration_time: timedelta
     box_size: BoxSize
+    alpha: float  # Reduction factor of spread prob due to hospitalization
+    beta: float  # Reduction factor of spread prob due to being isolated
     # box_size_units:

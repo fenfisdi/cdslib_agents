@@ -14,6 +14,7 @@ from abmodel.models import Configutarion
 from abmodel.models import HealthSystem
 from abmodel.models import SimpleGroups
 from abmodel.models import SusceptibilityGroups
+from abmodel.models import ImmunizationGroups
 from abmodel.models import MobilityGroups
 from abmodel.models import NaturalHistory
 from abmodel.models import DiseaseStates
@@ -54,6 +55,7 @@ class Population:
         mrt_policies: Optional[MRTracingPolicies] = None,
         global_cyclic_mr: Optional[GlobalCyclicMR] = None,
         cyclic_mr_policies: Optional[CyclicMRPolicies] = None,
+        immunization_groups: Optional[ImmunizationGroups] = None,
         isolation_adherence_groups: Optional[IsolationAdherenceGroups] = None,
         execmode: ExecutionModes = ExecutionModes.iterative.value,
         evolmode: EvolutionModes = EvolutionModes.steps.value
@@ -91,6 +93,7 @@ class Population:
         self.mrt_policies = mrt_policies
         self.global_cyclic_mr = global_cyclic_mr
         self.cyclic_mr_policies = cyclic_mr_policies
+        self.immunization_groups = immunization_groups
         self.isolation_adherence_groups = isolation_adherence_groups
         self.execmode = execmode
         self.evolmode = evolmode
@@ -103,11 +106,11 @@ class Population:
             "vulnerability_group": self.vulnerability_groups,
             "mobility_group": self.mobility_groups,
             "susceptibility_group": self.susceptibility_groups,
+            "immunization_group": self.immunization_groups,
             "isolation_adherence_group": self.isolation_adherence_groups
             }
 
-        # TODO
-        # Handle units
+        # TODO: Handle units
 
         # =====================================================================
         # Setup internal variables
@@ -185,6 +188,8 @@ class Population:
             disease_groups=self.disease_groups,
             natural_history=self.natural_history,
             health_system=self.health_system,
+            immunization_groups=self.immunization_groups,
+            isolation_adherence_groups=self.isolation_adherence_groups,
             execmode=self.execmode
             )
 
@@ -230,7 +235,9 @@ class Population:
     def __remove_dead_agents(self):
         """
         """
-        self.__df = self.__df[self.__df["is_dead"] == False]
+        self.__df = self.__df[
+            ~self.__df[["is_dead"]].any(axis="columns")
+            ]
 
     def __evolve_single_step(self):
         """
@@ -263,6 +270,7 @@ class Population:
         self.__df = AgentDisease.to_hospitalize_agents(
             df=self.__df,
             dead_disease_group=self.dead_disease_group,
+            alpha=self.configuration.alpha,
             disease_groups=self.disease_groups,
             health_system=self.health_system,
             execmode=ExecutionModes.vectorized.value
@@ -281,6 +289,7 @@ class Population:
         self.__df = AgentDisease.to_isolate_agents(
             df=self.__df,
             dt=self.dt,
+            beta=self.configuration.beta,
             disease_groups=self.disease_groups,
             isolation_adherence_groups=self.isolation_adherence_groups,
             execmode=self.execmode
@@ -340,8 +349,16 @@ class Population:
             )
 
         # =====================================================================
-        # Update alertness states and avoid avoidable agents
-        # TODO
+        # Update alertness states for avoiding avoidable agents
+        self.__df = AgentDisease.update_alertness_state(
+            df=self.__df,
+            kdtree_by_disease_state=self.kdtree_by_disease_state,
+            agents_labels_by_disease_state=self.agents_labels_by_disease_state,
+            natural_history=self.natural_history,
+            disease_groups=self.disease_groups,
+            dead_disease_group=self.dead_disease_group,
+            execmode=self.execmode
+            )
 
         # =====================================================================
         # Change population states by means of contagion
@@ -356,12 +373,53 @@ class Population:
             )
 
         # =====================================================================
+        # Update immunization level
+        self.__df = AgentDisease.update_immunization_level(
+            df=self.__df,
+            dt=self.dt,
+            natural_history=self.natural_history,
+            execmode=self.execmode
+            )
+
+        # =====================================================================
         # Mobility Restrictions
         # TODO
 
         # =====================================================================
-        # Update agents' positions and velocities
-        # TODO
+        # Avoid avoidable agents
+        filtered_df = self.__df[self.__df["is_alert"]][["agent", "alerted_by"]]
+        df_to_avoid = filtered_df \
+            .explode("alerted_by") \
+            .rename(columns={"alerted_by": "agent_to_avoid"})
+
+        self.__df = AgentMovement.avoid_agents(
+            df=self.__df,
+            df_to_avoid=df_to_avoid
+            )
+
+        # =====================================================================
+        # Update agents' positions
+        # NOTE: mobility_profile should be in iteration_time units, so the
+        # value we should use for dt here is dt=1.0
+        self.__df = AgentMovement.move_agents(
+            df=self.__df,
+            box_size=self.configuration.box_size,
+            dt=1.0
+            )
+
+        # =====================================================================
+        # Update agents' velocities
+        for mobility_group in self.mobility_groups.items.keys():
+            self.__df = AgentMovement.update_velocities(
+                df=self.__df,
+                distribution=self.mobility_groups
+                .items[mobility_group].dist[DistTitles.mobility.value],
+                angle_variance=self.mobility_groups
+                .items[mobility_group].angle_variance,
+                group_field="mobility_group",
+                group_label=mobility_group,
+                preserve_dtypes_dict={"step": int, "agent": int}
+                )
 
     def __get_disease_groups_alive(self) -> None:
         """

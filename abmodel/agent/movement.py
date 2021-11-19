@@ -143,7 +143,7 @@ class AgentMovement:
         cls,
         df: DataFrame,
         box_size: BoxSize,
-        dt: float
+        dt: float  # In scale of the mobility_profile
     ) -> DataFrame:
         """
             Function to apply as transformation in a pandas Dataframe to update
@@ -442,7 +442,7 @@ class AgentMovement:
         df: DataFrame,
         distribution: Distribution,
         angle_distribution: Distribution,
-        indexes: Optional[list, ndarray] = None,
+        indexes: Union[list, ndarray, None] = None,
         group_field: Optional[str] = None,
         group_label: Optional[str] = None,
         preserve_dtypes_dict: Optional[dict] = None
@@ -603,7 +603,7 @@ class AgentMovement:
         df: DataFrame,
         distribution: Distribution,
         angle_variance: float,
-        indexes: Optional[list, ndarray] = None,
+        indexes: Union[list, ndarray, None] = None,
         group_field: Optional[str] = None,
         group_label: Optional[str] = None,
         preserve_dtypes_dict: Optional[dict] = None
