@@ -26,16 +26,16 @@ add as much states as preferred, and to create custom natural history of the dis
 
 For more information, please refer to the official documentation of the project.
 
-## Contributors
+## Main contributors
 
-We want to give special thanks to
+This package was made with thanks to the leadership of
 [Camilo Hincapié](https://www.linkedin.com/in/camilo-hincapie-gutierrez/)
-and [Ian Mejía](https://www.linkedin.com/in/ian-mejia-61aaa220b/) for their constant
-work on this project, and [Carolina Rojas Duque](https://github.com/carolinarojasd)
-for her colaboration on tests development.
-
-Finally, we want to thank Lina Ruiz for the conceptual suggestions she provided in
-order to help to specify the package.
+and the contributions of
+[Ian Mejía](https://github.com/IanMejia),
+[Carolina Rojas Duque](https://github.com/carolinarojasd),
+[Emil Rueda](https://www.linkedin.com/in/emil-rueda-424012207/),
+[Nicole Rivera](https://github.com/nicolerivera1) and
+[Alejandro Campillo](https://www.linkedin.com/in/alucardcampillo/).
 
 ## Contact us
 
