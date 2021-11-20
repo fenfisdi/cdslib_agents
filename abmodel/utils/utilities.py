@@ -5,7 +5,7 @@ from pandas.core.frame import DataFrame
 from pandas.core.series import Series
 
 
-def check_field_existance(df: DataFrame, cols: list) -> bool:
+def check_field_existance(df: DataFrame, cols: list) -> str:
     """
         Validate wheter each column exists, if the validation fails,
         raise an error with specific information about the missing columns
@@ -27,10 +27,14 @@ def check_field_existance(df: DataFrame, cols: list) -> bool:
         ------
         ValueError
             If at least one of the columns to validate is missing.
+
+        Examples
+        --------
+        TODO: include some examples
     """
     check_cols = []
     if set(cols).issubset(df.columns):
-        return True
+        return ""
     else:
         for col in cols:
             if not {col}.issubset(df.columns):
@@ -40,6 +44,27 @@ def check_field_existance(df: DataFrame, cols: list) -> bool:
         check_string = ", ".join(check_cols) + " must be checked"
 
         raise ValueError(error_string + check_string)
+
+
+def exception_burner(errors: list[str]) -> Exception:
+    """
+        Concatenates all error messages and raises one Exception containing all
+
+        Parameters
+        ----------
+        errors : list
+            List of error messages
+
+        Raises
+        ------
+        Exception
+            Concatenating all errors
+
+        Examples
+        --------
+        TODO: include some examples
+    """
+    raise Exception("\n".join(errors))
 
 
 def check_field_errors(df: DataFrame, debug: bool = False):
@@ -62,6 +87,10 @@ def check_field_errors(df: DataFrame, debug: bool = False):
         ------
         ValueError
             If the dataframe contains some any column with null values
+
+        Examples
+        --------
+        TODO: include some examples
     """
     if df.isna().values.any():
         if debug:
@@ -84,7 +113,20 @@ def std_str_join_cols(
     separator: str = "-"
 ) -> Union[str, list[str]]:
     """
-        TODO
+        TODO: brief explanation
+
+        Parameters
+        ----------
+            TODO
+
+        Raises
+        ------
+        ValueError
+            TODO: explain the exception
+
+        Examples
+        --------
+        TODO: include some examples
     """
     if type(col1) == str and type(col2) == str:
         return separator.join([col1, col2])

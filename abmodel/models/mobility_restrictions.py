@@ -4,7 +4,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, root_validator
 
-from abmodel.models.base import SimpleGroups
+from abmodel.models import SimpleGroups
 
 # ============================================================================
 # Mobility restrictions by tracing interest variables
@@ -27,7 +27,7 @@ class InterestVariables(Enum):
 
 class MRTStopModes(Enum):
     """
-        TODO
+        TODO: Add brief explanation
     """
     level_number = "level_number"
     length = "length"
@@ -35,16 +35,24 @@ class MRTStopModes(Enum):
 
 class MRTimeUnits(Enum):
     """
-        TODO
+        TODO: Add brief explanation
     """
     days = "days"
     weeks = "weeks"
     months = "months"
 
 
-class MRTracing(BaseModel):
+class MRTracingPolicies(BaseModel):
     """
+        TODO: Add brief explanation
+
+        Attributes
+        ----------
         TODO
+
+        Examples
+        --------
+        TODO: include some examples
     """
     variable: InterestVariables
     mr_start_level: int
@@ -115,7 +123,7 @@ class MRTracing(BaseModel):
 
 class CyclicMRModes(Enum):
     """
-        TODO
+        TODO: Add brief explanation
     """
     random = "random"
     fixed = "fixed"
@@ -123,7 +131,15 @@ class CyclicMRModes(Enum):
 
 class GlobalCyclicMR(BaseModel):
     """
+        TODO: Add brief explanation
+
+        Attributes
+        ----------
         TODO
+
+        Examples
+        --------
+        TODO: include some examples
     """
     enabled: bool
     grace_time: datetime
@@ -162,9 +178,17 @@ class GlobalCyclicMR(BaseModel):
         return v
 
 
-class CyclicMRGroups(BaseModel):
+class CyclicMRPolicies(BaseModel):
     """
+        TODO: Add brief explanation
+
+        Attributes
+        ----------
         TODO
+
+        Examples
+        --------
+        TODO: include some examples
     """
     mr_groups: SimpleGroups
     target_group: str

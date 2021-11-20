@@ -6,15 +6,14 @@ with open('README.md', 'r') as readme_file:
 
 setup(
     name='cdslib_agents',
-    version='0.0.2-pre1',
+    version='0.0.1a2',
     maintainer='Developers of the CDS team of FEnFiSDi group',
-    maintainer_email='camilo.hincapie@udea.edu.co',
+    maintainer_email='grupofenfisdi@udea.edu.co',
     description='Contagious diseases simulation using Agent-Based Models',
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/fenfisdi/cdslib_agents',
-    download_url='https://github.com/fenfisdi/cdslib_agents/archive/refs/tags/0.0.2-pre1.tar.gz',
-    author='Camilo Hincapié Gutiérrez',
+    author='Camilo Hincapie Gutierrez',
     author_email='camilo.hincapie@udea.edu.co',
     license='GNU General Public License v3 (GPLv3)',
     classifiers=[
@@ -27,7 +26,6 @@ setup(
         'Natural Language :: English',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: Implementation :: CPython',
         'Topic :: Education',
@@ -44,9 +42,10 @@ setup(
         'Nonlinear dynamics',
         'Agent Based Models'
         ],
-    python_requires='>=3.8',
+    python_requires='>=3.9',
     install_requires=[
         'numpy>=1.20.2',
+        'scipy>=1.6.3',
         'pandas>=1.2.4',
         'scikit-learn>=0.24.2',
         'pydantic>=1.8.2',
