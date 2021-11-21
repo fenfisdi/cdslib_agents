@@ -483,15 +483,17 @@ def hospitalization_vectorized(
         )[0]
 
     # Calculate reduction factor
-    reduction_factor[new_hospitalized_indexes] = \
+    reduction_factor_copy = reduction_factor.copy()
+
+    reduction_factor_copy[new_hospitalized_indexes] = \
         reduction_factor[new_hospitalized_indexes]*alpha
 
-    reduction_factor[recovered_from_hospitalization_indexes] = \
+    reduction_factor_copy[recovered_from_hospitalization_indexes] = \
         reduction_factor[recovered_from_hospitalization_indexes]/alpha
 
     # Wrap data together
     data = array([is_hospitalized, is_in_ICU, disease_states, is_dead,
-                 reduction_factor])
+                 reduction_factor_copy])
     data_transposed = transpose(data)
 
     return DataFrame(data_transposed)
@@ -950,17 +952,25 @@ def update_immunization_params_iterative(
         immunization_level = min([immunization_level + gain, 1.0])
 
         # Update immunization_max_time and immunization_slope
-        if isnan(immunization_max_time):
-            immunization_time_remainder = 0.0
-        else:
-            immunization_time_remainder = immunization_max_time \
-                                        - immunization_time
-
-        immunization_max_time = transitions[disease_state] \
+        addend = transitions[disease_state] \
             .dist[DistTitles.immunization_time.value] \
-            .sample() + immunization_time_remainder
+            .sample()
 
-        immunization_slope = - immunization_level/immunization_max_time
+        if addend is not None:
+            if isnan(immunization_max_time):
+                immunization_time_remainder = 0.0
+            else:
+                immunization_time_remainder = immunization_max_time \
+                                            - immunization_time
+            
+            immunization_max_time = addend + immunization_time_remainder
+        else:
+            pass
+
+        if not isnan(immunization_max_time):
+            immunization_slope = - immunization_level/immunization_max_time
+        else:
+            immunization_slope = nan
 
         # Restart immnuzation_time
         immunization_time = 0
@@ -1069,8 +1079,8 @@ def alertness_function(
             if avoidable_state != dead_disease_group:
                 # Compute avoidable_agent_key
                 avoidable_agent_key = std_str_join_cols(
-                    vulnerability_group,
-                    avoidable_state
+                    str(vulnerability_group),
+                    str(avoidable_state)
                     )
 
                 # Get radius to avoid an avoidable_agent (avoidance_radius)
@@ -1147,6 +1157,8 @@ class AgentDisease:
         cls,
         df: DataFrame,
         dead_disease_group: str,
+        alpha: float,
+        beta: float,
         disease_groups: DiseaseStates,
         natural_history: NaturalHistory,
         health_system: HealthSystem,
@@ -1195,8 +1207,10 @@ class AgentDisease:
         df = df.assign(is_hospitalized=False)
         df = df.assign(is_in_ICU=False)
         df = df.assign(reduction_factor=1.0)
-        df = cls.to_hospitalize_agents(df, dead_disease_group,
-                                       disease_groups, health_system)
+        df = cls.to_hospitalize_agents(
+            df, dead_disease_group, alpha, disease_groups, health_system,
+            ExecutionModes.vectorized.value
+            )
 
         # Init is_diagnosed
         df = df.assign(is_diagnosed=False)
@@ -1209,7 +1223,7 @@ class AgentDisease:
         df = df.assign(adheres_to_isolation=True)
         dt = 0.0  # Set dt to zero for initialization purposes
         df = cls.to_isolate_agents(
-            df, dt, disease_groups, isolation_adherence_groups, execmode
+            df, dt, beta, disease_groups, isolation_adherence_groups, execmode
             )
 
         # Init times_infected
@@ -1507,8 +1521,8 @@ class AgentDisease:
             if execmode == ExecutionModes.iterative.value:
                 df["key"] = df.apply(
                     lambda row: std_str_join_cols(
-                        row["vulnerability_group"],
-                        row["disease_state"]
+                        str(row["vulnerability_group"]),
+                        str(row["disease_state"])
                         ),
                     axis=1
                     )
