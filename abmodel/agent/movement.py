@@ -184,7 +184,7 @@ class AgentMovement:
             --------
             TODO: include some examples
         """
-        check_field_errors(df)
+        check_field_errors(df[["x", "y", "vx", "vy"]])
         try:
             df = df.apply(
                 lambda row: move_individual_agent(row, box_size, dt),

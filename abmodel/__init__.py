@@ -1,6 +1,6 @@
 """Contagious diseases simulation using Agent-Based Models"""
 
-__version__ = "0.0.1a2"
+__version__ = "0.0.1a3"
 
 from abmodel import agent
 from abmodel import models
