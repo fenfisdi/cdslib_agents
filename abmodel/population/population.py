@@ -185,6 +185,8 @@ class Population:
         self.__df = AgentDisease.init_required_fields(
             df=self.__df,
             dead_disease_group=self.dead_disease_group,
+            alpha=self.configuration.alpha,
+            beta=self.configuration.beta,
             disease_groups=self.disease_groups,
             natural_history=self.natural_history,
             health_system=self.health_system,

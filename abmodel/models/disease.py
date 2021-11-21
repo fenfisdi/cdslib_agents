@@ -319,7 +319,7 @@ class NaturalHistory(ComplexDistGroups):
             vulnerability_group = single_group.pop("vulnerability_group")
             disease_group = single_group.pop("disease_group")
             single_group["name"] = std_str_join_cols(
-                vulnerability_group, disease_group
+                str(vulnerability_group), str(disease_group)
                 )
 
             self.transitions[single_group["name"]] = Transitions(
