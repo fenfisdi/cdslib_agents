@@ -1,3 +1,5 @@
+[![Latest Version](https://pypip.in/version/cdslib-agents/badge.svg)](https://pypi.python.org/pypi/cdslib-agents/)
+
 # CDSLib - Agents
 
 Welcome to **CDSLib - Agents** package.
