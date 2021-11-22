@@ -1,5 +1,18 @@
 [![PyPI](https://img.shields.io/pypi/v/cdslib-agents?color=color=%2310d510)](https://pypi.org/project/cdslib-agents/)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/cdslib-agents?color=%2310d510)](https://pypi.org/project/cdslib-agents/)
+[![license](https://img.shields.io/github/license/fenfisdi/cdslib_agents)](./LICENSE)
+
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=fenfisdi_cdslib_agents&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=fenfisdi_cdslib_agents)
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=fenfisdi_cdslib_agents&metric=bugs)](https://sonarcloud.io/summary/new_code?id=fenfisdi_cdslib_agents)
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=fenfisdi_cdslib_agents&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=fenfisdi_cdslib_agents)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=fenfisdi_cdslib_agents&metric=coverage)](https://sonarcloud.io/summary/new_code?id=fenfisdi_cdslib_agents)
+[![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=fenfisdi_cdslib_agents&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=fenfisdi_cdslib_agents)
+[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=fenfisdi_cdslib_agents&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=fenfisdi_cdslib_agents)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=fenfisdi_cdslib_agents&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=fenfisdi_cdslib_agents)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=fenfisdi_cdslib_agents&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=fenfisdi_cdslib_agents)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=fenfisdi_cdslib_agents&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=fenfisdi_cdslib_agents)
+[![Technical Debt](https://sonarcloud.io/api/project_badges/measure?project=fenfisdi_cdslib_agents&metric=sqale_index)](https://sonarcloud.io/summary/new_code?id=fenfisdi_cdslib_agents)
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=fenfisdi_cdslib_agents&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=fenfisdi_cdslib_agents)
 
 
 # CDSLib - Agents
