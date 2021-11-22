@@ -2,7 +2,36 @@
 
 Welcome to **CDSLib - Agents** package.
 
-![repo_logo](https://raw.githubusercontent.com/fenfisdi/cdslib_agents/dev/images/CDSLib_agents_white-background.png "CDSLib - Agents Logo")
+[![Open Source Love svg2](https://badges.frapsoft.com/os/v2/open-source.svg?v=103)](https://github.com/ellerbrock/open-source-badges/)
+[![PyPI](https://img.shields.io/pypi/v/cdslib-agents?color=color=%2310d510)](https://pypi.org/project/cdslib-agents/)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/cdslib-agents?color=%2310d510)](https://pypi.org/project/cdslib-agents/)
+[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/fenfisdi/cdslib_agents/graphs/commit-activity)
+[![GitHub contributors](https://img.shields.io/github/contributors/fenfisdi/cdslib_agents)](https://github.com/fenfisdi/cdslib_agents/graphs/contributors)
+
+## License
+
+[![license](https://img.shields.io/github/license/fenfisdi/cdslib_agents)](./LICENSE)
+
+## Sponsors
+
+| [![Sponsored by](https://img.shields.io/badge/sponsored%20by-UdeA-yellow)](https://www.udea.edu.co/) | [![Sponsored by](https://img.shields.io/badge/sponsored%20by-minciencias-yellow)](https://minciencias.gov.co/) | [![Sponsored by](https://img.shields.io/badge/sponsored%20by-sena-yellow)](https://www.sena.edu.co/) |
+| :---: | :---: | :---: |
+| <img src="./images/Escudo-UdeA.svg" alt="UdeA logo" height="34"> | <img src="./images/Minciencias_Colombia.svg" alt="Minciencias logo" width="160" height="34"> | <img src="./images/Sena_Colombia_logo.svg" alt="Sena logo" height="34"> |
+
+
+## Code quality metrics
+
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=fenfisdi_cdslib_agents&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=fenfisdi_cdslib_agents)
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=fenfisdi_cdslib_agents&metric=bugs)](https://sonarcloud.io/summary/new_code?id=fenfisdi_cdslib_agents)
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=fenfisdi_cdslib_agents&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=fenfisdi_cdslib_agents)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=fenfisdi_cdslib_agents&metric=coverage)](https://sonarcloud.io/summary/new_code?id=fenfisdi_cdslib_agents)
+[![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=fenfisdi_cdslib_agents&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=fenfisdi_cdslib_agents)
+[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=fenfisdi_cdslib_agents&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=fenfisdi_cdslib_agents)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=fenfisdi_cdslib_agents&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=fenfisdi_cdslib_agents)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=fenfisdi_cdslib_agents&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=fenfisdi_cdslib_agents)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=fenfisdi_cdslib_agents&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=fenfisdi_cdslib_agents)
+[![Technical Debt](https://sonarcloud.io/api/project_badges/measure?project=fenfisdi_cdslib_agents&metric=sqale_index)](https://sonarcloud.io/summary/new_code?id=fenfisdi_cdslib_agents)
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=fenfisdi_cdslib_agents&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=fenfisdi_cdslib_agents)
 
 ## Description
 
@@ -26,7 +55,11 @@ add as much states as preferred, and to create custom natural history of the dis
 
 For more information, please refer to the official documentation of the project.
 
+![repo_logo](https://raw.githubusercontent.com/fenfisdi/cdslib_agents/dev/images/CDSLib_agents_white-background.png "CDSLib - Agents Logo")
+
 ## Main contributors
+
+[![GitHub contributors](https://img.shields.io/github/contributors/fenfisdi/cdslib_agents)](https://github.com/fenfisdi/cdslib_agents/graphs/contributors)
 
 This package was made with thanks to the leadership of
 [Camilo Hincapié](https://www.linkedin.com/in/camilo-hincapie-gutierrez/)
@@ -42,7 +75,3 @@ and the contributions of
 For any suggestion on the development of this type of models, please our official
 channels of [dicussions](https://github.com/fenfisdi/cdslib_agents/discussions)
 provided by GitHub.
-
-## License
-
-[GNU General Public License v3 (GPLv3)](./LICENSE)
