@@ -16,7 +16,7 @@ Welcome to **CDSLib - Agents** package.
 
 | [![Sponsored by](https://img.shields.io/badge/sponsored%20by-UdeA-yellow)](https://www.udea.edu.co/) | [![Sponsored by](https://img.shields.io/badge/sponsored%20by-minciencias-yellow)](https://minciencias.gov.co/) | [![Sponsored by](https://img.shields.io/badge/sponsored%20by-sena-yellow)](https://www.sena.edu.co/) |
 | :---: | :---: | :---: |
-| <img src="./images/Escudo-UdeA.svg" alt="UdeA logo" height="34"> | <img src="./images/Minciencias_Colombia.svg" alt="Minciencias logo" width="160" height="34"> | <img src="./images/Sena_Colombia_logo.svg" alt="Sena logo" height="34"> |
+| <img src="https://raw.githubusercontent.com/fenfisdi/cdslib_agents/2335693f162e3cca97f7bba8591db9b0076a3823/images/Escudo-UdeA.svg" alt="UdeA logo" height="34"> | <img src="https://raw.githubusercontent.com/fenfisdi/cdslib_agents/1755d1fc4e45e94fcdc4275709b93fdf4eabd5f2/images/Minciencias_Colombia.svg" alt="Minciencias logo" width="160" height="34"> | <img src="https://raw.githubusercontent.com/fenfisdi/cdslib_agents/2335693f162e3cca97f7bba8591db9b0076a3823/images/Sena_Colombia_logo.svg" alt="Sena logo" height="34"> |
 
 
 ## Code quality metrics
@@ -55,7 +55,7 @@ add as much states as preferred, and to create custom natural history of the dis
 
 For more information, please refer to the official documentation of the project.
 
-![repo_logo](https://raw.githubusercontent.com/fenfisdi/cdslib_agents/dev/images/CDSLib_agents_white-background.png "CDSLib - Agents Logo")
+![repo_logo](https://raw.githubusercontent.com/fenfisdi/cdslib_agents/main/images/CDSLib_agents_white-background.png "CDSLib - Agents Logo")
 
 ## Main contributors
 
