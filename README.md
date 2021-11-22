@@ -1,4 +1,4 @@
-[![Latest Version](https://pypip.in/version/cdslib-agents/badge.svg)](https://pypi.python.org/pypi/cdslib-agents/)
+[![PyPI version fury.io](https://badge.fury.io/py/cdslib-agents.svg)](https://pypi.org/project/cdslib-agents/)
 
 # CDSLib - Agents
 
