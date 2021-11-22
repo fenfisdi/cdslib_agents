@@ -1,4 +1,5 @@
-[![PyPI version fury.io](https://badge.fury.io/py/cdslib-agents.svg)](https://pypi.org/project/cdslib-agents/)
+[![PyPI](https://img.shields.io/pypi/v/cdslib-agents?color=g&style=plastic)](https://pypi.org/project/cdslib-agents/)
+
 
 # CDSLib - Agents
 
