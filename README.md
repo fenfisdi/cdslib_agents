@@ -55,8 +55,6 @@ add as much states as preferred, and to create custom natural history of the dis
 
 For more information, please refer to the official documentation of the project.
 
-![repo_logo](https://raw.githubusercontent.com/fenfisdi/cdslib_agents/main/images/CDSLib_agents_white-background.png "CDSLib - Agents Logo")
-
 ## Testing
 
 All the tests were developed with the python tool pytest. To see them properly, type
@@ -91,8 +89,10 @@ Instead of running one test, it is possible to run all the tests at the same tim
 
 `$ pytest`
 
-For modifying the initial conditions of the test, use the fixtures methods at the beginning
+For modifying the initial conditions of the test, uses the fixtures methods at the beginning
 of all the tests files.
+
+![repo_logo](https://raw.githubusercontent.com/fenfisdi/cdslib_agents/main/images/CDSLib_agents_white-background.png "CDSLib - Agents Logo")
 
 ## Main contributors
 
