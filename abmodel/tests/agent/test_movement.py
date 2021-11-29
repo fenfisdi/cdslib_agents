@@ -866,7 +866,7 @@ class TestCaseAgentMovement:
     ):
         """
         Verifies whether are set the velocities of the agents for a group
-        field and are initialize the others.
+        field and are initialized the others.
         """
         dist_title = fixture_init_required_fields[0]
         group_info = fixture_init_required_fields[2]
@@ -882,7 +882,7 @@ class TestCaseAgentMovement:
                 "step": [i for i in range(15)]
             }
             )
-        df["mobility_group"][0:10] = nan
+        df.loc[0:9, "mobility_group"] = nan
         df = AgentMovement.init_required_fields(
             df,
             pytest.box_size,
@@ -909,7 +909,7 @@ class TestCaseAgentMovement:
             )
         df = DataFrame(
             {
-                "mobility_group": [nan for i in range(15)],
+                "mobility_group": [None for i in range(15)],
                 "agent": [i for i in range(15)],
                 "step": [i for i in range(15)]
             }
@@ -924,7 +924,7 @@ class TestCaseAgentMovement:
         assert set(["x", "y"]).issubset(df.columns)
 
     def test_movement_function(self, set_up):
-        """Change just the x agent position on the movement_function."""
+        """Changes just the x agent position on the movement_function."""
         df = DataFrame(pytest.data)
         df = AgentMovement.move_agents(df, pytest.box_size, pytest.dt)
 
@@ -1023,7 +1023,7 @@ class TestCaseAgentMovement:
     )
     def test_vector_angles(self, input_df, expected_angle):
         """
-        Calculates the angle position of the agents agent with components
+        Calculates the angle position of the agents with components
         `x` and `y` of the input DataFrame.
         """
         angle = AgentMovement.vector_angles(input_df, ['x', 'y'])
@@ -1064,7 +1064,7 @@ class TestCaseAgentMovement:
         fixture_update_velocities
     ):
         """
-        Verifies wheter there are no changes in the velocities components when
+        Verifies whether there are no changes in the velocities components when
         the standard deviation of the numpy normal distribution is set to zero
         `angle_variance=0.0`. `indexes` and `group_field` is se to None.
         """
@@ -1124,7 +1124,7 @@ class TestCaseAgentMovement:
         self,
         fixture_update_velocities
     ):
-        """Updates velocities only for a group agents under a field."""
+        """Updates velocities only for a group of agents under a field."""
         df = DataFrame(pytest.data_field)
         df = AgentMovement.update_velocities(
             df,
@@ -1143,7 +1143,8 @@ class TestCaseAgentMovement:
         self,
         fixture_update_velocities
     ):
-        """Comparison of the angles of the agents after applying update
+        """
+        Comparison of the angles of the agents after applying update
         velocities through a Kolmogorov-smirnov test. `group_field` is set
         to None.
         """
@@ -1178,7 +1179,8 @@ class TestCaseAgentMovement:
         self,
         fixture_update_velocities
     ):
-        """Comparison of the angles of the agents after applying update
+        """
+        Comparison of the angles of the agents after applying update
         velocities through a Kolmogorov-smirnov test. `indexes` and
         `group_field` are set not None.
         """
@@ -1188,7 +1190,7 @@ class TestCaseAgentMovement:
         df = DataFrame(pytest.data_large_sample)
         df["mobility_profile"] = "MG_1"
         mobility_group_slice = 300
-        df["mobility_profile"][0: mobility_group_slice] = "MG_2"
+        df.loc[0: mobility_group_slice - 1, "mobility_profile"] = "MG_2"
         angles_before = AgentMovement.vector_angles(df, ['vx', 'vy'])
         indexes = [i for i in range(sample_indexes+1)]
 
@@ -1218,7 +1220,6 @@ class TestCaseAgentMovement:
         fixture_update_velocities
     ):
         """
-<<<<<<< HEAD
         Raises an exception when the input DataFrame columns `vx` and `vy`
         does not exist. `indexes` and `group_field` is se to None.
         """
@@ -1387,7 +1388,7 @@ class TestCaseAgentMovement:
 
     def test_avoid_agents_raise_error(self, fixture_avoid_agents_raise_error):
         """
-        Raises an exception when the input DataFrame column 'agent'
+        Raises an exception when the input DataFrame column `agent`
         does not exist.
         """
         df = DataFrame(pytest.data_whitout_agent)
