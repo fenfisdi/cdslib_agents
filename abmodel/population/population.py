@@ -18,9 +18,9 @@ from abmodel.models import ImmunizationGroups
 from abmodel.models import MobilityGroups
 from abmodel.models import NaturalHistory
 from abmodel.models import DiseaseStates
-from abmodel.models import MRTracingPolicies
+# from abmodel.models import MRTracingPolicies
 from abmodel.models import GlobalCyclicMR
-from abmodel.models import CyclicMRPolicies
+# from abmodel.models import CyclicMRPolicies
 from abmodel.models import IsolationAdherenceGroups
 from abmodel.agent import AgentMovement
 from abmodel.agent import AgentDisease
@@ -52,9 +52,9 @@ class Population:
         disease_groups: DiseaseStates,
         natural_history: NaturalHistory,
         initial_population_setup_list: list[dict],
-        mrt_policies: Optional[MRTracingPolicies] = None,
+        mrt_policies: Optional[dict] = None,  # MRTracingPolicies
         global_cyclic_mr: Optional[GlobalCyclicMR] = None,
-        cyclic_mr_policies: Optional[CyclicMRPolicies] = None,
+        cyclic_mr_policies: Optional[dict] = None,  # CyclicMRPolicies
         immunization_groups: Optional[ImmunizationGroups] = None,
         isolation_adherence_groups: Optional[IsolationAdherenceGroups] = None,
         execmode: ExecutionModes = ExecutionModes.iterative.value,
@@ -196,9 +196,18 @@ class Population:
             )
 
         # =====================================================================
-        # Initialize disease related columns
+        # Initialize accumulated df
         if self.evolmode == EvolutionModes.cumulative.value:
             self.__accumulated_df = self.__df.copy()
+
+        # =====================================================================
+        # Initialize mrt_policies_df
+        if self.mrt_policies is not None:
+            self.__mrt_policies_df = DataFrame(
+                columns=["step"] + list(self.mrt_policies.keys())
+            )
+        else:
+            self.__mrt_policies_df = None
 
     def get_population_df(self):
         """
@@ -212,6 +221,14 @@ class Population:
             return self.__accumulated_df
         else:
             raise ValueError(f"Denied: evolmode == {self.evolmode}")
+
+    def get_mrt_policies_df(self):
+        """
+        """
+        if self.mrt_policies is not None:
+            return self.__mrt_policies_df
+        else:
+            raise ValueError("Denied: mrt_policies is None")
 
     def get_units(self):
         """

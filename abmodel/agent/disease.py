@@ -12,6 +12,7 @@ from abmodel.utils import check_field_existance
 from abmodel.utils import exception_burner
 from abmodel.utils import std_str_join_cols
 from abmodel.models import DistTitles
+from abmodel.models import SimpleGroups
 from abmodel.models import NaturalHistory
 from abmodel.models import DiseaseStates
 from abmodel.models import SusceptibilityGroups
@@ -19,6 +20,11 @@ from abmodel.models import ImmunizationGroups
 # from abmodel.models import MobilityGroups
 from abmodel.models import IsolationAdherenceGroups
 from abmodel.models import HealthSystem
+from abmodel.models import InterestVariables
+from abmodel.models import MRTStopModes
+# from abmodel.models import MRTracingPolicies
+from abmodel.models import GlobalCyclicMR
+# from abmodel.models import CyclicMRPolicies
 
 
 # =============================================================================
@@ -962,7 +968,7 @@ def update_immunization_params_iterative(
             else:
                 immunization_time_remainder = immunization_max_time \
                                             - immunization_time
-            
+
             immunization_max_time = addend + immunization_time_remainder
         else:
             pass
@@ -2333,4 +2339,126 @@ class AgentDisease:
         else:
             return df
 
-    # def quarantine_by_government_decrees
+    @classmethod
+    def apply_mobility_restrictions(
+        cls,
+        step: int,
+        df: DataFrame,
+        mr_groups: SimpleGroups,
+        mrt_policies: Optional[dict] = None,  # MRTracingPolicies
+        mrt_policies_df: Optional[DataFrame] = None,
+        global_cyclic_mr: Optional[GlobalCyclicMR] = None,
+        cyclic_mr_policies: Optional[dict] = None,  # CyclicMRPolicies
+        execmode: ExecutionModes = ExecutionModes.iterative.value
+    ) -> DataFrame:
+        """
+            TODO: Add brief explanation
+
+            Parameters
+            ----------
+            TODO
+
+            Returns
+            -------
+            TODO
+
+            Raises
+            ------
+            TODO
+
+            Notes
+            -----
+            TODO: include mathematical description and explanatory image
+
+            See Also
+            --------
+            abmodel.agent.execution_modes.ExecutionModes : TODO complete
+            explanation
+
+            check_field_existance : TODO complete explanation
+
+            _function : TODO complete explanation
+
+            Examples
+            --------
+            TODO: include some examples
+        """
+        try:
+            if execmode == ExecutionModes.iterative.value:
+                # =============================================================
+                # Mobility Restrictions - Tracing Policies
+                # =============================================================
+                if mrt_policies is not None:
+                    aux_mrt_policies_df = mrt_policies_df.tail(1)
+
+                    policies_status = {"step": step}
+
+                    for variable, policie in zip(
+                        mrt_policies.keys(),
+                        mrt_policies.values()
+                    ):
+                        activation_status = aux_mrt_policies_df[
+                            variable.value]
+
+                        if activation_status == "disabled":
+                            if variable == InterestVariables.dead:
+                                count = df[["is_dead"]].sum()["is_dead"]
+                            if variable == InterestVariables.diagnosed:
+                                count = df[["is_diagnosed"]].sum()[
+                                    "is_diagnosed"]
+                            if variable == InterestVariables.ICU:
+                                count = df[["is_in_ICU"]].sum()["is_in_ICU"]
+                            if variable == InterestVariables.hospital:
+                                count = df[["is_hospitalized"]].sum()[
+                                    "is_hospitalized"]
+
+                            if count >= policie.mr_start_level:
+                                new_activation_status = "enabled"
+                            else:
+                                new_activation_status = "disabled"
+
+                        if activation_status == "enabled":
+                            mr_stop_mode = policie.mr_stop_mode
+                            if mr_stop_mode == MRTStopModes.level_number:
+                                if variable == InterestVariables.dead:
+                                    count = df[["is_dead"]].sum()["is_dead"]
+                                if variable == InterestVariables.diagnosed:
+                                    count = df[["is_diagnosed"]].sum()[
+                                        "is_diagnosed"]
+                                if variable == InterestVariables.ICU:
+                                    count = df[["is_in_ICU"]].sum()[
+                                        "is_in_ICU"]
+                                if variable == InterestVariables.hospital:
+                                    count = df[["is_hospitalized"]].sum()[
+                                        "is_hospitalized"]
+
+                                if count <= policie.mr_stop_level:
+                                    new_activation_status = "disabled"
+                                else:
+                                    new_activation_status = "enabled"
+
+                            if mr_stop_mode == MRTStopModes.length:
+                                df2 = df.copy()
+                                df2["status_changed"] = df["var"].shift() != df["var"]
+                                enabled_start = df2[df2["status_changed"]]["step"].iloc[-1]
+
+                        policies_status[variable.value] = new_activation_status
+
+                    mrt_policies_df = mrt_policies_df.append(policies_status)
+
+                # =============================================================
+                # Mobility Restrictions - Cyclic Policies
+                # =============================================================
+
+            else:
+                raise NotImplementedError(
+                    f"`execmode = {execmode}` is still not implemented yet"
+                    )
+        except Exception as error:
+            validation_list = ["agent"]
+            exception_burner([
+                error,
+                check_field_existance(df, validation_list)
+                ])
+        else:
+            return df

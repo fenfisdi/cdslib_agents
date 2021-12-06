@@ -7,7 +7,7 @@ from pydantic import BaseModel, root_validator
 from abmodel.models import SimpleGroups
 
 # ============================================================================
-# Mobility restrictions by tracing interest variables
+# Mobility restrictions by tracing variables of interest
 # (hereinafter abbreviated as MRT)
 #
 # Mobility restrictions (hereinafter abbreviated as MR or mr)
@@ -16,13 +16,13 @@ from abmodel.models import SimpleGroups
 
 class InterestVariables(Enum):
     """
-        This class enumerates the interest variables
+        This class enumerates the variables of interest
         for tracing and determining mobility restriction policies.
     """
-    dead = "dead by disease"
+    dead = "dead_by_disease"
     diagnosed = "diagnosed"
-    ICU = "ICU capacity"
-    hospital = "hospital capacity"
+    ICU = "ICU_capacity"
+    hospital = "hospital_capacity"
 
 
 class MRTStopModes(Enum):
