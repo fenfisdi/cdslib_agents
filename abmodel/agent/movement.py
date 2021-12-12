@@ -108,15 +108,31 @@ class AgentMovement:
         mobility_groups: MobilityGroups
     ) -> DataFrame:
         """
-            TODO: Add brief explanation
+            Initializes each required column of the DataFrame that contains all the agent's
+            information for it's movement. 
+            The agent's positions are initialized randomly and their velocities are initialized
+            according to the velocities distribution for each mobility group.
+            The velocities distribution follows one or few mobility profiles from our pakage. It
+            allows to build an empirical distribution from the data or a theorical distribution
+            following some numpy distributions. It also allows to build a step by step probability
+            of movement or a constant velocity.  
 
             Parameters
             ----------
-            TODO
+            df : DataFrame
+                DataFrame to initialize agent's information. 
+                Must have `x`, `y`, `vx` and `vy` columns.
+
+            box_size : BoxSize
+                Parameter with the region coordinates.
+
+            mobility_groups : MobilityGroups
+                Dataclass that wraps all mobility groups.
 
             Returns
             -------
-            TODO
+            df : DataFrame
+                DataFrame containing all agent's information initialized
 
             Raises
             ------
@@ -405,15 +421,35 @@ class AgentMovement:
         angle_distribution: Optional[Distribution] = None
     ) -> DataFrame:
         """
-            TODO: Add brief explanation
+            Assigns the velocities' components vx and vy according to the mobility profile 
+            (ie. velocity distribution) and the angle distribution for each agent. 
+            If no angle distribution is specified, the function deviates the resulting
+            angles using a normal distribution with a standard deviation equal to `angle_variance`.
 
             Parameters
             ----------
-            TODO
+            df : DataFrame
+                Dataframe to apply transformation.
+                Must have `vx` and `vy` columns.
+
+            distribution : Distribution
+                Mobility profile. This is the velocity distribution
+                to use for updating the population velocities each
+                time step.
+
+            angle_variance : float, optional
+                Standard deviation of the normal distribution
+                used for changing the direction of the velocity
+                from its initial value
+
+            angle_distribution : Distribution, optional
+                Angle profile to assign an angle following a certain distribution
+                to the agent's information.
 
             Returns
             -------
-            TODO
+            df : DataFrame
+                Dataframe with applied transformation. 
 
             Raises
             ------
@@ -492,9 +528,10 @@ class AgentMovement:
         preserve_dtypes_dict: Optional[dict] = None
     ) -> DataFrame:
         """
-            Initialize the velocity of a given set of agents from a given
-            mobility profile (i.e. a velocity distribution) and ...
-            TODO
+            Initializes the velocity of a given set of agents from a given
+            mobility profile (i.e. a velocity distribution) and assign an angle
+            to the velocity according to the angle distribution defined. 
+            The velocity is initilized by defining it's components vx and vy. 
 
             Parameters
             ----------
@@ -508,9 +545,13 @@ class AgentMovement:
                 time step.
 
             angle_distribution : Distribution
-                TODO
+                Angle profile to assign an angle following a certain distribution
+                to the agent's information.
 
-            indexes : TODO
+            indexes : list or ndarray
+                DataFrame indexes over which to filter the set of agents.
+                If not provided, then the set of agents used is
+                going to be the whole set of agents.
 
             group_field : str, optional
                 The field over which to filter the set of agents.
@@ -522,9 +563,14 @@ class AgentMovement:
                 the set of agents. If `group_field` is not provided,
                 then this parameter is ignored.
 
+            preserve_dtypes_dict : dict, optional
+                Dict that contains all the data types of the agent's information
+                to keep it unchanged over the initialization.
+
             Returns
             -------
-            TODO
+            df : DataFrame
+                DataFrame with applied transformation
 
             Raises
             ------
@@ -674,7 +720,10 @@ class AgentMovement:
                 used for changing the direction of the velocity
                 from its initial value
 
-            indexes : TODO
+            indexes : list or ndarray
+                DataFrame indexes over which to filter the set of agents.
+                If not provided, then the set of agents used is
+                going to be the whole set of agents.
 
             group_field : str, optional
                 The field over which to filter the set of agents.
@@ -686,9 +735,14 @@ class AgentMovement:
                 the set of agents. If `group_field` is not provided,
                 then this parameter is ignored.
 
+            preserve_dtypes_dict : dict, optional
+                Dict that contains all the data types of the agent's information
+                to keep it unchanged over the initialization.
+
             Returns
             -------
-            TODO
+            df : DataFrame
+                Dataframe that contains all agent's updated velocities 
 
             Raises
             ------
@@ -818,19 +872,30 @@ class AgentMovement:
     @classmethod
     def deviation_angle(cls, grouped_df: DataFrame) -> float:
         """
-            TODO: Add brief explanation
+            Calculates the standardized deviation angle of an agent in order to 
+            avoid some specific agents.
 
             Parameters
             ----------
-            TODO
+            grouped_df : DataFrame
+                DataFrame containing the relative angle to all the agents to avoid
+                for each agent grouped by agent.
+                Must have 'relative_angle' column.
 
             Returns
             -------
-            TODO
+            angle : float
+                Calculated agent's deviation angle to avoid some specific agents. 
 
             Notes
             -----
-            TODO: include mathematical description and explanatory image
+            The deviation angle is calculated as the middle angle in the greatest
+            aperture window of all the consecutive angles between the agents to avoid.
+            The consecutive angles are calculated as the difference between 
+            the relative angles sorted ascending. 
+            The hypothesis is that the agent will take the path that has, from its
+            midpoint, the greatest distance to any other agent that it must avoid.
+            TODO: explanatory image
 
             See Also
             --------
@@ -869,19 +934,33 @@ class AgentMovement:
         new_angles: DataFrame
     ) -> DataFrame:
         """
-            TODO: Add brief explanation
+            Calculates the agent's velocity components, vx and vy, according to
+            the new direction of movement in new_angle. The velocity norm
+            remains unchanged. 
 
             Parameters
             ----------
-            TODO
+            row : DataFrame
+                DataFrame's row containing the agent's position and velocity
+                Must have 'agent', 'vx' and 'vy' columns.
+
+            new_angles : DataFrame
+                DataFrame that contains the new angles calculated in order to 
+                continue it's movement.
 
             Returns
             -------
-            TODO
+            row : DataFrame
+                DataFrame's row containing the agent's new velocity.
 
             Notes
             -----
-            TODO: include mathematical description and explanatory image
+            The new velocity components are calculated according to the norm
+            of the existing velocities and the new angle (ie. direction of 
+            movement) as
+            vx = velocity_norm * cos(new_angle)
+            vy = velocity_norm * sin(new_angle)
+            TODO: Explanatory image
 
             Examples
             --------
@@ -896,15 +975,21 @@ class AgentMovement:
     @classmethod
     def avoid_agents(cls, df: DataFrame, df_to_avoid: DataFrame) -> DataFrame:
         """
-            TODO: Add brief explanation
+            Changes agent's movement direction acoording to the position of the
+            agents to avoid.
 
             Parameters
             ----------
-            TODO
+            df : DataFrame
+                Must have 'agent', 'x', 'y', 'vx' and 'vy' columns
+
+            df_to_avoid : DataFrame
+                Must have 'agent' and 'agent_to_avoid' columns
 
             Returns
             -------
-            TODO
+            df : DataFrame
+                Dataframe containing all the agent's new velocities and positions. 
 
             Raises
             ------
@@ -916,9 +1001,25 @@ class AgentMovement:
 
             See Also
             --------
-            deviation_angle : TODO complete explanation
+            deviation_angle : 
+                Calculates the standardized deviation angle of an agent in order to 
+                avoid some specific agents.
+                The deviation angle is calculated as the middle angle in the greatest
+                aperture window of all the consecutive angles between the agents to avoid.
+                The consecutive angles are calculated as the difference between 
+                the relative angles sorted ascending. 
+                The hypothesis is that the agent will take the path that has, from its
+                midpoint, the greatest distance to any other agent that it must avoid.
 
-            replace_velocities : TODO complete explanation
+            replace_velocities : 
+                Calculates the agent's velocity components, vx and vy, according to
+                the new direction of movement in order to avoid some specific agents.
+                The velocity norm remains unchanged.
+                The new velocity components are calculated according to the norm
+                of the existing velocities and the new angle (ie. direction of 
+                movement) as
+                vx = velocity_norm * cos(new_angle)
+                vy = velocity_norm * sin(new_angle)
 
             Examples
             --------
