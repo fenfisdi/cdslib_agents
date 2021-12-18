@@ -808,11 +808,14 @@ class AgentMovement:
         greatest_angle_to_avoid = sorted_df.loc[
             sorted_df["consecutive_angle"] == max_angle
             ]
-
+        # Random index when there are more than one max value.
+        index = \
+            greatest_angle_to_avoid.relative_angle.sample().index[0]
         # Standardize angles on the interval [0, 2*pi]
         return cls.standardize_angle(
-            greatest_angle_to_avoid["relative_angle"].iloc[0]
-            + greatest_angle_to_avoid["consecutive_angle"].iloc[0]/2)
+            greatest_angle_to_avoid["relative_angle"].loc[index] +
+            greatest_angle_to_avoid["consecutive_angle"].loc[index]/2
+            )
 
     @classmethod
     def replace_velocities(
