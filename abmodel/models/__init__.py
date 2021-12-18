@@ -9,7 +9,10 @@ from .disease import IsolationAdherenceGroups
 from .disease import DiseaseStates
 from .disease import NaturalHistory
 from .health_system import HealthSystem
+from .mobility_restrictions import InterestVariables
+from .mobility_restrictions import MRTStopModes
 from .mobility_restrictions import MRTracingPolicies
+from .mobility_restrictions import CyclicMRModes
 from .mobility_restrictions import GlobalCyclicMR
 from .mobility_restrictions import CyclicMRPolicies
 from .population import BoxSize
@@ -28,7 +31,10 @@ __all__ = [
     "DiseaseStates",
     "NaturalHistory",
     "HealthSystem",
+    "InterestVariables",
+    "MRTStopModes",
     "MRTracingPolicies",
+    "CyclicMRModes",
     "GlobalCyclicMR",
     "CyclicMRPolicies",
     "BoxSize",

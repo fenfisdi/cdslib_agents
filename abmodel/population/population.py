@@ -131,9 +131,18 @@ class Population:
 
     def __initialize_df(self):
         """
+            TODO: Add brief explanation
+
+            Parameters
+            ----------
+            TODO
+
+            See Also
+            --------
+            TODO
         """
         # =====================================================================
-        # Init population dataframe
+        # Init population dataframe __df
         self.__df = DataFrame({
             "agent": list(range(self.configuration.population_number))
         })
@@ -196,26 +205,63 @@ class Population:
             )
 
         # =====================================================================
-        # Initialize accumulated df
+        # Initialize __accumulated_df
         if self.evolmode == EvolutionModes.cumulative.value:
             self.__accumulated_df = self.__df.copy()
 
         # =====================================================================
-        # Initialize mrt_policies_df
+        # Initialize __mrt_policies_df
         if self.mrt_policies is not None:
             self.__mrt_policies_df = DataFrame(
                 columns=["step"] + list(self.mrt_policies.keys())
-            )
+                )
         else:
             self.__mrt_policies_df = None
 
+        # =====================================================================
+        # Initialize __cyclic_mr_policies_df
+        cond_1 = self.global_cyclic_mr is not None
+        cond_2 = self.cyclic_mr_policies is not None
+
+        if cond_1 and cond_2:
+            self.__grace_time_in_steps = int((
+                self.global_cyclic_mr.grace_time
+                - self.configuration.initial_date
+                )/self.configuration.iteration_time)
+            self.__cmr_policies_df = DataFrame(
+                columns=[
+                    "step", "global_mr"] + list(self.cyclic_mr_policies.keys())
+                )
+        else:
+            self.__grace_time_in_steps = None
+            self.__cmr_policies_df = None
+
     def get_population_df(self):
         """
+            TODO: Add brief explanation
+
+            Parameters
+            ----------
+            TODO
+
+            See Also
+            --------
+            TODO
         """
         return self.__df
 
     def get_accumulated_population_df(self):
         """
+            TODO: Add brief explanation
+
+            Parameters
+            ----------
+            TODO
+
+            See Also
+            --------
+            TODO
+
         """
         if self.evolmode == ExecutionModes.cumulative.value:
             return self.__accumulated_df
@@ -224,14 +270,64 @@ class Population:
 
     def get_mrt_policies_df(self):
         """
+            TODO: Add brief explanation
+
+            Parameters
+            ----------
+            TODO
+
+            See Also
+            --------
+            TODO
         """
         if self.mrt_policies is not None:
             return self.__mrt_policies_df
         else:
             raise ValueError("Denied: mrt_policies is None")
 
+    def get_cmr_policies_df(self):
+        """
+            TODO: Add brief explanation
+
+            Parameters
+            ----------
+            TODO
+
+            See Also
+            --------
+            TODO
+        """
+        cond_1 = self.global_cyclic_mr is not None
+        cond_2 = self.cyclic_mr_policies is not None
+
+        if cond_1 and cond_2:
+            return self.__cmr_policies_df, self.__grace_time_in_steps
+        else:
+            if not cond_1 and not cond_2:
+                raise ValueError(
+                    "Denied: both global_cyclic_mr and "
+                    "cyclic_mr_policies are None"
+                    )
+            if not cond_1:
+                raise ValueError("Denied: global_cyclic_mr is None")
+            if not cond_2:
+                raise ValueError("Denied: cyclic_mr_policies is None")
+
     def get_units(self):
         """
+            TODO: Add brief explanation
+
+            Parameters
+            ----------
+            TODO
+
+            See Also
+            --------
+            TODO
+
+            Examples
+            --------
+            TODO: include some examples
         """
         return None
 
@@ -240,8 +336,21 @@ class Population:
         iterations: int
     ):
         """
-            # TODO: add the option to iterate by date
+            TODO: Add brief explanation
+
+            Parameters
+            ----------
+            TODO
+
+            See Also
+            --------
+            TODO
+
+            Examples
+            --------
+            TODO: include some examples
         """
+        # TODO: add the option to iterate by date
         for step in range(iterations):
             self.__evolve_single_step()
 
@@ -253,6 +362,19 @@ class Population:
 
     def __remove_dead_agents(self):
         """
+            TODO: Add brief explanation
+
+            Parameters
+            ----------
+            TODO
+
+            See Also
+            --------
+            TODO
+
+            Examples
+            --------
+            TODO: include some examples
         """
         self.__df = self.__df[
             ~self.__df[["is_dead"]].any(axis="columns")
@@ -260,6 +382,19 @@ class Population:
 
     def __evolve_single_step(self):
         """
+            TODO: Add brief explanation
+
+            Parameters
+            ----------
+            TODO
+
+            See Also
+            --------
+            TODO
+
+            Examples
+            --------
+            TODO: include some examples
         """
         # =====================================================================
         # Remove dead agents before evolving population dataframe
