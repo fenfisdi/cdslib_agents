@@ -109,7 +109,7 @@ class TestCaseAgentMovement:
         return dist_title, group_info1, group_info2
 
     @pytest.fixture
-    def set_up(self, autouse=True) -> None:
+    def set_up(self) -> None:
         pytest.box_size = BoxSize(-50, 50, -30, 30)
         pytest.dt = 1.0
         pytest.data = {
@@ -160,7 +160,7 @@ class TestCaseAgentMovement:
 
     @pytest.fixture
     def fixture_raise_errors(self, set_up) -> None:
-        pytest.data_whitout_x = {
+        pytest.data_without_x = {
             "y": [0],
             "vx": [1.0],
             "vy": [0],
@@ -361,8 +361,36 @@ class TestCaseAgentMovement:
         }
 
     @pytest.fixture
+    def fixture_avoid_agents_one_agent_between_two(self) -> None:
+        pytest.data = {
+            "agent": [1, 2, 3],
+            "x": [0, 1, -1],
+            "y": [0, 0, 0],
+            "vx": [1.0, 2.0, 0],
+            "vy": [1.0, 2.0, 0],
+        }
+        pytest.data_avoid = {
+            "agent": [1, 1],
+            "agent_to_avoid": [2, 3]
+        }
+
+    @pytest.fixture
+    def fixture_avoid_agents_one_avoids_four_in_each_axis(self) -> None:
+        pytest.data = {
+            "agent": [1, 2, 3, 4, 5],
+            "x": [0, 1, 0, -1, 0],
+            "y": [0, 0, 1, 0, -1],
+            "vx": [1.0, 2.0, 0, 10, 2],
+            "vy": [0.0, 2.0, 0, 5, 2],
+        }
+        pytest.data_avoid = {
+            "agent": [1, 1, 1, 1],
+            "agent_to_avoid": [2, 3, 4, 5]
+        }
+
+    @pytest.fixture
     def fixture_avoid_agents_raise_error(self) -> None:
-        pytest.data_whitout_agent = {
+        pytest.data_without_agent = {
             "x": [0, 1, 1],
             "y": [0, 1, -1],
             "vx": [1.0, 2.0, 0],
@@ -663,7 +691,7 @@ class TestCaseAgentMovement:
         df = DataFrame({"vx": random.randint(9, size=9)})
 
         with pytest.raises(ValueError):
-            df = AgentMovement.initialize_velocities(
+            AgentMovement.initialize_velocities(
                 df,
                 distribution,
                 angle_dist
@@ -765,7 +793,7 @@ class TestCaseAgentMovement:
     ):
         """
         Verifies whether init_required_fields creates the columns:
-        `x`, `y`, `vx`, `vy` of an input DataFrame, and verfies whether the
+        `x`, `y`, `vx`, `vy` of an input DataFrame, and verifies whether the
         velocity distribution was applied.
         """
         dist_title = fixture_init_required_fields[0]
@@ -959,7 +987,7 @@ class TestCaseAgentMovement:
         Raises an exception when the input DataFrame does not have any of
         the columns: 'x', 'y', 'vx' and 'vy'.
         """
-        df = DataFrame(pytest.data_whitout_x)
+        df = DataFrame(pytest.data_without_x)
 
         with pytest.raises(KeyError):
             AgentMovement.move_agents(df, pytest.box_size, pytest.dt)
@@ -1247,11 +1275,12 @@ class TestCaseAgentMovement:
             ), 5*pi/4),
             (DataFrame(
                 {
-                    "x_relative": [1, -1, 0],
-                    "y_relative": [1, 0, -1]
+                    "x_relative": [1, 0, -1, -1],
+                    "y_relative": [1, 1, 0,  1]
                 }
-            ), 5*pi/8)
-        ], ids=["Max. angle = pi", "Max. angle = pi/2", "Max. angle = 3pi/4"]
+            ), 13*pi/8)
+        ],
+        ids=["Max. angle = 3*pi/2", "Max. angle = pi/2", "Max. angle = 3*pi/2"]
     )
     def test_deviation_angle(self, input_df, expected_angle):
         """Verifies the deviation angle function in three different cases"""
@@ -1320,7 +1349,7 @@ class TestCaseAgentMovement:
         self,
         fixture_avoid_agents_same_rel_angles
     ):
-        """One agent avoids two agents with the the same relative angles."""
+        """One agent avoids two agents with the same relative angles."""
         df = DataFrame(pytest.data)
         df_to_avoid = DataFrame(pytest.data_avoid)
         df = AgentMovement.avoid_agents(df, df_to_avoid)
@@ -1329,11 +1358,12 @@ class TestCaseAgentMovement:
         assert round(df.vx[0], 12) == round(cos(expected_angle), 12)
         assert round(df.vy[0], 12) == round(sin(expected_angle), 12)
 
-    def test_avoid_agents_one_avoids_two_different_relative_angles(
+    def test_avoid_agents_one_avoids_two_different_rel_angles(
         self,
         fixture_avoid_agents_one_avoids_two
     ):
-        """One agent avoids two angets with different relative angles."""
+        """
+            One agent avoids two agents with different relative angles."""
         df = DataFrame(pytest.data)
         df_to_avoid = DataFrame(pytest.data_avoid)
         new_df = AgentMovement.avoid_agents(df, df_to_avoid)
@@ -1363,7 +1393,7 @@ class TestCaseAgentMovement:
         self,
         fixture_avoid_agents_two_agents_avoid_one
     ):
-        """Two agents avoid one agent with the same realtive angle."""
+        """Two agents avoid one agent with the same relative angle."""
         df = DataFrame(pytest.data)
         df_to_avoid = DataFrame(pytest.data_avoid)
         df = AgentMovement.avoid_agents(df, df_to_avoid)
@@ -1377,21 +1407,55 @@ class TestCaseAgentMovement:
         self,
         fixture_avoid_agents_one_agent_avoids_three
     ):
-        """One agent avoids three agents with different relative angles."""
+        """
+            One agent avoids three agents with different relative angles.
+        """
         df = DataFrame(pytest.data)
         df_to_avoid = DataFrame(pytest.data_avoid)
         df = AgentMovement.avoid_agents(df, df_to_avoid)
         expected_angle = pi
 
+        assert round(df.vx[0], 12) ==  \
+               round(sqrt(2)*cos(expected_angle), 12)
+        assert round(df.vy[0], 12) == \
+               round(sqrt(2)*sin(expected_angle), 12)
+
+    def test_avoid_agents_one_agent_between_two(
+        self,
+        fixture_avoid_agents_one_agent_between_two
+    ):
+        """
+        One agent avoids two agents diametrically opposite, i.e., with
+        0 and pi relatives angles respectively.
+        """
+        df = DataFrame(pytest.data)
+        df_to_avoid = DataFrame(pytest.data_avoid)
+        df = AgentMovement.avoid_agents(df, df_to_avoid)
+        expected_angle = pi/2
+
         assert round(df.vx[0], 12) == round(sqrt(2)*cos(expected_angle), 12)
-        assert round(df.vy[0], 12) == round(sqrt(2)*sin(expected_angle), 12)
+        assert round(
+            abs(df.vy[0]), 12) == round(sqrt(2)*sin(expected_angle), 12)
+
+    def test_avoid_agents_one_avoids_four_in_each_axis(
+        self,
+        fixture_avoid_agents_one_avoids_four_in_each_axis
+    ):
+        """One agent avoids four agents in each axis."""
+        df = DataFrame(pytest.data)
+        df_to_avoid = DataFrame(pytest.data_avoid)
+        df = AgentMovement.avoid_agents(df, df_to_avoid)
+        expected_angle = pi/4
+
+        assert round(abs(df.vx[0]), 12) == round(cos(expected_angle), 12)
+        assert round(abs(df.vy[0]), 12) == round(sin(expected_angle), 12)
 
     def test_avoid_agents_raise_error(self, fixture_avoid_agents_raise_error):
         """
         Raises an exception when the input DataFrame column `agent`
         does not exist.
         """
-        df = DataFrame(pytest.data_whitout_agent)
+        df = DataFrame(pytest.data_without_agent)
         df_to_avoid = DataFrame(pytest.data_avoid)
 
         with pytest.raises(ValueError):
