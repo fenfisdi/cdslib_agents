@@ -57,21 +57,47 @@ For more information, please refer to the official documentation of the project.
 
 ![repo_logo](https://raw.githubusercontent.com/fenfisdi/cdslib_agents/main/images/CDSLib_agents_white-background.png "CDSLib - Agents Logo")
 
-## Main contributors
+## Authors and main contributors
 
 [![GitHub contributors](https://img.shields.io/github/contributors/fenfisdi/cdslib_agents)](https://github.com/fenfisdi/cdslib_agents/graphs/contributors)
 
-This package was made with thanks to the leadership of
-[Camilo Hincapié](https://www.linkedin.com/in/camilo-hincapie-gutierrez/)
-and the contributions of
+This package is authored by 
+[Camilo Hincapié](https://www.linkedin.com/in/camilo-hincapie-gutierrez/) (main author),
 [Ian Mejía](https://github.com/IanMejia),
-[Carolina Rojas Duque](https://github.com/carolinarojasd),
 [Emil Rueda](https://www.linkedin.com/in/emil-rueda-424012207/),
-[Nicole Rivera](https://github.com/nicolerivera1) and
-[Alejandro Campillo](https://www.linkedin.com/in/alucardcampillo/).
+[Nicole Rivera](https://github.com/nicolerivera1)
+and
+[Carolina Rojas Duque](https://github.com/carolinarojasd)
+and the conceptual contributions about epidemiology of
+[Lina Marcela Ruiz Galvis](mailto:lina.ruiz2@udea.edu.co).
+
+Other remarkably contributors to this work were
+[Alejandro Campillo](https://www.linkedin.com/in/alucardcampillo/)
+and
+[Daniel Alfonso Montoya](https://www.linkedin.com/in/daniel-montoya-ds/).
+
+
+
 
 ## Contact us
 
 For any suggestion on the development of this type of models, please our official
 channels of [dicussions](https://github.com/fenfisdi/cdslib_agents/discussions)
 provided by GitHub.
+
+## Development
+
+### Create the virtualenv
+
+This package is managed using [Pyenv](https://github.com/pyenv/pyenv) and 
+[Poetry](https://python-poetry.org/docs/)). In order to create the
+virtualenv correctly use:
+
+```
+$ pyenv install 3.9.7
+$ poetry env use 3.9.7
+$ poetry install
+```
+
+Then activate the virtualenv running `poetry shell`, and to deactivate the virtual
+environment and exit this new shell type `exit`.

@@ -1,3 +1,18 @@
+# Copyright (C) 2021, Camilo Hincapié Gutiérrez
+# This file is part of CDSLIB.
+#
+# CDSLIB is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# CDSLIB is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+
 from setuptools import find_packages, setup
 
 
@@ -6,14 +21,14 @@ with open('README.md', 'r') as readme_file:
 
 setup(
     name='cdslib_agents',
-    version='0.0.1a3',
+    version='0.0.2',
     maintainer='Developers of the CDS team of FEnFiSDi group',
     maintainer_email='grupofenfisdi@udea.edu.co',
     description='Contagious diseases simulation using Agent-Based Models',
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/fenfisdi/cdslib_agents',
-    author='Camilo Hincapie Gutierrez',
+    author='Camilo Hincapié Gutiérrez',
     author_email='camilo.hincapie@udea.edu.co',
     license='GNU General Public License v3 (GPLv3)',
     classifiers=[

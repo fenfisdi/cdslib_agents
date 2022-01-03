@@ -1,0 +1,66 @@
+[tool.poetry]
+name = "cdslib_agents"
+version = "0.0.2"
+description = "Contagious diseases simulation using Agent-Based Models"
+authors = [
+    "Camilo Hincapié Gutiérrez <camilo.hincapie@udea.edu.co>",
+    "Ian Nicolás Mejía <inramirezm@uqvirtual.edu.co>",
+    "Vladimir Emil Rueda Gómez <vladimir.rueda@udea.edu.co>",
+    "Nicole Rivera Parra <nicole.rivera@udea.edu.co>",
+    "Carolina Rojas Duque <carolina.rojasd@udea.edu.co>",
+    ]
+maintainers = [
+    "Vladimir Emil Rueda Gómez <vladimir.rueda@udea.edu.co>",
+    "Nicole Rivera Parra <nicole.rivera@udea.edu.co>",
+    "Carolina Rojas Duque <carolina.rojasd@udea.edu.co>",
+    "FEnFiSDi Group <grupofenfisdi@udea.edu.co>",
+    ]
+readme = "README.md"
+homepage = "https://pypi.org/project/cdslib-agents/"
+repository = "https://github.com/fenfisdi/cdslib_agents"
+documentation = "https://fenfisdi.github.io/cdslib/agents.html"
+keywords = [
+    "Complex Systems",
+    "Computation",
+    "Epidemiology",
+    "Nonlinear dynamics",
+    "Agent Based Models"
+    ]
+classifiers = [
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Healthcare Industry",
+    "Intended Audience :: Education",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Topic :: Education",
+    "Topic :: Scientific/Engineering :: Medical Science Apps.",
+    "Topic :: Software Development",
+    "Topic :: Software Development :: Libraries"
+    ]
+packages = [
+    { include = "abmodel" }
+]
+license = "GPL-3.0-only"
+
+[tool.poetry.dependencies]
+python = "~3.9"
+numpy = "^1.20.2"
+scipy = "^1.6.3"
+pandas = "^1.2.4"
+scikit-learn = "^0.24.2"
+pydantic = "^1.8.2"
+munch = "^2.5.0"
+
+[tool.poetry.dev-dependencies]
+flake8 = "^4.0.1"
+Sphinx = "^4.3.2"
+pytest = "^6.2.5"
+pytest-cov = "^3.0.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+
