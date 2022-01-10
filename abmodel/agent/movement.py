@@ -50,7 +50,39 @@ def move_individual_agent(
 
     Examples
     --------
-    TODO: include some examples
+    `>>> box_size = BoxSize(-10, 10, -20, 20)`
+
+    `>>> df = pandas.DataFrame({`
+
+    `...                        "x": [1, 1, -30],`
+
+    `...                        "y": [20, 5, 0],`
+
+    `...                        "vx": [0, 1, 15],`
+
+    `...                        "vy": [5, 1, 15]})`
+
+    `>>> move_individual_agent(df.iloc[0], box_size, 2)`
+
+    `x      1`  
+
+    `y      20`
+
+    `vx     0`
+
+    `vy    -5`
+
+    `Name: 0, dtype: int64`
+
+    `>>> move_individual_agent(df.iloc[1], box_size, 2)`
+
+    `x     3`
+
+    `y     7`
+
+    `vx    1`
+
+    `vy    1`
     """
     # Update current position of the agent with its velocities
     row.x += row.vx * dt
@@ -82,6 +114,10 @@ class AgentMovement:
 
         Methods
         -------
+        init_required_fields()
+            Initializes each required column of the DataFrame that contains all
+            the agent's information for it's movement.
+
         move_agents()
             Applies a transformation in pandas DataFrame to update agent's
             coordinates and velocities.
@@ -98,7 +134,29 @@ class AgentMovement:
         vector_angles()
             Calculates vector angles from their euclidean components.
 
-        TODO
+        set_velocities()
+            Assigns the velocities' components vx and vy according to the mobility profile 
+            (ie. velocity distribution) and the angle distribution for each agent.
+        
+        initialize_velocities()
+            Initializes the velocity of a given set of agents from a given
+            mobility profile (i.e. a velocity distribution) and assign an angle
+            to the velocity according to the angle distribution defined.
+
+        update_velocities()
+            Update the velocity of a given set of agents from a given
+            mobility profile (i.e. a velocity distribution) and
+            deviating the resulting angles using a normal distribution
+            with a standard deviation equal to `angle_variance`.
+
+        replace_velocities()
+            Calculates the agent's velocity components, vx and vy, according to
+            the new direction of movement in new_angle. The velocity norm
+            remains unchanged.
+
+        avoid_agents()
+            Changes agent's movement direction acoording to the position of the
+            agents to avoid.
     """
     @classmethod
     def init_required_fields(
@@ -136,7 +194,8 @@ class AgentMovement:
 
             Raises
             ------
-            TODO
+            ValueError
+                If the dataframe contains some any column with null values.
 
             Notes
             -----
@@ -145,8 +204,6 @@ class AgentMovement:
             If the new coordinates are outside the box, the agent's new position will 
             be the box boundary and the velocity will be changed in the opposite direction.
             
-            TODO: explanatory image (it's the same from move_individual_agent)
-
             See Also
             --------
             move_individual_agent : Moves spatially each agent by updating its positions,
@@ -154,7 +211,182 @@ class AgentMovement:
 
             Examples
             --------
-            TODO: include some examples
+            `>>> box_size = BoxSize(-10, 10, -20, 20)`
+
+            `>>> df = pandas.DataFrame({`
+
+            `...                        "mobility_group": ["MG_1" for i in range(11)],`
+
+            `...                        "agent": [i for i in range(11)],`
+
+            `...                        "step": [i for i in range(11)]`
+
+            `...                         }`)`
+
+            `>>> dist_title = "MobilityGroup_test_dist"`
+
+            `>>> group_info = [`
+
+            `...             {`
+
+            `...                 "name": "MG_1",`
+
+            `...                 "angle_variance": 0.5,`
+
+            `...                 "dist_info": {`
+
+            `...                     "dist_title": "mobility_profile",`
+
+            `...                     "dist_type": "numpy",`
+
+            `...                     "constant": None,`
+
+            `...                     "dist_name": "standard_t",`
+
+            `...                     "filename": None,`
+
+            `...                     "data": None,`
+
+            `...                     "kwargs": {"df": 12}`
+
+            `...                     }`
+
+            `...             }`
+
+            `...         ]`
+
+            `>>>  mobility_groups = MobilityGroups(`
+
+            `...             dist_title=dist_title,`
+
+            `...             group_info=group_info`
+
+            `...             )`
+
+            Using a t-student distribution for initializing the velocity columns
+            of the agents:
+
+            `>>> AgentMovement.init_required_fields(`
+
+            `...             df,`
+
+            `...             box_size,`
+
+            `...             mobility_groups`
+
+            `...             )`
+
+            `   mobility_group  agent  step         x          y        vx        vy`
+
+            0            MG_1      0     0  2.142089   4.284179 -0.346793 -0.276421
+
+            1            MG_1      1     1 -6.153857 -12.307714  0.036282  0.095668
+
+            2            MG_1      2     2 -0.246706  -0.493411 -0.058564  0.004548
+
+            3            MG_1      3     3 -3.287691  -6.575382  0.282031 -0.472708
+
+            4            MG_1      4     4 -9.744158 -19.488316  0.671520  0.054090
+
+            5            MG_1      5     5  3.851982   7.703964 -0.177289 -0.470067
+
+            6            MG_1      6     6 -1.624530  -3.249060 -0.648740  0.363186
+
+            7            MG_1      7     7 -5.100455 -10.200910  0.036275  1.149052
+
+            8            MG_1      8     8  7.303318  14.606637  0.448418 -0.507563
+
+            9            MG_1      9     9 -0.888201  -1.776402  0.061069 -0.017497
+
+            10           MG_1     10    10  1.474884   2.949768  0.101585  0.050754
+
+            Using a numpy array with empirical data for initializing the velocity columns
+            of the agents:
+
+            `data = numpy.array([  0.21098677,   0.78064842, -17.54581766,   2.01904915,`
+
+            `...         3.1266283 ,   0.87632915,  -8.27963531,   4.16632438,`
+
+            `...         9.71253144,  -5.34824282,])`   
+
+            `group_info = [`
+
+            `...             {`
+
+            `...                 "name": "MG_1",`
+
+            `...                 "angle_variance": 0.1,`
+
+            `...                 "dist_info": {`
+
+            `...                     "dist_title": "mobility_profile",`
+
+            `...                     "dist_type": "empirical",`
+
+            `...                     "constant": 0.4,`
+
+            `...                     "dist_name": None,`
+
+            `...                     "filename": None,`
+
+            `...                     "data": data,`
+
+            `...                     "kwargs": {`
+
+            `...                         "kernel": "gaussian",`
+
+            `...                         "bandwidth": 0.1`
+
+            `...                         }`
+
+            `...                     }`
+
+            `...             }`
+
+            `...         ]`
+
+            `>>>  mobility_groups = MobilityGroups(`
+
+            `...             dist_title=dist_title,`
+
+            `...             group_info=group_info`
+
+            `...             )`
+
+            `>>> AgentMovement.init_required_fields(`
+
+            `...             df,`
+
+            `...             box_size,`
+
+            `...             mobility_groups`
+
+            `...             )`
+
+            `        mobility_group  agent  step         x          y         vx         vy`
+
+            0            MG_1      0     0  5.954352  11.908703   4.586353 -14.835973
+
+            1            MG_1      1     1 -9.692957 -19.385914  16.088107   1.556695
+
+            2            MG_1      2     2 -2.616717  -5.233434 -10.961765  11.796639
+
+            3            MG_1      3     3 -5.339758 -10.679516   0.115379   1.076844
+
+            4            MG_1      4     4  8.271661  16.543323 -14.966665   9.032067
+
+            5            MG_1      5     5  4.300905   8.601811  -0.668186  -2.993292
+
+            6            MG_1      6     6  8.491871  16.983742   2.774055  -1.422387
+
+            7            MG_1      7     7 -2.494255  -4.988510  -6.738378   6.714099
+
+            8            MG_1      8     8 -7.919017 -15.838034 -13.957463 -10.693572
+
+            9            MG_1      9     9 -1.260219  -2.520439 -14.960231   6.253076
+
+            10           MG_1     10    10  6.470672  12.941344  -7.757426  15.577985
+
         """
         # Initialize positions
         df["x"] = Distribution(
@@ -226,18 +458,57 @@ class AgentMovement:
             ValueError
                 If the dataframe `df` doesn't have `x`, `y`, `vx`
                 and `vy` columns.
+            
+            ValueError
+                If the dataframe contains some any column with null values.
 
             Notes
             -----
-            TODO: include mathematical description and explanatory image
+            The new position is calculated as x = x_0 + v_x * dt according to 
+            classical mechanics equations of motion.
+            If the new coordinates are outside the box, the agent's new position will 
+            be the box boundary and the velocity will be changed in the opposite direction.
+            TODO: explanatory image (same as move_individual_agent)
 
             See Also
             --------
-            move_individual_agent : TODO complete explanation
+            move_individual_agent :
+                Moves spatially each agent by updating its positions,
+                each agent is represented by a row containing its positions and 
+                velocities.
+                This function is applied over a DataFrame's row and returns the
+                agent's position and velocity updated according to its movement.
 
             Examples
             --------
-            TODO: include some examples
+            `>>> df = pandas.DataFrame({`
+            `...                         "x": [1, 2, 4, 8],`
+
+            `...                         "y": [0, 10, 1, 3],`
+
+            `...                         "vx": [1, 2, 0, 1],`
+
+            `...                         "vy": [10, 12, 4, 0]`
+
+            `...                          })`
+
+            `>>> box_size = BoxSize(-20, 20, -20, 20)`
+
+            `>>> dt = 1`
+
+            `>>> AgentMovement.move_agents(df, box_size, dt)`
+
+            `   x   y  vx  vy`
+
+            3  9   3   1   0
+
+            0  2  10   1  10
+
+            1  4  20   2 -12
+
+            2  4   5   0   4
+
+            3  9   3   1   0
         """
         check_field_errors(df[["x", "y", "vx", "vy"]])
         try:
@@ -286,7 +557,29 @@ class AgentMovement:
 
             Examples
             --------
-            TODO: include some examples
+            `>>> df = pandas.DataFrame({`
+
+            `...                          "x": [1, 3, 4, 6],`
+
+            `...                          "y": [0, 0, 7, 3],`
+
+            `...                          "vx": [1, 9, 0, 1],`
+
+            `...                           "vy": [11, 12, 4, 6]`
+
+            `...                            })`
+
+            `>>> AgentMovement.stop_agents(df, [1, 2])`
+
+            `   x  y  vx  vy`
+
+            0  1  0   1  11
+
+            1  3  0   0   0
+
+            2  4  7   0   0
+
+            3  6  3   1   6
         """
         try:
             df.loc[indexes, "vx"] = 0
@@ -302,7 +595,7 @@ class AgentMovement:
     @classmethod
     def standardize_angle(cls, angle: float) -> float:
         """
-            Standardize angles to be in the interval [-pi, pi]
+            Standardize angles to be in the interval [0, 2pi)
 
             Parameters
             ----------
@@ -316,11 +609,23 @@ class AgentMovement:
 
             Notes
             -----
-            TODO: include mathematical description and explanatory image
+            The equivalent angle is calculated as the remainder of the division
+            (angle+2pi) / 2pi. This means any angle will be mapped to the interval
+            [0, 2pi) in order to improve succiding calculation's performance. 
+            This new standardized angle is aim to be used to calculate the velocity
+            components by means of the cosine trigonometric function, so the equivalence
+            is valid.
+            TODO: explanatory image (mapeo)
 
             Examples
             --------
-            TODO: include some examples
+            `>>> AgentMovement.standardize_angle(13*np.pi/4)`
+
+            3.9269908169872423
+
+            `>>> AgentMovement.standardize_angle(18*np.pi/8)`
+
+            0.7853981633974492
         """
         return fmod(angle + 2*pi, 2*pi)
 
@@ -345,17 +650,33 @@ class AgentMovement:
 
             Notes
             -----
-            TODO: include mathematical description and explanatory image
+            Using the definition from a right triangle, the angle formed
+            by the components `x` and `y` is calculated as arctan(y/x) where
+            `y` is the opposite cathetus and `x` is the adjacent cathetus. 
+            The element-wise function numpy.arctan2 is used in order to 
+            assure values in the interval [-pi, pi]. 
+            All resulting angles are mapped to the interval [0, 2pi) in order
+            to improve succiding calculation's performance.
+            TODO: explanatory image (right triangle calculation)
 
             See Also
             --------
-            standardize_angle : TODO complete explanation
+            standardize_angle : 
+                Standardize angles to be in the interval [0, 2pi).
+                The equivalent angle is calculated as the remainder of 
+                the division (angle+2pi) / 2pi. 
 
             Examples
             --------
-            TODO: include some examples
+            `>>> AgentMovement.angle(1, 0)`
+
+            0.0
+
+            `>>> AgentMovement.angle(-1, -1)`
+
+            3.9269908169872414
         """
-        # Standardize angles on the interval [0, 2*pi]
+        # Standardize angles on the interval [0, 2*pi)
         return cls.standardize_angle(arctan2(y, x))
 
     @classmethod
@@ -389,15 +710,53 @@ class AgentMovement:
 
             Notes
             -----
-            TODO: include mathematical description and explanatory image
+            Using the definition from a right triangle, the angle formed
+            by the components `x` and `y` is calculated as arctan(y/x) where
+            `y` is the opposite cathetus and `x` is the adjacent cathetus.
+            All resulting angles are mapped to the interval [0, 2pi) in order
+            to improve succiding calculation's performance.
+            TODO: explanatory image (same as angle)
 
             See Also
             --------
-            angle : TODO complete explanation
+            angle :
+                Element-wise function.
+                Returns the standardized angle formed by the given components
+                `x` and `y`. 
 
             Examples
             --------
-            TODO: include some examples
+            `>>> df = pandas.DataFrame({`
+
+            `...                        "x": [1, 3, 4],`
+
+            `...                        "y": [1, 0, 7],`
+
+            `...                       "vx": [1, 9, 0],`
+
+            `...                       "vy": [3, 2, 0]`
+
+            `...                        })`
+
+            `>>> AgentMovement.vector_angles(df, ["x", "y" ])`
+
+            0    0.785398
+
+            1    0.000000
+
+            2    1.051650
+
+            dtype: float640
+
+            `>>> AgentMovement.vector_angles(df, ["vx", "vy" ])`
+
+            0    1.249046
+
+            1    0.218669
+
+            2    0.000000
+
+            dtype: float640
         """
         try:
             angles = df.apply(
@@ -453,23 +812,77 @@ class AgentMovement:
 
             Raises
             ------
-            Exception
-                TODO complete explanation
+            ValueError
+                If the dataframe `df` does not have `vx` and `vy` columns.
 
             Notes
             -----
-            TODO: include mathematical description and explanatory image
+            The velocity components are calculated as vx = v_norm * cos(angle) and 
+            vy = v_norm * sin(angle) respectively. 
+            The velocity norm (v_norm) is set as a random sample of size n equals
+            to the lenght of the DataFrame index using 
+            abmodel.utils.distributions.Distribution's method sample.
+            The velocity angle is computed according to the given angle distribution. 
+            If no angle distribution is specified, the velocity angles are computed 
+            using a normal distribution with a standard deviation equal to `angle_variance`. 
+            TODO: explanatory image (same as angle)
 
             See Also
             --------
-            abmodel.utils.distributions.Distribution : TODO complete
-            explanation
+            abmodel.utils.distributions.Distribution : 
+                Distribution class
+                It computes random numbers from a probability density distribution.
 
-            standardize_angle : TODO complete explanation
+            standardize_angle :
+                Standardize angles to be in the interval [0, 2pi).
+                The equivalent angle is calculated as the remainder of 
+                the division (angle+2pi) / 2pi.
 
             Examples
             --------
-            TODO: include some examples
+            Without passing angle_distribution:
+
+            `>>> df = pandas.DataFrame({"vx": [1, 9, 0], "vy": [3, 2, 0]})`
+
+            `>>> distribution = Distribution(`
+
+            `...             dist_type="numpy",`
+
+            `...             dist_name="gamma",`
+
+            `...             shape=5`
+
+            `...             )`
+
+            `>>> AgentMovement.set_velocities(df, distribution, 0.1)`
+
+            `         vx        vy`
+
+            0  0.730606  3.411171
+
+            1  2.395679  0.261366
+
+            2  1.421091 -0.131577
+
+            Usign a standard_t angle_distribution:
+
+            `>>> angle_distribution = Distribution(`
+
+            `...             dist_type="numpy",`
+
+            `...             dist_name="standard_t",`
+
+            `...              df=6)`
+
+            `>>> AgentMovement.set_velocities(df, distribution, None, angle_distribution)`
+
+            `         vx        vy`
+
+            0  6.599700  3.566292
+
+            1 -3.392121  7.139459
+
+            2  3.884318 -2.316200
         """
         try:
             n_agents = len(df.index)
@@ -574,19 +987,120 @@ class AgentMovement:
 
             Raises
             ------
-            TODO
+            ValueError
+                If the dataframe `df` does not have `vx` and `vy` columns
 
             Notes
             -----
-            TODO: insert mathematical description and explanatory image
+            The method filters the whole DataFrame in order to apply the set.velocities()
+            function only on the specified set of agents using the given mobility profile
+            and angle distribution. 
+            If no set of agents is specified, the whole DataFrame is initialized according
+            to the given mobility profile and angle distribution.
 
             See Also
             --------
-            set_velocities : TODO complete explanation
+            set_velocities :
+                Assigns the velocities' components vx and vy according to the mobility profile 
+                (ie. velocity distribution) and the angle distribution for each agent. 
+                If no angle distribution is specified, the function deviates the resulting
+                angles using a normal distribution with a standard deviation equal to `angle_variance`.
+                The velocity components are calculated as vx = v_norm * cos(angle) and 
+                vy = v_norm * sin(angle) respectively.
+                The velocity norm (v_norm) is set as a random sample of size n equals
+                to the lenght of the DataFrame index using 
+                abmodel.utils.distributions.Distribution's method sample.
+                The velocity angle is computed according to the given angle distribution. 
+                If no angle distribution is specified, the velocity angles are computed 
+                using a normal distribution with a standard deviation equal to `angle_variance`.
 
             Examples
             --------
-            TODO: include some examples
+            Using a list of indexes:
+
+            `>>> df = pandas.DataFrame({"vx": [1, 5, 12], "vy": [4, 2, 1]})`
+
+            `>>> distribution = Distribution(`
+
+            `...             dist_type="numpy",`
+
+            `...             dist_name="gamma",`
+
+            `...             shape=2`
+
+            `...             )`
+
+            `>>> angle_dist = Distribution(`
+
+            `...             dist_type="constant",`
+
+            `...             constant=pi/4`
+
+            `...             )`
+
+            `>>> indexes = [0, 1, 2]`
+
+            `>>> AgentMovement.initialize_velocities(`
+
+            `...             df,`
+
+            `...             distribution,`
+
+            `...             angle_dist,`
+
+            `...             indexes,`
+
+            `...             None,`
+
+            `...             None,`
+
+            `...             None,`
+
+            `...             )`
+
+            `         vx        vy`
+
+            0  1.273968  1.273968
+
+            1  0.630820  0.630820
+
+            2  5.195250  5.195250
+
+            Using a 'group_field':  
+
+            `>>> df = pandas.DataFrame({`
+
+            `...                       "vx": [1, 5, 12],`
+
+            `...                       "vy": [4, 2, 1],`
+
+            `...                        "mobility_group": ["MG_1", "MG_1", " MG_2"]`
+
+            `...                        })`
+
+            `>>> AgentMovement.initialize_velocities(`
+
+            `...                 df,`
+
+            `...                 distribution,`
+
+            `...                 angle_dist,`
+
+            `...                 None,`
+
+            `...                 "mobility_group",`
+
+            `...                 "MG_1", None`
+
+            `...                 ) `     
+
+            `        vx        vy        mobility_group`
+
+            0   1.046147  1.046147           MG_1
+
+            1   1.008751  1.008751           MG_1
+
+            2  12.000000  1.000000           MG_2
         """
         if indexes is not None and group_field is not None:
             try:
@@ -746,7 +1260,8 @@ class AgentMovement:
 
             Raises
             ------
-            TODO
+            ValueError
+                If the dataframe `df` does not have `vx` and `vy` columns
 
             Notes
             -----
@@ -759,15 +1274,74 @@ class AgentMovement:
             follows a normal distribution with mean :math: `\mu = 0.0`
             and standard deviation equals to `angle_variance`.
 
-            TODO: insert explanatory image
-
             See Also
             --------
-            set_velocities : TODO complete explanation
+            set_velocities :
+                Assigns the velocities' components vx and vy according to the mobility profile 
+                (ie. velocity distribution) and the angle distribution for each agent. 
+                If no angle distribution is specified, the function deviates the resulting
+                angles using a normal distribution with a standard deviation equal to `angle_variance`.
+                The velocity components are calculated as vx = v_norm * cos(angle) and 
+                vy = v_norm * sin(angle) respectively.
+                The velocity norm (v_norm) is set as a random sample of size n equals
+                to the lenght of the DataFrame index using 
+                abmodel.utils.distributions.Distribution's method sample.
+                The velocity angle is computed according to the given angle distribution. 
+                If no angle distribution is specified, the velocity angles are computed 
+                using a normal distribution with a standard deviation equal to `angle_variance`.
 
             Examples
             --------
-            TODO: include some examples
+            Using 'group_field' and indexes at the same time:
+
+            `>>> df = pandas.DataFrame({`
+
+            `...                         "vx": [2, 1, 5],`
+
+            `...                          "vy": [3, 0, 1],`
+
+            `...                          "mobility_group": ["MG_1", "MG_1", " MG_2"]`
+
+            `...                        })`
+
+            `>>> indexes = [0, 2]`
+
+            `>>> distribution = Distribution(`
+
+            `...             dist_type="numpy",`
+
+            `...             dist_name="normal",`
+
+            `...             loc=5,`
+
+            `...             scale  = 3`
+
+            `...             )`
+
+            `>>> AgentMovement.update_velocities(`
+
+            `...                 df,`
+
+            `...                 distribution,`
+
+            `...                 0.2,`
+
+            `...                 indexes,`
+
+            `...                 "mobility_group",`
+
+            `...                 "MG_1", None`
+
+            `...                 )`        
+
+            `        vx        vy mobility_group`
+
+            0  0.150929  0.268848           MG_1
+
+            1  1.000000  0.000000           MG_1
+
+            2  5.000000  1.000000           MG_2
+
         """
         if indexes is not None and group_field is not None:
             try:
@@ -893,17 +1467,49 @@ class AgentMovement:
             aperture window of all the consecutive angles between the agents to avoid.
             The consecutive angles are calculated as the difference between 
             the relative angles sorted ascending. 
-            The hypothesis is that the agent will take the path that has, from its
-            midpoint, the greatest distance to any other agent that it must avoid.
-            TODO: explanatory image
+            The hypothesis is that the agent will take the path that has, from the
+            biggest aperture window midpoint, the greatest distance to any other 
+            agent that it must avoid.
+            TODO: explanatory image (apperture window and path)
 
             See Also
             --------
-            standardize_angle : TODO complete explanation
+            standardize_angle : 
+                Standardize angles to be in the interval [0, 2pi).
+                The equivalent angle is calculated as the remainder of 
+                the division (angle+2pi) / 2pi.
 
             Examples
             --------
-            TODO: include some examples
+            One agent with different relative angles
+
+            `>>> df = pandas.DataFrame({`
+
+            `...                        "Agent": [1, 1],`
+
+            `...                         "relative_angle": [pi/4, pi/2]`
+
+            `...                         })`
+
+            `>>> df.groupby("Agent").apply(AgentMovement.deviation_angle)`
+
+            Agent
+
+            1    4.31969
+
+            dtype: float64
+
+            One agent with the same relative angle
+
+            `>>> df = pandas.DataFrame({"Agent": [1, 1], "relative_angle": [pi/4, pi/4]})`
+
+            `>>> df.groupby("Agent").apply(AgentMovement.deviation_angle)`
+
+            Agent
+
+            1    3.926991
+
+            dtype: float64
         """
         sorted_serie = \
             grouped_df["relative_angle"].sort_values().copy()
@@ -960,11 +1566,35 @@ class AgentMovement:
             movement) as
             vx = velocity_norm * cos(new_angle)
             vy = velocity_norm * sin(new_angle)
-            TODO: Explanatory image
+            TODO: Explanatory image (same as angle)
 
             Examples
             --------
-            TODO: include some examples
+            `>>> df = pandas.DataFrame({`
+
+            `...                       "agent": [1, 2, 3]`
+
+            `...                       "vx": [1, 4, 8],`
+
+            `...                        "vy": [2, 3, 0],`
+
+            `...                         })`
+
+            `>>>new_angles = pandas.Series({1: [numpy.pi], 2:[numpy.pi/2], 3:[numpy.pi/4]})`
+
+            `>>>df = df.apply(`
+
+            `...              lambda row: AgentMovement.replace_velocities(row, new_angles),`
+
+            `...              axis=1)`
+
+            `   agent  vx  vy`
+
+            0      1  -2   0
+
+            1      2   0   5
+
+            2      3   5   5
         """
         if row.agent in new_angles.index:
             velocity_norm = sqrt(row.vx**2 + row.vy**2)
@@ -993,11 +1623,16 @@ class AgentMovement:
 
             Raises
             ------
-            TODO
+            ValueError
+                If the dataframe `df` does not have: `agent`, `x`, `y`, `vx` and `vy` columns.
 
             Notes
             -----
-            TODO: include mathematical description and explanatory image
+            The method organizes all the information about the agents and their corresponding
+            agents to avoid in order to update its movement taking into account the shift in 
+            the agent's velocity by means of the calculated deviation angle according to the
+            angles of their 'scary' agents.
+            TODO: explanatory image (same as deviation_angle)
 
             See Also
             --------
@@ -1008,8 +1643,9 @@ class AgentMovement:
                 aperture window of all the consecutive angles between the agents to avoid.
                 The consecutive angles are calculated as the difference between 
                 the relative angles sorted ascending. 
-                The hypothesis is that the agent will take the path that has, from its
-                midpoint, the greatest distance to any other agent that it must avoid.
+                The hypothesis is that the agent will take the path that has, from the
+                biggest aperture window midpoint, the greatest distance to any other 
+                agent that it must avoid.
 
             replace_velocities : 
                 Calculates the agent's velocity components, vx and vy, according to
@@ -1023,7 +1659,74 @@ class AgentMovement:
 
             Examples
             --------
-            TODO: include some examples
+            One agent avoids two agents with different relative angles.
+
+            `>>> df = pandas.DataFrame({`
+
+            `...                        "agent": [1, 2, 3],`
+
+            `...                         "x": [0, 1, 1],`
+
+            `...                         "y": [0, 1, -1],`
+
+            `...                         "vx": [1.0, 2.0, 0],`
+
+            `...                         "vy": [0, 2.0,0],`
+
+            `...                          })`
+
+            `>>> df_avoid = pandas.DataFrame({`
+
+            `...                             "agent": [1, 1],`
+
+            `...                              "agent_to_avoid": [2, 3]`
+
+            `...                              })`
+
+            `>>> AgentMovement.avoid_agents(df,  df_avoid)`
+
+            `   agent    x    y   vx            vy`
+
+            0    1.0  0.0  0.0 -1.0  1.224647e-16
+
+            1    2.0  1.0  1.0  2.0  2.000000e+00
+
+            2    3.0  1.0 -1.0  0.0  0.000000e+00
+
+
+            Two agents avoid one agent with different relative angles.
+
+            `>>> df = pandas.DataFrame({`
+
+            `...                        "agent": [1, 2, 3]`
+
+            `...                        "x": [0, 1, 0]`
+
+            `...                        "y": [0, 0, 1]`
+
+            `...                        "vx": [1.0, 0.0, 10]`
+
+            `...                        "vy": [0, 1, 10]`
+
+            `...                         })
+
+            ``>>> df_avoid = pandas.DataFrame({`
+
+            `...                              "agent": [1, 2],`
+
+            `...                               "agent_to_avoid": [3, 3]`
+
+            `...                               })`
+
+            `>>> AgentMovement.avoid_agents(df,  df_avoid)`
+
+            `   agent    x    y            vx         vy`
+
+            0    1.0  0.0  0.0 -1.836970e-16  -1.000000
+
+            1    2.0  1.0  0.0  7.071068e-01  -0.707107
+
+            2    3.0  0.0  1.0  1.000000e+01  10.000000
         """
         try:
             df_copy = df.copy()
