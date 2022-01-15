@@ -2,7 +2,7 @@ from typing import Optional, Union
 
 from math import fmod
 from numpy import ndarray, arctan2, cos, sin, pi, sqrt, inf, frompyfunc
-from pandas.core.frame import DataFrame
+from pandas.core.frame import DataFrame, Series
 
 from abmodel.models.population import BoxSize
 from abmodel.models.disease import MobilityGroups, DistTitles
@@ -12,10 +12,10 @@ from abmodel.utils.utilities import check_field_existance, exception_burner
 
 
 def move_individual_agent(
-    row: DataFrame,
+    row: Series,
     box_size: BoxSize,
     dt: float
-) -> DataFrame:
+) -> Series:
     """
     TODO: Add brief explanation
     A row represents an agent.
@@ -294,7 +294,7 @@ class AgentMovement:
         return cls.standardize_angle(arctan2(y, x))
 
     @classmethod
-    def vector_angles(cls, df: DataFrame, components: list) -> DataFrame:
+    def vector_angles(cls, df: DataFrame, components: list) -> Series:
         """
             Calculates vector angles from their euclidean components
 
@@ -820,9 +820,9 @@ class AgentMovement:
     @classmethod
     def replace_velocities(
         cls,
-        row: DataFrame,
-        new_angles: DataFrame
-    ) -> DataFrame:
+        row: Series,
+        new_angles: Series
+    ) -> Series:
         """
             TODO: Add brief explanation
 
