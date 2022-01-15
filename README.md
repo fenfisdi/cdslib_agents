@@ -55,6 +55,43 @@ add as much states as preferred, and to create custom natural history of the dis
 
 For more information, please refer to the official documentation of the project.
 
+## Testing
+
+All the tests were developed with the python tool pytest. To see them properly, type
+in the command line:
+
+`$ pytest <name_of_test_file>`
+
+Flags are used with pytest for modifying the aspect of the output
+report. Typing flags using pytest might be tedious, however, it is possible modify the `pytest.init` file for
+[change defaulting command line options](https://docs.pytest.org/en/6.2.x/example/simple.html#how-to-change-command-line-options-defaults). This allows to adopt as many flags
+as necesary. In our case, it was adopt the flags: `-s`, `--no-header`, `-rA`, `-vv`,
+`--cov`, `--cov-branch`.
+
+During test execution with pytest, any output sent to stdout and stderr is
+[captured](https://docs.pytest.org/en/6.2.x/capture.html). the `-s` flag  
+disable all capturing and lets the user look at all the outputs, this is very
+important because the description of all tests was typed in the docstring of each method.
+
+The `--no-header` flag disables the [initial header](https://docs.pytest.org/en/stable/changelog.html#id33).
+
+The `-rA` flag shows extra test [summary info](https://docs.pytest.org/en/6.2.x/usage.html#detailed-summary-report) of all the test.
+
+The `-vv` flag indicates to pytest run in [verbosity](https://docs.pytest.org/en/latest/how-to/output.html) mode, this controls all the pytest outputs.
+
+The flag `--cov` produces a [coverage](https://pytest-cov.readthedocs.io/en/latest/#welcome-to-pytest-cov-s-documentation) reports. It shows the amount of code lines covers by
+the test in a percentage, and `--cov-branch` the branches covers of the tests. A branch is
+the decision that makes the code when there are a if sentence or similar.
+
+For more information about [pytest flags](https://docs.pytest.org/en/6.2.x/usage.html).
+
+Instead of running one test, it is possible to run all the tests at the same time, you must be inside of `abmodel/tests`, and type in the command line:
+
+`$ pytest`
+
+For modifying the initial conditions of the test, uses the fixtures methods at the beginning
+of all the tests files.
+
 ![repo_logo](https://raw.githubusercontent.com/fenfisdi/cdslib_agents/main/images/CDSLib_agents_white-background.png "CDSLib - Agents Logo")
 
 ## Main contributors
