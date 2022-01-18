@@ -60,7 +60,9 @@ For more information, please refer to the official documentation of the project.
 All the tests were developed with the python tool pytest. To see them properly, type
 in the command line:
 
-`$ pytest <name_of_test_file>`
+`$ poetry run pytest <name_of_test_file>`
+
+in the same ubication of the test file.
 
 Flags are used with pytest for modifying the aspect of the output
 report. Typing flags using pytest might be tedious, however, it is possible modify the `pytest.init` file for
@@ -85,9 +87,9 @@ the decision that makes the code when there are a if sentence or similar.
 
 For more information about [pytest flags](https://docs.pytest.org/en/6.2.x/usage.html).
 
-Instead of running one test, it is possible to run all the tests at the same time, you must be inside of `abmodel/tests`, and type in the command line:
+Instead of running one test, it is possible to run all the tests at the same time, you must be inside of `tests` directory, and type in the command line:
 
-`$ pytest`
+`$ poetry run pytest`
 
 For modifying the initial conditions of the test, uses the fixtures methods at the beginning
 of all the tests files.
