@@ -21,11 +21,6 @@
 #Carolina Rojas Duque (https://github.com/carolinarojasd)
 #and the conceptual contributions about epidemiology of
 #Lina Marcela Ruiz Galvis (mailto:lina.ruiz2@udea.edu.co).
-#
-#Other remarkably contributors to this work were
-#Alejandro Campillo (https://www.linkedin.com/in/alucardcampillo/)
-#Daniel Alfonso Montoya (https://www.linkedin.com/in/daniel-montoya-ds/).
-
 
 from typing import Union
 
