@@ -27,23 +27,31 @@ def init_calculate_max_time_iterative(
     natural_history: NaturalHistory
 ) -> bool:
     """
-        TODO: Add brief explanation
+        Sets a boolean value to indicate if its mandatory to calculate the disease
+        maximum time for a specific disease state according to the agent's natural
+        history 
 
         Parameters
         ----------
-        TODO
+        key : str
+            String containing the agent's natural history key
+
+        natural_history : NaturalHistory
+            All important information about the disease's natural history
+            It's an instance of NaturalHistory data class
 
         Returns
         -------
-        TODO
-
-        Notes
-        -----
-        TODO: include mathematical description and explanatory image
+        calculate_max_time : bool
+            Boolean value to indicate if its mandatory to calculate the disease
+            maximum time
 
         See Also
         --------
-        init_calculate_max_time_vectorized : TODO complete explanation
+        init_calculate_max_time_vectorized : 
+            Sets a series of boolean values to indicate if its mandatory to
+            calculate the disease maximum time for a specific disease state
+            according to the agent's natural history
 
         Examples
         --------
@@ -59,23 +67,31 @@ def init_calculate_max_time_vectorized(
     natural_history: NaturalHistory
 ) -> Series:
     """
-        TODO: Add brief explanation
+        Sets a series of boolean values to indicate if its mandatory to calculate
+        the disease maximum time for a specific disease state according to the
+        agent's natural history
 
         Parameters
         ----------
-        TODO
+        key : Series
+            Series of strings containing the natural history keys of a set of agents
+
+        natural_history : NaturalHistory
+            All important information about the disease's natural history
+            It's an instance of NaturalHistory data class
 
         Returns
         -------
-        TODO
-
-        Notes
-        -----
-        TODO: include mathematical description and explanatory image
+        calculate_max_time : Series
+            Series of boolean values to indicate if its mandatory to calculate
+            the disease maximum time
 
         See Also
         --------
-        init_calculate_max_time_iterative : TODO complete explanation
+        init_calculate_max_time_iterative : 
+            Sets a boolean value to indicate if its mandatory to calculate
+            the disease maximum time for a specific disease state according to
+            the agent's natural history 
 
         Examples
         --------
@@ -1146,10 +1162,14 @@ def alertness_function(
 # =============================================================================
 class AgentDisease:
     """
-        TODO: Add brief explanation
+        Class containing all required methods to evolve the disease in each
+        agent
 
         Methods
         -------
+        init_required_fields()
+            Initializes all required columns from the DataFrame corresponding to each
+            agent disease status and information.
         TODO
     """
     @classmethod
@@ -1167,31 +1187,68 @@ class AgentDisease:
         execmode: ExecutionModes = ExecutionModes.iterative.value
     ) -> DataFrame:
         """
-            TODO: Add brief explanation
+            Initializes all required columns from the DataFrame corresponding to each
+            agent disease status and information. 
+            Each row from the DataFrame corresponds to one agent and the columns
+            corresponds to the agents' information about its state.
 
             Parameters
             ----------
-            TODO
+            df : DataFrame
+                DataFrame to apply the transformation
+            
+            dead_disease_group : str
+                Name of the disease group corresponding to the dead agents
+            
+            alpha : float
+                Reduction factor of the spreading probability due to hospitalization
+                Its numerical value goes from 0 to 1. 
+            
+            beta : float
+                Reduction factor of the spreading probability due to isolation
+                Its numerical value goes from 0 to 1.
+            
+            disease_groups : DiseaseStates
+                All disease groups
+                It's an instance of DiseaseStates data class
 
-            Returns
-            -------
-            TODO
+            natural_history : NaturalHistory
+                All important information about the disease's natural history
+                It's an instance of NaturalHistory data class
 
-            Raises
-            ------
-            TODO
-
-            Notes
-            -----
-            TODO: include mathematical description and explanatory image
+            health_system : HealthSystem
+                All important information about the health system like hospital
+                capacity and UCI capacity
+                It's an instance of HealthSystem data class
+        
+            immunization_groups : ImmunizationGroups, optional
+                All important information about the inmunization groups and its
+                parameters
+                It's an instance of InmunizationGroups data class
+        
+            isolation_adherence_groups : IsolationAdherenceGroups, optional
+                All important information about the adherence of the disease 
+                groups when mobility restrictions or lockdowns are applied
+                It's an instance of IsolationAdherenceGroups data class
+        
+            execmode : ExecutionModes, default = ExecutionModes.iterative.value
+                Mode of Execution
+                It's an instance of ExecutionModes
 
             See Also
             --------
-            TODO
+            init_is_dead :
+                Initializes the DataFrame's column "is_dead" according to the
+                agents disease state
 
-            Examples
-            --------
-            TODO: include some examples
+            generate_key_col :
+
+
+            Returns
+            -------
+            df : DataFrame
+                Dataframe with the applied transformation
+
         """
         # Initialize is_dead
         df = cls.init_is_dead(df, disease_groups, execmode)
@@ -1254,23 +1311,34 @@ class AgentDisease:
         execmode: ExecutionModes = ExecutionModes.iterative.value
     ) -> DataFrame:
         """
-            TODO: Add brief explanation
+            Initializes the DataFrame's column "is_dead" with a boolean value 
+            according to the agent disease state
 
             Parameters
             ----------
-            TODO
+            df : DataFrame
+                DataFrame to apply the transformation
+
+            disease_groups : DiseaseStates
+                All disease groups
+                It's an instance of DiseaseStates data class
+            
+            execmode : ExecutionModes, default = ExecutionModes.iterative.value
+                Mode of Execution
+                It's an instance of ExecutionModes
 
             Returns
             -------
-            TODO
+            df : DataFrame
+                Dataframe with the applied transformation
 
             Raises
             ------
-            TODO
+            Exception : 
+                If column "disease_state" is not in DataFrame
 
-            Notes
-            -----
-            TODO: include mathematical description and explanatory image
+            NotImplementedError :
+                If ExecutionModes is not iterative
 
             See Also
             --------
@@ -1486,30 +1554,46 @@ class AgentDisease:
         execmode: ExecutionModes = ExecutionModes.iterative.value
     ) -> DataFrame:
         """
-            TODO: Add brief explanation
+            Generates the "key" column in DataFrame taking into account the 
+            vulnerability group and the disease state to access the agent's
+            disease natural history.
 
             Parameters
             ----------
-            TODO
+            df : DataFrame
+                DataFrame to apply the transformation
+
+            execmode : ExecutionModes, default = ExecutionModes.iterative.value
+                Mode of Execution
+                It's an instance of ExecutionModes
 
             Returns
             -------
-            TODO
+            df : DataFrame
+                Dataframe with the applied transformation
 
             Raises
             ------
-            TODO
+            NotImplementedError :
+                If ExecutionModes is not vectorized or iterative
+            
+            Exception :
+                When either "vulnerability_group" or "disease_state" columns
+                do not exist
 
             Notes
             -----
-            TODO: include mathematical description and explanatory image
+                The "key" column elements are string type.
 
             See Also
             --------
             abmodel.agent.execution_modes.ExecutionModes : TODO complete
             explanation
 
-            std_str_join_cols : TODO complete explanation
+            std_str_join_cols : 
+                Joins the input strings with the given separator in only 
+                one string.
+                If the inputs are series, it concatenates vertically the series.
 
             check_field_existance : TODO complete explanation
 
@@ -1553,23 +1637,39 @@ class AgentDisease:
         execmode: ExecutionModes = ExecutionModes.iterative.value
     ) -> DataFrame:
         """
-            TODO: Add brief explanation
+            Adds the disease state max time field after the calculation of
+            the agent's maximum time in an specific disease state for
+            each disase state according to the initial conditions 
 
             Parameters
             ----------
-            TODO
+            df : DataFrame
+                DataFrame to include the field disease state max time
+
+            disease_groups : DiseaseStates
+                All disease groups
+                It's an instance of DiseaseStates data class
+
+            natural_history : NaturalHistory
+                All important information about the disease natural history
+                It's an instance of NaturalHistory data class
+
+            execmode : ExecutionModes, default = ExecutionModes.iterative.value
+                Mode of Execution
+                It's an instance of ExecutionModes
 
             Returns
             -------
-            TODO
+            df : DataFrame
+                DataFrame with disease state max time initialized
 
             Raises
             ------
-            TODO
+            NotImplementedError :
+                If ExecutionModes is not iterative or vectorized
 
-            Notes
-            -----
-            TODO: include mathematical description and explanatory image
+            Exception :
+                If "key" field is not in DataFrame
 
             See Also
             --------
@@ -1633,23 +1733,35 @@ class AgentDisease:
         execmode: ExecutionModes = ExecutionModes.iterative.value
     ) -> DataFrame:
         """
-            TODO: Add brief explanation
+            Updates "disease_state_time" and "disease_state_max_time" columns 
+            for each agent in DataFrame
 
             Parameters
             ----------
-            TODO
+            df : DataFrame
+                DataFrame to apply the transformation
+            
+            disease_groups : DiseaseStates
+                All disease groups
+                It's an instance of DiseaseStates data class
 
+            natural_history : NaturalHistory
+                All important information about the disease's natural history
+                It's an instance of NaturalHistory data class
+
+            execmode : ExecutionModes, default = ExecutionModes.iterative.value
+                Mode of Execution
+                It's an instance of ExecutionModes
+            
             Returns
             -------
-            TODO
+            df : DataFrame
+                DataFrame with applied transformation
 
             Raises
             ------
-            TODO
-
-            Notes
-            -----
-            TODO: include mathematical description and explanatory image
+            NotImplementedError :
+                If ExecutionModes is not iterative
 
             See Also
             --------
