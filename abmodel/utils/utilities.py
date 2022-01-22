@@ -113,16 +113,31 @@ def std_str_join_cols(
     separator: str = "-"
 ) -> Union[str, list[str]]:
     """
-        TODO: brief explanation
+        Joins the input strings with the given separator in only one string.
+        If the inputs are series, it concatenates vertically the series.
 
         Parameters
         ----------
-            TODO
+        col1 : Union[str, Series]
+            Input string 1. Can be a str or a series of strings
+        
+        col2 : Union[str, Series]
+            Input string 2. Can be a str or a series of strings
+        
+        separator : str, default = "-"
+            Separator of the joined strings or series
+
+        Returns
+        -------
+        join_str : Union[str, list[str]
+            Joined strings or concatenated series
 
         Raises
         ------
         ValueError
-            TODO: explain the exception
+            If the input types are not the same or different
+            from string or series.
+            Must be both strings or both a serie of strings.
 
         Examples
         --------
