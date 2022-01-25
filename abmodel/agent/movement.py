@@ -12,12 +12,19 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
+#
+#This package is authored by:
+#Camilo Hincapié (https://www.linkedin.com/in/camilo-hincapie-gutierrez/) (main author)
+#Ian Mejía (https://github.com/IanMejia)
+#Emil Rueda (https://www.linkedin.com/in/emil-rueda-424012207/)
+#Nicole Rivera (https://github.com/nicolerivera1)
+#Carolina Rojas Duque (https://github.com/carolinarojasd)
 
 from typing import Optional, Union
 
 from math import fmod
 from numpy import ndarray, arctan2, cos, sin, pi, sqrt, inf, frompyfunc
-from pandas.core.frame import DataFrame
+from pandas.core.frame import DataFrame, Series
 
 from abmodel.models.population import BoxSize
 from abmodel.models.disease import MobilityGroups, DistTitles
@@ -27,10 +34,10 @@ from abmodel.utils.utilities import check_field_existance, exception_burner
 
 
 def move_individual_agent(
-    row: DataFrame,
+    row: Series,
     box_size: BoxSize,
     dt: float
-) -> DataFrame:
+) -> Series:
     """
     TODO: Add brief explanation
     A row represents an agent.
@@ -248,16 +255,11 @@ class AgentMovement:
             --------
             TODO: include some examples
         """
-        try:
-            df.loc[indexes, "vx"] = 0
-            df.loc[indexes, "vy"] = 0
-        except Exception as error:
-            exception_burner([
-                error,
-                check_field_existance(df, ["vx", "vy"])
-                ])
-        else:
-            return df
+        check_field_existance(df, ["vx", "vy"])
+        df.loc[indexes, "vx"] = 0
+        df.loc[indexes, "vy"] = 0
+
+        return df
 
     @classmethod
     def standardize_angle(cls, angle: float) -> float:
@@ -314,7 +316,7 @@ class AgentMovement:
         return cls.standardize_angle(arctan2(y, x))
 
     @classmethod
-    def vector_angles(cls, df: DataFrame, components: list) -> DataFrame:
+    def vector_angles(cls, df: DataFrame, components: list) -> Series:
         """
             Calculates vector angles from their euclidean components
 
@@ -407,6 +409,7 @@ class AgentMovement:
             TODO: include some examples
         """
         try:
+            check_field_existance(df, ["vx", "vy"])
             n_agents = len(df.index)
             new_velocities_norm = distribution.sample(size=n_agents)
 
@@ -827,18 +830,21 @@ class AgentMovement:
         greatest_angle_to_avoid = sorted_df.loc[
             sorted_df["consecutive_angle"] == max_angle
             ]
-
+        # Random index when there are more than one max value.
+        index = \
+            greatest_angle_to_avoid.relative_angle.sample().index[0]
         # Standardize angles on the interval [0, 2*pi]
         return cls.standardize_angle(
-            greatest_angle_to_avoid["relative_angle"].iloc[0]
-            + greatest_angle_to_avoid["consecutive_angle"].iloc[0]/2)
+            greatest_angle_to_avoid["relative_angle"].loc[index] +
+            greatest_angle_to_avoid["consecutive_angle"].loc[index]/2
+            )
 
     @classmethod
     def replace_velocities(
         cls,
-        row: DataFrame,
-        new_angles: DataFrame
-    ) -> DataFrame:
+        row: Series,
+        new_angles: Series
+    ) -> Series:
         """
             TODO: Add brief explanation
 
