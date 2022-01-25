@@ -1,8 +1,7 @@
 name: Build
 on:
   push:
-    branches:
-      - merge_dev_disease_dev
+    branches: [main, disease_dev]
   pull_request:
     types: [opened, synchronize, reopened]
 jobs:
