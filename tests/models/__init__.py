@@ -19,13 +19,3 @@
 #Emil Rueda (https://www.linkedin.com/in/emil-rueda-424012207/)
 #Nicole Rivera (https://github.com/nicolerivera1)
 #Carolina Rojas Duque (https://github.com/carolinarojasd)
-
-from .disease import AgentDisease
-from .movement import AgentMovement
-from .neighbors import AgentNeighbors
-
-__all__ = [
-    "AgentDisease",
-    "AgentMovement",
-    "AgentNeighbors"
-    ]

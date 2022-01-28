@@ -60,55 +60,82 @@ For more information, please refer to the official documentation of the project.
 All the tests were developed with the python tool pytest. To see them properly, type
 in the command line:
 
-`$ pytest <name_of_test_file>`
+`$ poetry run pytest <name_of_test_file>`
+
+in the same ubication of the test file.
 
 Flags are used with pytest for modifying the aspect of the output
 report. Typing flags using pytest might be tedious, however, it is possible modify the `pytest.init` file for
 [change defaulting command line options](https://docs.pytest.org/en/6.2.x/example/simple.html#how-to-change-command-line-options-defaults). This allows to adopt as many flags
-as necesary. In our case, it was adopt the flags: `-s`, `--no-header`, `-rA`, `-vv`,
+as necesary. In our case, it was adopted the flags: `-s`, `--no-header`, `-rA`, `-vv`,
 `--cov`, `--cov-branch`.
 
 During test execution with pytest, any output sent to stdout and stderr is
-[captured](https://docs.pytest.org/en/6.2.x/capture.html). the `-s` flag  
+[captured](https://docs.pytest.org/en/6.2.x/capture.html). The `-s` flag  
 disable all capturing and lets the user look at all the outputs, this is very
 important because the description of all tests was typed in the docstring of each method.
 
 The `--no-header` flag disables the [initial header](https://docs.pytest.org/en/stable/changelog.html#id33).
 
-The `-rA` flag shows extra test [summary info](https://docs.pytest.org/en/6.2.x/usage.html#detailed-summary-report) of all the test.
+The `-rA` flag shows extra test [summary info](https://docs.pytest.org/en/6.2.x/usage.html#detailed-summary-report) of all the tests.
 
 The `-vv` flag indicates to pytest run in [verbosity](https://docs.pytest.org/en/latest/how-to/output.html) mode, this controls all the pytest outputs.
 
-The flag `--cov` produces a [coverage](https://pytest-cov.readthedocs.io/en/latest/#welcome-to-pytest-cov-s-documentation) reports. It shows the amount of code lines covers by
-the test in a percentage, and `--cov-branch` the branches covers of the tests. A branch is
-the decision that makes the code when there are a if sentence or similar.
+The flag `--cov` produces a [coverage](https://pytest-cov.readthedocs.io/en/latest/#welcome-to-pytest-cov-s-documentation) reports. It shows the percentage of code lines covered by the test, while `--cov-branch` shows the branches covered. A branch is
+a decision taken by the code when it finds an if sentence or similar.
 
 For more information about [pytest flags](https://docs.pytest.org/en/6.2.x/usage.html).
 
-Instead of running one test, it is possible to run all the tests at the same time, you must be inside of `abmodel/tests`, and type in the command line:
+Instead of running one test, it is possible to run all the tests at the same time. You must be inside of `tests` directory, and type in the command line:
 
-`$ pytest`
+`$ poetry run pytest`
 
-For modifying the initial conditions of the test, uses the fixtures methods at the beginning
+So as to Modify the initial conditions of the test, use the fixtures methods at the beginning
 of all the tests files.
 
 ![repo_logo](https://raw.githubusercontent.com/fenfisdi/cdslib_agents/main/images/CDSLib_agents_white-background.png "CDSLib - Agents Logo")
 
-## Main contributors
+## Authors and main contributors
 
 [![GitHub contributors](https://img.shields.io/github/contributors/fenfisdi/cdslib_agents)](https://github.com/fenfisdi/cdslib_agents/graphs/contributors)
 
-This package was made with thanks to the leadership of
-[Camilo Hincapié](https://www.linkedin.com/in/camilo-hincapie-gutierrez/)
-and the contributions of
+This package is authored by 
+[Camilo Hincapié](https://www.linkedin.com/in/camilo-hincapie-gutierrez/) (main author),
 [Ian Mejía](https://github.com/IanMejia),
-[Carolina Rojas Duque](https://github.com/carolinarojasd),
 [Emil Rueda](https://www.linkedin.com/in/emil-rueda-424012207/),
-[Nicole Rivera](https://github.com/nicolerivera1) and
-[Alejandro Campillo](https://www.linkedin.com/in/alucardcampillo/).
+[Nicole Rivera](https://github.com/nicolerivera1)
+and
+[Carolina Rojas Duque](https://github.com/carolinarojasd)
+and the conceptual contributions about epidemiology of
+[Lina Marcela Ruiz Galvis](mailto:lina.ruiz2@udea.edu.co).
+
+Other remarkably contributors to this work were
+[Alejandro Campillo](https://www.linkedin.com/in/alucardcampillo/)
+and
+[Daniel Alfonso Montoya](https://www.linkedin.com/in/daniel-montoya-ds/).
+
+
+
 
 ## Contact us
 
 For any suggestion on the development of this type of models, please our official
 channels of [dicussions](https://github.com/fenfisdi/cdslib_agents/discussions)
 provided by GitHub.
+
+## Development
+
+### Create the virtualenv
+
+This package is managed using [Pyenv](https://github.com/pyenv/pyenv) and 
+[Poetry](https://python-poetry.org/docs/)). In order to create the
+virtualenv correctly use:
+
+```
+$ pyenv install 3.9.7
+$ poetry env use 3.9.7
+$ poetry install
+```
+
+Then activate the virtualenv running `poetry shell`, and to deactivate the virtual
+environment and exit this new shell type `exit`.

@@ -1,3 +1,25 @@
+# Copyright (C) 2021, Camilo Hincapié Gutiérrez
+# This file is part of CDSLIB.
+#
+# CDSLIB is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# CDSLIB is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+#
+#This package is authored by:
+#Camilo Hincapié (https://www.linkedin.com/in/camilo-hincapie-gutierrez/) (main author)
+#Ian Mejía (https://github.com/IanMejia)
+#Emil Rueda (https://www.linkedin.com/in/emil-rueda-424012207/)
+#Nicole Rivera (https://github.com/nicolerivera1)
+#Carolina Rojas Duque (https://github.com/carolinarojasd)
+
 from typing import Union, Optional
 from copy import deepcopy
 
@@ -12,6 +34,7 @@ from abmodel.utils import check_field_existance
 from abmodel.utils import exception_burner
 from abmodel.utils import std_str_join_cols
 from abmodel.models import DistTitles
+from abmodel.models import SimpleGroups
 from abmodel.models import NaturalHistory
 from abmodel.models import DiseaseStates
 from abmodel.models import SusceptibilityGroups
@@ -19,6 +42,11 @@ from abmodel.models import ImmunizationGroups
 # from abmodel.models import MobilityGroups
 from abmodel.models import IsolationAdherenceGroups
 from abmodel.models import HealthSystem
+from abmodel.models import InterestVariables
+from abmodel.models import MRTStopModes
+# from abmodel.models import MRTracingPolicies
+from abmodel.models import GlobalCyclicMR
+# from abmodel.models import CyclicMRPolicies
 
 
 # =============================================================================
@@ -962,7 +990,7 @@ def update_immunization_params_iterative(
             else:
                 immunization_time_remainder = immunization_max_time \
                                             - immunization_time
-            
+
             immunization_max_time = addend + immunization_time_remainder
         else:
             pass
@@ -2333,4 +2361,212 @@ class AgentDisease:
         else:
             return df
 
-    # def quarantine_by_government_decrees
+    @classmethod
+    def apply_mobility_restrictions(
+        cls,
+        step: int,
+        df: DataFrame,
+        mr_groups: SimpleGroups,
+        mrt_policies: Optional[dict] = None,  # MRTracingPolicies
+        mrt_policies_df: Optional[DataFrame] = None,
+        global_cyclic_mr: Optional[GlobalCyclicMR] = None,
+        cyclic_mr_policies: Optional[dict] = None,  # CyclicMRPolicies
+        cmr_policies_df: Optional[DataFrame] = None,
+        grace_time_in_steps: Optional[int] = None,
+        execmode: ExecutionModes = ExecutionModes.iterative.value
+    ):
+        """
+            TODO: Add brief explanation
+
+            Parameters
+            ----------
+            TODO
+
+            Returns
+            -------
+            TODO
+
+            Raises
+            ------
+            TODO
+
+            Notes
+            -----
+            TODO: include mathematical description and explanatory image
+
+            See Also
+            --------
+            abmodel.agent.execution_modes.ExecutionModes : TODO complete
+            explanation
+
+            check_field_existance : TODO complete explanation
+
+            _function : TODO complete explanation
+
+            Examples
+            --------
+            TODO: include some examples
+        """
+        try:
+            if execmode == ExecutionModes.iterative.value:
+                # =============================================================
+                # Mobility Restrictions - Tracing Policies
+                # =============================================================
+
+                # Init mrt_target_groups
+                mrt_target_groups = []
+
+                if mrt_policies is not None:
+                    # Init policies_status dict
+                    policies_status = {"step": step}
+
+                    # Init target_groups_lists
+                    target_groups_lists = []
+
+                    for variable, policie in zip(
+                        mrt_policies.keys(),
+                        mrt_policies.values()
+                    ):
+                        former_activation_status = mrt_policies_df[
+                            variable.value].iloc[-1]
+
+                        if former_activation_status == "disabled":
+                            # Find the corresponding count
+                            # to assess start level
+                            if variable == InterestVariables.dead:
+                                count = df[["is_dead"]].sum()["is_dead"]
+                            if variable == InterestVariables.diagnosed:
+                                count = df[["is_diagnosed"]].sum()[
+                                    "is_diagnosed"]
+                            if variable == InterestVariables.ICU:
+                                count = df[["is_in_ICU"]].sum()["is_in_ICU"]
+                            if variable == InterestVariables.hospital:
+                                count = df[["is_hospitalized"]].sum()[
+                                    "is_hospitalized"]
+
+                            if count >= policie.mr_start_level:
+                                new_activation_status = "enabled"
+                            else:
+                                new_activation_status = "disabled"
+
+                        if former_activation_status == "enabled":
+
+                            mr_stop_mode = policie.mr_stop_mode
+
+                            if mr_stop_mode == MRTStopModes.level_number:
+                                # Find the corresponding count
+                                # to assess stop level
+                                if variable == InterestVariables.dead:
+                                    count = df[["is_dead"]].sum()["is_dead"]
+                                if variable == InterestVariables.diagnosed:
+                                    count = df[["is_diagnosed"]].sum()[
+                                        "is_diagnosed"]
+                                if variable == InterestVariables.ICU:
+                                    count = df[["is_in_ICU"]].sum()[
+                                        "is_in_ICU"]
+                                if variable == InterestVariables.hospital:
+                                    count = df[["is_hospitalized"]].sum()[
+                                        "is_hospitalized"]
+
+                                if count <= policie.mr_stop_level:
+                                    new_activation_status = "disabled"
+                                else:
+                                    new_activation_status = "enabled"
+
+                            if mr_stop_mode == MRTStopModes.length:
+                                # Find the step when the policie was enabled
+                                df_copy = mrt_policies_df[
+                                    ["step", variable.value]
+                                    ].copy()
+
+                                df_copy["status_changed"] = df_copy[
+                                    variable.value].shift() != df_copy[
+                                        variable.value]
+
+                                enabled_start = df_copy[
+                                    df_copy["status_changed"]
+                                    ]["step"].iloc[-1]
+
+                                # Here "step" is the current step
+                                enabled_length = enabled_start - step
+
+                                mr_length = policie.mr_length
+                                if enabled_length >= mr_length:
+                                    new_activation_status = "disabled"
+                                else:
+                                    # enabled_length < mr_length
+                                    new_activation_status = "enabled"
+
+                        # Append to policies_status dict
+                        policies_status[variable.value] = new_activation_status
+
+                        # Append target_groups_lists
+                        if new_activation_status == "enabled":
+                            target_groups_lists.append()
+
+                    # Append policies_status to mrt_policies_df
+                    mrt_policies_df = mrt_policies_df.append(policies_status)
+
+                    # Flatten list of lists using list comprehension
+                    flatten_target_groups_lists = [
+                        item
+                        for sublist in target_groups_lists
+                        for item in sublist
+                        ]
+
+                    # Remove duplicates
+                    mrt_target_groups = list(set(flatten_target_groups_lists))
+
+                # =============================================================
+                # Mobility Restrictions - Cyclic Policies
+                # =============================================================
+
+                # Init cmr_target_groups
+                cmr_target_groups = []
+
+                cond_1 = global_cyclic_mr is not None
+                cond_2 = cyclic_mr_policies is not None
+
+                if cond_1 and cond_2:
+                    # Init policies_status dict
+                    policies_status = {"step": step}
+
+                    # Init target_groups_lists
+                    target_groups_lists = []
+
+                    if step > grace_time_in_steps:
+                        if cmr_policies_df["global_mr"].iloc[-1] == "enabled":
+                            pass
+                        if cmr_policies_df["global_mr"].iloc[-1] == "disabled":
+                            pass
+                    elif step == grace_time_in_steps:
+                        # Append to policies_status dict
+                        policies_status["global_mr"] = "enabled"
+
+                        for group in cyclic_mr_policies.keys():
+                            if cyclic_mr_policies[group].delay > 0:
+                                # Append to policies_status dict
+                                policies_status[group] = "disabled"
+                            else:
+                                # Append to policies_status dict
+                                policies_status[group] = "enabled"
+                    else:
+                        # Append to policies_status dict
+                        for col in setdiff1d(cmr_policies_df.columns, "step"):
+                            policies_status[col] = "disabled"
+
+                    # Append policies_status to cmr_policies_df
+                    cmr_policies_df = cmr_policies_df.append(policies_status)
+
+            else:
+                raise NotImplementedError(
+                    f"`execmode = {execmode}` is still not implemented yet"
+                    )
+        except Exception as error:
+            validation_list = ["agent"]
+            exception_burner([
+                error,
+                check_field_existance(df, validation_list)
+                ])
+        else:
+            return df
