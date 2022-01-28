@@ -1,3 +1,25 @@
+# Copyright (C) 2021, Camilo Hincapié Gutiérrez
+# This file is part of CDSLIB.
+#
+# CDSLIB is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# CDSLIB is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+#
+#This package is authored by:
+#Camilo Hincapié (https://www.linkedin.com/in/camilo-hincapie-gutierrez/) (main author)
+#Ian Mejía (https://github.com/IanMejia)
+#Emil Rueda (https://www.linkedin.com/in/emil-rueda-424012207/)
+#Nicole Rivera (https://github.com/nicolerivera1)
+#Carolina Rojas Duque (https://github.com/carolinarojasd)
+
 from enum import Enum
 from typing import Optional, Any
 from datetime import datetime
@@ -7,7 +29,7 @@ from pydantic import BaseModel, root_validator
 from abmodel.models import SimpleGroups
 
 # ============================================================================
-# Mobility restrictions by tracing interest variables
+# Mobility restrictions by tracing variables of interest
 # (hereinafter abbreviated as MRT)
 #
 # Mobility restrictions (hereinafter abbreviated as MR or mr)
@@ -16,13 +38,13 @@ from abmodel.models import SimpleGroups
 
 class InterestVariables(Enum):
     """
-        This class enumerates the interest variables
+        This class enumerates the variables of interest
         for tracing and determining mobility restriction policies.
     """
-    dead = "dead by disease"
+    dead = "dead_by_disease"
     diagnosed = "diagnosed"
-    ICU = "ICU capacity"
-    hospital = "hospital capacity"
+    ICU = "ICU_capacity"
+    hospital = "hospital_capacity"
 
 
 class MRTStopModes(Enum):

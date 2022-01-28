@@ -1,3 +1,25 @@
+# Copyright (C) 2021, Camilo Hincapié Gutiérrez
+# This file is part of CDSLIB.
+#
+# CDSLIB is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# CDSLIB is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+#
+#This package is authored by:
+#Camilo Hincapié (https://www.linkedin.com/in/camilo-hincapie-gutierrez/) (main author)
+#Ian Mejía (https://github.com/IanMejia)
+#Emil Rueda (https://www.linkedin.com/in/emil-rueda-424012207/)
+#Nicole Rivera (https://github.com/nicolerivera1)
+#Carolina Rojas Duque (https://github.com/carolinarojasd)
+
 from typing import Optional
 
 from numpy import array, nan_to_num, inf, maximum, floor, setdiff1d, isin, pi
@@ -18,9 +40,9 @@ from abmodel.models import ImmunizationGroups
 from abmodel.models import MobilityGroups
 from abmodel.models import NaturalHistory
 from abmodel.models import DiseaseStates
-from abmodel.models import MRTracingPolicies
+# from abmodel.models import MRTracingPolicies
 from abmodel.models import GlobalCyclicMR
-from abmodel.models import CyclicMRPolicies
+# from abmodel.models import CyclicMRPolicies
 from abmodel.models import IsolationAdherenceGroups
 from abmodel.agent import AgentMovement
 from abmodel.agent import AgentDisease
@@ -52,9 +74,9 @@ class Population:
         disease_groups: DiseaseStates,
         natural_history: NaturalHistory,
         initial_population_setup_list: list[dict],
-        mrt_policies: Optional[MRTracingPolicies] = None,
+        mrt_policies: Optional[dict] = None,  # MRTracingPolicies
         global_cyclic_mr: Optional[GlobalCyclicMR] = None,
-        cyclic_mr_policies: Optional[CyclicMRPolicies] = None,
+        cyclic_mr_policies: Optional[dict] = None,  # CyclicMRPolicies
         immunization_groups: Optional[ImmunizationGroups] = None,
         isolation_adherence_groups: Optional[IsolationAdherenceGroups] = None,
         execmode: ExecutionModes = ExecutionModes.iterative.value,
@@ -131,9 +153,18 @@ class Population:
 
     def __initialize_df(self):
         """
+            TODO: Add brief explanation
+
+            Parameters
+            ----------
+            TODO
+
+            See Also
+            --------
+            TODO
         """
         # =====================================================================
-        # Init population dataframe
+        # Init population dataframe __df
         self.__df = DataFrame({
             "agent": list(range(self.configuration.population_number))
         })
@@ -196,25 +227,129 @@ class Population:
             )
 
         # =====================================================================
-        # Initialize disease related columns
+        # Initialize __accumulated_df
         if self.evolmode == EvolutionModes.cumulative.value:
             self.__accumulated_df = self.__df.copy()
 
+        # =====================================================================
+        # Initialize __mrt_policies_df
+        if self.mrt_policies is not None:
+            self.__mrt_policies_df = DataFrame(
+                columns=["step"] + list(self.mrt_policies.keys())
+                )
+        else:
+            self.__mrt_policies_df = None
+
+        # =====================================================================
+        # Initialize __cyclic_mr_policies_df
+        cond_1 = self.global_cyclic_mr is not None
+        cond_2 = self.cyclic_mr_policies is not None
+
+        if cond_1 and cond_2:
+            self.__grace_time_in_steps = int((
+                self.global_cyclic_mr.grace_time
+                - self.configuration.initial_date
+                )/self.configuration.iteration_time)
+            self.__cmr_policies_df = DataFrame(
+                columns=[
+                    "step", "global_mr"] + list(self.cyclic_mr_policies.keys())
+                )
+        else:
+            self.__grace_time_in_steps = None
+            self.__cmr_policies_df = None
+
     def get_population_df(self):
         """
+            TODO: Add brief explanation
+
+            Parameters
+            ----------
+            TODO
+
+            See Also
+            --------
+            TODO
         """
         return self.__df
 
     def get_accumulated_population_df(self):
         """
+            TODO: Add brief explanation
+
+            Parameters
+            ----------
+            TODO
+
+            See Also
+            --------
+            TODO
+
         """
         if self.evolmode == ExecutionModes.cumulative.value:
             return self.__accumulated_df
         else:
             raise ValueError(f"Denied: evolmode == {self.evolmode}")
 
+    def get_mrt_policies_df(self):
+        """
+            TODO: Add brief explanation
+
+            Parameters
+            ----------
+            TODO
+
+            See Also
+            --------
+            TODO
+        """
+        if self.mrt_policies is not None:
+            return self.__mrt_policies_df
+        else:
+            raise ValueError("Denied: mrt_policies is None")
+
+    def get_cmr_policies_df(self):
+        """
+            TODO: Add brief explanation
+
+            Parameters
+            ----------
+            TODO
+
+            See Also
+            --------
+            TODO
+        """
+        cond_1 = self.global_cyclic_mr is not None
+        cond_2 = self.cyclic_mr_policies is not None
+
+        if cond_1 and cond_2:
+            return self.__cmr_policies_df, self.__grace_time_in_steps
+        else:
+            if not cond_1 and not cond_2:
+                raise ValueError(
+                    "Denied: both global_cyclic_mr and "
+                    "cyclic_mr_policies are None"
+                    )
+            if not cond_1:
+                raise ValueError("Denied: global_cyclic_mr is None")
+            if not cond_2:
+                raise ValueError("Denied: cyclic_mr_policies is None")
+
     def get_units(self):
         """
+            TODO: Add brief explanation
+
+            Parameters
+            ----------
+            TODO
+
+            See Also
+            --------
+            TODO
+
+            Examples
+            --------
+            TODO: include some examples
         """
         return None
 
@@ -223,8 +358,21 @@ class Population:
         iterations: int
     ):
         """
-            # TODO: add the option to iterate by date
+            TODO: Add brief explanation
+
+            Parameters
+            ----------
+            TODO
+
+            See Also
+            --------
+            TODO
+
+            Examples
+            --------
+            TODO: include some examples
         """
+        # TODO: add the option to iterate by date
         for step in range(iterations):
             self.__evolve_single_step()
 
@@ -236,6 +384,19 @@ class Population:
 
     def __remove_dead_agents(self):
         """
+            TODO: Add brief explanation
+
+            Parameters
+            ----------
+            TODO
+
+            See Also
+            --------
+            TODO
+
+            Examples
+            --------
+            TODO: include some examples
         """
         self.__df = self.__df[
             ~self.__df[["is_dead"]].any(axis="columns")
@@ -243,6 +404,19 @@ class Population:
 
     def __evolve_single_step(self):
         """
+            TODO: Add brief explanation
+
+            Parameters
+            ----------
+            TODO
+
+            See Also
+            --------
+            TODO
+
+            Examples
+            --------
+            TODO: include some examples
         """
         # =====================================================================
         # Remove dead agents before evolving population dataframe
