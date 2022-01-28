@@ -128,7 +128,7 @@ provided by GitHub.
 ### Create the virtualenv
 
 This package is managed using [Pyenv](https://github.com/pyenv/pyenv) and 
-[Poetry](https://python-poetry.org/docs/)). In order to create the
+[Poetry](https://python-poetry.org/docs/). In order to create the
 virtualenv correctly use:
 
 ```
