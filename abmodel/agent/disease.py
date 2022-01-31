@@ -116,19 +116,57 @@ def calculate_max_time_iterative(
     natural_history: NaturalHistory
 ) -> tuple[float, float]:
     """
-        TODO: Add brief explanation
+        Calculates the maximum disease state time if indicated or necessary for
+        each agent represented by a row. It uses the agent's natural history to 
+        get the specific time distribution for the agent's disease state.
+        If the agent's state is dead, it returns not a number (None).
 
         Parameters
         ----------
-        TODO
+        key : str
+            String containing the agent's natural history key that is 
+            formed by an union between the agent's vulnerability group and 
+            its disease state. 
+        
+        disease_state : str
+            String containing the agent's disease state.
+
+        do_calculate_max_time : bool
+            Boolean value to indicates if it must calculate the maximum 
+            time.
+        
+        disease_state_time : Union[float, None]
+            Refrence value of the disease state time (how long has
+            the agent been in the current specific state) to be modified by 
+            this function. 
+            Must be a float or None.
+
+        disease_state_max_time : Union[float, None]
+            Refrence value of the disease state maximum time (how long 
+            will the agent be in the current specifi state) to be modified by
+            this function. 
+            Must be a float or None.
+        
+        disease_groups : DiseaseStates
+                All disease groups.
+                It's an instance of DiseaseStates data class.
+
+        natural_history : NaturalHistory
+            All important information about the disease's natural history.
+            It's an instance of NaturalHistory data class.
 
         Returns
         -------
-        TODO
+        init_disease_state_time, init_disease_state_max_time : tuple[float, float]
+            Initialized values for the disease state time and the disease
+            state maximum time.
 
         Notes
         -----
-        TODO: include mathematical description and explanatory image
+        If do_calculate_max_time is True, it sets the disease state time reference
+        value to zero by default, because this is only used for initialization or disease
+        state transitions where the time that the agent has been in the current specific
+        state is zero.
 
         See Also
         --------
@@ -288,11 +326,43 @@ def hospitalization_vectorized(
 
         Parameters
         ----------
-        TODO
+        is_hospitalized : ndarray
+            DataFrame column corresponding to all the agents hospitalization
+            state. Boolean value if is (True) or if is not (False) hospitalized.
+
+        is_in_ICU : ndarray
+            DataFrame column corresponding to all the agents ICU state.
+            Boolean value if is (True) or if is not (False) in ICU.
+
+        disease_states : ndarray
+            DataFrame column corresponding to all the agents disease state.
+
+        is_dead : ndarray
+            DataFrame column corresponding to all the agents is_death report.
+
+        reduction_factor : ndarray
+            DataFrame column corresponding to all the agents reduction factor.
+        
+        dead_disease_group : str
+                Name of the disease group corresponding to the dead agents
+        
+        alpha : float
+                Reduction factor of the spreading probability due to hospitalization
+                Its numerical value goes from 0 to 1. 
+        
+        disease_groups : DiseaseStates
+                All disease groups
+                It's an instance of DiseaseStates data class
+
+        health_system : HealthSystem
+                All important information about the health system like hospital
+                capacity and UCI capacity
+                It's an instance of HealthSystem data class
 
         Returns
         -------
-        TODO
+        df : DataFrame
+            Updated DataFrame after applying transformation.
 
         Notes
         -----
@@ -1242,7 +1312,10 @@ class AgentDisease:
                 agents disease state
 
             generate_key_col :
-
+                Generates the "key" column in DataFrame taking into account the 
+                vulnerability group and the disease state to access the agent's
+                disease natural history.
+                The "key" column elements are string type.
 
             Returns
             -------
@@ -1921,23 +1994,48 @@ class AgentDisease:
         execmode: ExecutionModes = ExecutionModes.vectorized.value
     ) -> DataFrame:
         """
-            TODO: Add brief explanation
+            Updates the agent's information related to hospitalization changes. 
 
             Parameters
             ----------
-            TODO
+            df : DataFrame
+                DataFrame to apply the transformation.
+                Must have "is_hospitalized", "is_in_ICU", "disease_state", "is_dead" and 
+                "reduction_factor" columns.
+            
+            dead_disease_group : str
+                Name of the disease group corresponding to the dead agents
+            
+            alpha : float
+                Reduction factor of the spreading probability due to hospitalization
+                Its numerical value goes from 0 to 1. 
+            
+            disease_groups : DiseaseStates
+                All disease groups
+                It's an instance of DiseaseStates data class
+            
+            health_system : HealthSystem
+                All important information about the health system like hospital
+                capacity and UCI capacity
+                It's an instance of HealthSystem data class
+            
+            execmode : ExecutionModes, default = ExecutionModes.vectorized.value
+                Mode of Execution
+                It's an instance of ExecutionModes
 
             Returns
             -------
-            TODO
+            df : DataFrame
+                Dataframe with the applied transformation
 
             Raises
             ------
-            TODO
+            Exception :
+                If any of "is_hospitalized", "is_in_ICU", "disease_state",
+                "is_dead" and "reduction_factor" columns is not in DataFrame.
 
-            Notes
-            -----
-            TODO: include mathematical description and explanatory image
+            NotImplementedError :
+                If ExecutionModes is not vectorized
 
             See Also
             --------
