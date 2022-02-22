@@ -13,20 +13,25 @@
 #
 # You should have received a copy of the GNU General Public License
 #
-#This package is authored by:
-#Camilo Hincapié (https://www.linkedin.com/in/camilo-hincapie-gutierrez/) (main author)
-#Ian Mejía (https://github.com/IanMejia)
-#Emil Rueda (https://www.linkedin.com/in/emil-rueda-424012207/)
-#Nicole Rivera (https://github.com/nicolerivera1)
-#Carolina Rojas Duque (https://github.com/carolinarojasd)
+# This package is authored by:
+# Camilo Hincapié (https://www.linkedin.com/in/camilo-hincapie-gutierrez/) (main author)
+# Ian Mejía (https://github.com/IanMejia)
+# Emil Rueda (https://www.linkedin.com/in/emil-rueda-424012207/)
+# Nicole Rivera (https://github.com/nicolerivera1)
+# Carolina Rojas Duque (https://github.com/carolinarojasd)
 
 from enum import Enum
-from typing import Optional, Any
+from typing import Optional, Any, Union
 from datetime import datetime
+from dataclasses import field
+from datetime import timedelta
 
-from pydantic import BaseModel, root_validator
+from pydantic import root_validator
+from pydantic.dataclasses import dataclass
+from numpy import random
 
 from abmodel.models import SimpleGroups
+from abmodel.utils.units import timedelta_to_days
 
 # ============================================================================
 # Mobility restrictions by tracing variables of interest
@@ -63,8 +68,50 @@ class MRTimeUnits(Enum):
     weeks = "weeks"
     months = "months"
 
+def time_lenght_in_steps(
+    mr_length: int,
+    mr_length_units: MRTimeUnits,
+    iteration_time: timedelta
+) -> float:
 
-class MRTracingPolicies(BaseModel):
+    iteration_time = timedelta_to_days(iteration_time)
+    if mr_length_units == MRTimeUnits.days:
+        mr_length_in_steps = timedelta(days=mr_length) / iteration_time
+    if mr_length_units == MRTimeUnits.weeks:
+        mr_length_in_steps = \
+            timedelta_to_days(timedelta(days=mr_length)) / iteration_time
+    if mr_length_units == MRTimeUnits.months:
+        mr_length_in_steps = \
+            timedelta_to_days(timedelta(days=30*mr_length)) / iteration_time
+    return mr_length_in_steps.days
+
+def time_lenght_in_steps_random_case(
+    mr_length: int,
+    mr_length_units: MRTimeUnits,
+    iteration_time: timedelta
+) -> float:
+
+    iteration_time = timedelta_to_days(iteration_time)
+    unrestricted_time = int(random.randint(1, mr_length + 1, 1)[0])
+
+    if mr_length_units == MRTimeUnits.days:
+        unrestricted_time_in_steps = \
+            timedelta(days=unrestricted_time) / iteration_time
+    if mr_length_units == MRTimeUnits.weeks:
+        unrestricted_time_in_steps = \
+            timedelta_to_days(
+                timedelta(days=unrestricted_time)
+            ) / iteration_time
+    if mr_length_units == MRTimeUnits.months:
+        unrestricted_time_in_steps = \
+            timedelta_to_days(
+                timedelta(days=30*unrestricted_time)
+            ) / iteration_time
+    return unrestricted_time_in_steps.days
+
+
+@dataclass
+class MRTracingPolicies:
     """
         TODO: Add brief explanation
 
@@ -79,11 +126,12 @@ class MRTracingPolicies(BaseModel):
     variable: InterestVariables
     mr_start_level: int
     mr_stop_mode: MRTStopModes
-    mr_stop_level: Optional[int]
-    mr_length: Optional[int]
-    mr_length_units: Optional[MRTimeUnits]
     mr_groups: SimpleGroups
     target_groups: list[str]
+    mr_stop_level: Optional[int] = None
+    mr_length: Optional[int] = None
+    mr_length_units: Optional[MRTimeUnits] = None
+    mr_length_in_steps: float = field(default=None, init=False)
 
     @root_validator
     def validate(
@@ -138,10 +186,17 @@ class MRTracingPolicies(BaseModel):
                 )
         return v
 
+    def set_mr_length_in_steps(self, iteration_time: timedelta):
+        self.mr_length_in_steps = time_lenght_in_steps(
+            self.mr_length,
+            self.mr_length_units,
+            iteration_time
+        )
 
 # ============================================================================
 # Cyclic mobility restrictions (hereinafter abbreviated as CyclicMR)
 # ============================================================================
+
 
 class CyclicMRModes(Enum):
     """
@@ -151,7 +206,8 @@ class CyclicMRModes(Enum):
     fixed = "fixed"
 
 
-class GlobalCyclicMR(BaseModel):
+@dataclass
+class GlobalCyclicMR:
     """
         TODO: Add brief explanation
 
@@ -168,8 +224,10 @@ class GlobalCyclicMR(BaseModel):
     global_mr_length: int
     global_mr_length_units: MRTimeUnits
     unrestricted_time_mode: CyclicMRModes
-    unrestricted_time: Optional[int]
     unrestricted_time_units: MRTimeUnits
+    unrestricted_time: Optional[int] = None
+    global_mr_length_in_steps: float = field(default=False, init=False)
+    unrestricted_time_in_steps: Union[float, None] = None
 
     @root_validator
     def validate(
@@ -199,8 +257,35 @@ class GlobalCyclicMR(BaseModel):
                 )
         return v
 
+    def set_global_mr_length_in_steps(self, iteration_time: timedelta):
+        self.global_mr_length_in_steps = time_lenght_in_steps(
+            self.global_mr_length,
+            self.global_mr_length_units,
+            iteration_time
+        )
 
-class CyclicMRPolicies(BaseModel):
+    def set_unrestricted_time_in_steps(self, itertation_time: timedelta):
+        if self.unrestricted_time_mode == CyclicMRModes.fixed:
+            self.unrestricted_time_in_steps = time_lenght_in_steps(
+                self.unrestricted_time,
+                self.unrestricted_time_units,
+                itertation_time
+            )
+        if self.unrestricted_time_mode == CyclicMRModes.random:
+            self.unrestricted_time_in_steps = \
+                time_lenght_in_steps_random_case(
+                    self.global_mr_length,
+                    self.unrestricted_time_units,
+                    itertation_time
+                )
+
+    def set_unrestricted_time_in_steps_None(self):
+        self.unrestricted_time_in_steps = None
+
+
+@dataclass
+class CyclicMRPolicies:
+
     """
         TODO: Add brief explanation
 
@@ -220,3 +305,23 @@ class CyclicMRPolicies(BaseModel):
     mr_length_units: MRTimeUnits
     time_without_restrictions: int
     time_without_restrictions_units: MRTimeUnits
+    mr_length_in_steps: float = field(default=False, init=False)
+    time_without_restrictions_in_steps: float = \
+        field(default=False, init=False)
+
+    def set_mr_length_in_steps(self, iteration_time: timedelta):
+        self.mr_length_in_steps = time_lenght_in_steps(
+            self.mr_length,
+            self.mr_length_units,
+            iteration_time
+        )
+
+    def set_time_without_restrictions_in_steps(
+        self,
+        iteration_time: timedelta
+    ):
+        self.time_without_restrictions_in_steps = time_lenght_in_steps(
+            self.time_without_restrictions,
+            self.time_without_restrictions_units,
+            iteration_time
+        )
