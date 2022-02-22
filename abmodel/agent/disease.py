@@ -13,13 +13,14 @@
 #
 # You should have received a copy of the GNU General Public License
 #
-#This package is authored by:
-#Camilo Hincapié (https://www.linkedin.com/in/camilo-hincapie-gutierrez/) (main author)
-#Ian Mejía (https://github.com/IanMejia)
-#Emil Rueda (https://www.linkedin.com/in/emil-rueda-424012207/)
-#Nicole Rivera (https://github.com/nicolerivera1)
-#Carolina Rojas Duque (https://github.com/carolinarojasd)
+# This package is authored by:
+# Camilo Hincapié (https://www.linkedin.com/in/camilo-hincapie-gutierrez/) (main author)
+# Ian Mejía (https://github.com/IanMejia)
+# Emil Rueda (https://www.linkedin.com/in/emil-rueda-424012207/)
+# Nicole Rivera (https://github.com/nicolerivera1)
+# Carolina Rojas Duque (https://github.com/carolinarojasd)
 
+from datetime import timedelta
 from typing import Union, Optional
 from copy import deepcopy
 
@@ -44,6 +45,7 @@ from abmodel.models import IsolationAdherenceGroups
 from abmodel.models import HealthSystem
 from abmodel.models import InterestVariables
 from abmodel.models import MRTStopModes
+from abmodel.models import CyclicMRModes
 # from abmodel.models import MRTracingPolicies
 from abmodel.models import GlobalCyclicMR
 # from abmodel.models import CyclicMRPolicies
@@ -2373,6 +2375,7 @@ class AgentDisease:
         cyclic_mr_policies: Optional[dict] = None,  # CyclicMRPolicies
         cmr_policies_df: Optional[DataFrame] = None,
         grace_time_in_steps: Optional[int] = None,
+        iteration_time: Optional[timedelta] = None,
         execmode: ExecutionModes = ExecutionModes.iterative.value
     ):
         """
@@ -2490,7 +2493,10 @@ class AgentDisease:
                                 # Here "step" is the current step
                                 enabled_length = enabled_start - step
 
-                                mr_length = policie.mr_length
+                                policie.set_global_mr_length_in_steps(
+                                    iteration_time
+                                )
+                                mr_length = policie.mr_length_in_steps
                                 if enabled_length >= mr_length:
                                     new_activation_status = "disabled"
                                 else:
@@ -2502,10 +2508,13 @@ class AgentDisease:
 
                         # Append target_groups_lists
                         if new_activation_status == "enabled":
-                            target_groups_lists.append()
+                            target_groups_lists.append(policie.target_groups)
 
                     # Append policies_status to mrt_policies_df
-                    mrt_policies_df = mrt_policies_df.append(policies_status)
+                    mrt_policies_df = mrt_policies_df.append(
+                        policies_status,
+                        ignore_index=True
+                    )
 
                     # Flatten list of lists using list comprehension
                     flatten_target_groups_lists = [
@@ -2533,12 +2542,138 @@ class AgentDisease:
 
                     # Init target_groups_lists
                     target_groups_lists = []
+                    global_cyclic_mr.set_global_mr_length_in_steps(
+                        iteration_time
+                    )
 
                     if step > grace_time_in_steps:
-                        if cmr_policies_df["global_mr"].iloc[-1] == "enabled":
-                            pass
-                        if cmr_policies_df["global_mr"].iloc[-1] == "disabled":
-                            pass
+                        global_activation_satus = \
+                            cmr_policies_df["global_mr"].iloc[-1]
+
+                        if global_activation_satus == "disabled":
+                            # Verify the status of unrestricted_time_in_steps
+                            if global_cyclic_mr.\
+                                    unrestricted_time_in_steps is not None:
+                                pass
+                            else:
+                                global_cyclic_mr.\
+                                    set_unrestricted_time_in_steps(
+                                        iteration_time
+                                    )
+                            unrestricted_time_in_steps = \
+                                global_cyclic_mr.unrestricted_time_in_steps
+
+                            #  Calculate the elapsed time disabled
+                            cmr_policies_df_copy = cmr_policies_df[
+                                ["step", "global_mr"]].copy()
+
+                            cmr_policies_df_copy["status_change"] = \
+                                cmr_policies_df_copy["global_mr"].shift() != \
+                                cmr_policies_df["global_mr"]
+
+                            disabled_start_step = \
+                                cmr_policies_df_copy[cmr_policies_df_copy[
+                                    "status_change"]]["step"].iloc[-1]
+
+                            disabled_steps = step - disabled_start_step
+                            # Assign the policies_status for global_mr
+                            # comparing with the elapsed time
+                            policies_status["global_mr"] = \
+                                "disabled" if disabled_steps < \
+                                unrestricted_time_in_steps else "enabled"
+                            # In random mode, set unrestricted_time_in_steps
+                            # to None and enabled_steps = 0 when there will be
+                            # a change of policies_status to enabled
+                            if global_cyclic_mr.unrestricted_time_mode == \
+                                    CyclicMRModes.random:
+                                if policies_status["global_mr"] == "enabled":
+                                    global_cyclic_mr.\
+                                        set_unrestricted_time_in_steps_None()
+                                    enabled_steps = 0
+                                else:
+                                    pass
+
+                        if global_activation_satus == "enabled":
+                            # Verify the status of unrestricted_time_in_steps
+                            # Set None for random mode
+
+                            global_mr_length_in_steps = \
+                                global_cyclic_mr.global_mr_length_in_steps
+
+                            # Calculate the elapsed time enabled
+                            cmr_policies_df_copy = cmr_policies_df[
+                                ["step", "global_mr"]].copy()
+
+                            cmr_policies_df_copy["status_change"] = \
+                                cmr_policies_df_copy["global_mr"].shift() != \
+                                cmr_policies_df["global_mr"]
+
+                            enabled_start_step = \
+                                cmr_policies_df_copy[cmr_policies_df_copy[
+                                    "status_change"]]["step"].iloc[-1]
+
+                            enabled_steps = step - enabled_start_step
+
+                            # Check if continue enabled or set disabled
+                            policies_status["global_mr"] = \
+                                "enabled" if enabled_steps < \
+                                global_mr_length_in_steps else "disabled"
+
+                            # In random mode, set unrestricted_time_in_steps
+                            # when there will be a change of policies_status
+                            # to disabled
+                            if global_cyclic_mr.unrestricted_time_mode == \
+                                    CyclicMRModes.random:
+                                if enabled_steps == global_mr_length_in_steps:
+                                    global_cyclic_mr.\
+                                        set_unrestricted_time_in_steps(
+                                            iteration_time
+                                        )
+                        # Check the status of each group
+                        if policies_status["global_mr"] == "enabled":
+
+                            for group in cyclic_mr_policies.keys():
+                                # Calling the methods so as to set mr_length
+                                # and time_without_restrictions in steps
+                                cyclic_mr_policies[group].\
+                                    set_mr_length_in_steps(iteration_time)
+
+                                cyclic_mr_policies[group].\
+                                    set_time_without_restrictions_in_steps(
+                                        iteration_time
+                                    )
+
+                                delay = cyclic_mr_policies[group].delay
+                                mr_length = cyclic_mr_policies[group].\
+                                    mr_length_in_steps
+
+                                if delay:
+                                    # Compare and append to policies_status
+                                    # dict
+                                    if delay > enabled_steps:
+                                        policies_status[group] = "disabled"
+                                    else:
+                                        # Compare and append to policies_status
+                                        # dict
+                                        if delay < enabled_steps and \
+                                                enabled_steps <= mr_length:
+                                            policies_status[group] = "enabled"
+                                        else:
+                                            policies_status[group] = "disabled"
+                                else:
+                                    # Append to policies_status dict
+                                    policies_status[group] = \
+                                        "enabled" if enabled_steps <= \
+                                        mr_length else "disabled"
+                        else:
+                            # Append to policies_status dict diabled for all
+                            # groups
+                            for col in setdiff1d(
+                                cmr_policies_df.columns,
+                                "step"
+                            ):
+                                policies_status[col] = "disabled"
+
                     elif step == grace_time_in_steps:
                         # Append to policies_status dict
                         policies_status["global_mr"] = "enabled"
@@ -2556,7 +2691,10 @@ class AgentDisease:
                             policies_status[col] = "disabled"
 
                     # Append policies_status to cmr_policies_df
-                    cmr_policies_df = cmr_policies_df.append(policies_status)
+                    cmr_policies_df = cmr_policies_df.append(
+                        policies_status,
+                        ignore_index=True
+                    )
 
             else:
                 raise NotImplementedError(
@@ -2569,4 +2707,4 @@ class AgentDisease:
                 check_field_existance(df, validation_list)
                 ])
         else:
-            return df
+            return df, mrt_policies_df, cmr_policies_df
