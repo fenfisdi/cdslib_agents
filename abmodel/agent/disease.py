@@ -593,19 +593,40 @@ def diagnosis_function(
     disease_groups: DiseaseStates
 ) -> bool:
     """
-        TODO: Add brief explanation
+        It determines agent by agent (row by row of the DataFrame) if
+        the agent is diagnosed (True or False) following a probability 
+        distribution. 
+        If the agent is dead, returns False.
 
         Parameters
         ----------
-        TODO
+        disease_state : str
+            String containing the agent's disease state.
+
+        is_dead : bool
+            Boolean value to indicate if the agent is dead
+
+        is_diagnosed : bool
+            Boolean value to indicate if the agent is diagnosed
+
+        disease_groups : DiseaseStates
+            All disease groups
+            It's an instance of DiseaseStates data class
 
         Returns
         -------
-        TODO
+        is_diagnosed : bool
+            Boolean value to indicate if the agent is diagnosed
 
         Notes
         -----
-        TODO: include mathematical description and explanatory image
+        The way to determine if an agent "is diagnosed" is similar to a
+        game of throwing dices. 
+        If the agent is infected, the algorithm takes a random sample
+        and compares it with the diagnosis probability distribution of
+        the specific disease group. If the random sample is minor or equal
+        to the diagnosis probability of the agent's disease state, the
+        "is_diagnosed" value is set True and it is False otherwise. 
 
         Examples
         --------
@@ -650,19 +671,26 @@ def isolation_function(
     disease_groups: DiseaseStates
 ) -> tuple[bool, float, float]:
     """
-        TODO: Add brief explanation
+        Computes the isolation information according to
+        the disease group of the agent. 
+        The values is_isolated (bool), isolation_time (float)
+        and isolation_max_time (float) are returned.
 
         Parameters
         ----------
-        TODO
+        disease_state : str
+            String containing the agent's disease state.
+
+        disease_groups : DiseaseStates
+            All disease groups.
+            It's an instance of DiseaseStates data class.
 
         Returns
         -------
-        TODO
-
-        Notes
-        -----
-        TODO: include mathematical description and explanatory image
+        isolation_info : Tuple
+            Updated values corresponding to is_isolated (bool),
+            isolation_time (float) and isolation_max_time (float)
+            information.
 
         Examples
         --------
@@ -696,19 +724,79 @@ def isolation_handler(
     isolation_adherence_groups: Optional[IsolationAdherenceGroups] = None
 ) -> tuple[bool, bool, float, float, bool, float]:
     """
-        TODO: Add brief explanation
+        Handler to update the agent's information about its isolation and 
+        disease state. 
+        The values is_diagnosed (bool), is_isolated (bool), isolation_time (float),
+        isolation_max_time (float), adheres_to_isolation (bool) and 
+        reduction_factor (float) are updated.
 
         Parameters
         ----------
-        TODO
+        disease_state : str
+            String containing the agent's disease state.
+
+        isolation_adherence_group : str
+            String containing the name of adherence to isolation for
+            the agent.
+
+        is_diagnosed : bool
+            Boolean value to indicate if the agent is diagnosed
+
+        is_isolated : bool
+            Boolean value to indicate if the agent is isolated
+
+        isolation_time : float
+            Float that indicates how long the agent has been isolated.
+
+        isolation_max_time : float
+            Float that indicates how long the agent will be isolated.
+            Maximum time of isolation.
+
+        adheres_to_isolation : bool
+            Boolean value that indicates if the agent adheres to the
+            isolation.
+    
+        reduction_factor : float
+            Reduction factor of the spreading probability due to both
+            isolation and hospitalization. 
+
+        beta : float
+            Reduction factor of the spreading probability due to isolation
+            Its numerical value goes from 0 to 1.
+
+        disease_groups : DiseaseStates
+            All disease groups.
+            It's an instance of DiseaseStates data class.
+
+        isolation_adherence_groups : IsolationAdherenceGroups, optional
+            All important information about the adherence of the disease 
+            groups when mobility restrictions or lockdowns are applied
+            It's an instance of IsolationAdherenceGroups data class
 
         Returns
         -------
-        TODO
-
+        updated_info : Tuple
+            Tuple containing all the information about the agent's isolation
+            and disease state.
+            The vales are is_diagnosed (bool), is_isolated (bool),
+            isolation_time (float), isolation_max_time (float),
+            adheres_to_isolation (bool), reduction_factor (float).
+        
         Notes
         -----
-        TODO: include mathematical description and explanatory image
+        If the agent is not diagnosed, it will not change any value.
+
+        If the agent has already complete its maximum isolation time,
+        the information about the isolation time will be configured
+        as None, the diagnoses and the isolation state will be false
+        and its reduction factor will change as reduction_factor/beta.
+
+        If the isolation_adherence_groups are not specified, the
+        agent will adhere to the isolation if isolated. 
+
+        If the isolation_adherence_groups are given, the agent will
+        adhere to the isolation according to the computed adherence
+        probability for its isolation adherence group
 
         See Also
         --------
@@ -2087,23 +2175,37 @@ class AgentDisease:
         execmode: ExecutionModes = ExecutionModes.iterative.value
     ) -> DataFrame:
         """
-            TODO: Add brief explanation
+            Update the "is_diagnosed" column of the DataFrame.
+            This matches the True or False diagnosis state of the agents.
 
             Parameters
             ----------
-            TODO
+            df : DataFrame 
+                DataFrame to apply the transformation
+                Must have "disease_state", "is_dead" and "is_diagnosed" columns
+
+            disease_groups : DiseaseStates
+                All disease groups
+                It's an instance of DiseaseStates data class
+
+            execmode : ExecutionModes, default = ExecutionModes.iterative.value
+                Mode of Execution
+                It's an instance of ExecutionModes
 
             Returns
             -------
-            TODO
+            df : DataFrame
+                DataFrame where column "is_diagnosed" contains the actual agent
+                information
 
             Raises
             ------
-            TODO
+            Exception : 
+                If column "disease_state", "is_dead" or "is_diagnosed" is not
+                in DataFrame
 
-            Notes
-            -----
-            TODO: include mathematical description and explanatory image
+            NotImplementedError :
+                If ExecutionModes is not iterative
 
             See Also
             --------
@@ -2153,24 +2255,61 @@ class AgentDisease:
         execmode: ExecutionModes = ExecutionModes.iterative.value
     ) -> DataFrame:
         """
-            TODO: Add brief explanation
+            Modifies the Data Frame's columns "is_diagnosed", "is_isolated",
+            "isolation_time", "isolation_max_time", "adheres_to_isolation" y
+            "reduction_factor" 
 
             Parameters
             ----------
-            TODO
+            df : DataFrame
+                DataFrame to apply the transformation
+
+            dt : float
+                Numeric value that represents the iteration_time in the
+                scale of days
+            
+            beta : float
+                Reduction factor of the spreading probability due to isolation
+                Its numerical value goes from 0 to 1.
+
+            disease_groups : DiseaseStates
+                All disease groups
+                It's an instance of DiseaseStates data class
+            
+            isolation_adherence_groups : IsolationAdherenceGroups, optional
+                All important information about the adherence of the disease 
+                groups when mobility restrictions or lockdowns are applied
+                It's an instance of IsolationAdherenceGroups data class
+        
+            execmode : ExecutionModes, default = ExecutionModes.iterative.value
+                Mode of Execution
+                It's an instance of ExecutionModes
 
             Returns
             -------
-            TODO
+            df : DataFrame
+                DataFrame with applied transformation
 
             Raises
             ------
-            TODO
+            Exception : 
+                If columns "disease_state", "isolation_adherence_group",
+                "is_diagnosed", "is_isolated", "isolation_time",
+                "isolation_max_time", "adheres_to_isolation",
+                "reduction_factor" are not in Data Frame.
+
+            NotImplementedError :
+                If ExecutionModes is not iterative
 
             Notes
             -----
-            TODO: include mathematical description and explanatory image
+            The "isolation_adherence_group" column should already be defined in 
+            Data Frame. 
 
+            This function increases the agents isolation time by adding the 
+            time step interval (dt) to the previous one. If it is the first 
+            iteration, the isolation time is zero.
+            
             See Also
             --------
             abmodel.agent.execution_modes.ExecutionModes : TODO complete
