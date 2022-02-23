@@ -2493,7 +2493,7 @@ class AgentDisease:
                                 # Here "step" is the current step
                                 enabled_length = enabled_start - step
 
-                                policie.set_global_mr_length_in_steps(
+                                policie.set_global_mr_length(
                                     iteration_time
                                 )
                                 mr_length = policie.mr_length_in_steps
@@ -2542,7 +2542,7 @@ class AgentDisease:
 
                     # Init target_groups_lists
                     target_groups_lists = []
-                    global_cyclic_mr.set_global_mr_length_in_steps(
+                    global_cyclic_mr.set_global_mr_length(
                         iteration_time
                     )
 
@@ -2551,17 +2551,17 @@ class AgentDisease:
                             cmr_policies_df["global_mr"].iloc[-1]
 
                         if global_activation_satus == "disabled":
-                            # Verify the status of unrestricted_time_in_steps
+                            # Verify the status of unrestricted_time_steps
                             if global_cyclic_mr.\
-                                    unrestricted_time_in_steps is not None:
+                                    unrestricted_time_steps is not None:
                                 pass
                             else:
                                 global_cyclic_mr.\
-                                    set_unrestricted_time_in_steps(
+                                    set_unrestricted_time(
                                         iteration_time
                                     )
-                            unrestricted_time_in_steps = \
-                                global_cyclic_mr.unrestricted_time_in_steps
+                            unrestricted_time_steps = \
+                                global_cyclic_mr.unrestricted_time_steps
 
                             #  Calculate the elapsed time disabled
                             cmr_policies_df_copy = cmr_policies_df[
@@ -2580,25 +2580,25 @@ class AgentDisease:
                             # comparing with the elapsed time
                             policies_status["global_mr"] = \
                                 "disabled" if disabled_steps < \
-                                unrestricted_time_in_steps else "enabled"
-                            # In random mode, set unrestricted_time_in_steps
+                                unrestricted_time_steps else "enabled"
+                            # In random mode, set unrestricted_time_steps
                             # to None and enabled_steps = 0 when there will be
                             # a change of policies_status to enabled
                             if global_cyclic_mr.unrestricted_time_mode == \
                                     CyclicMRModes.random:
                                 if policies_status["global_mr"] == "enabled":
                                     global_cyclic_mr.\
-                                        set_unrestricted_time_in_steps_None()
+                                        set_none_unrestricted_time()
                                     enabled_steps = 0
                                 else:
                                     pass
 
                         if global_activation_satus == "enabled":
-                            # Verify the status of unrestricted_time_in_steps
+                            # Verify the status of unrestricted_time_steps
                             # Set None for random mode
 
-                            global_mr_length_in_steps = \
-                                global_cyclic_mr.global_mr_length_in_steps
+                            global_mr_length_steps = \
+                                global_cyclic_mr.global_mr_length_steps
 
                             # Calculate the elapsed time enabled
                             cmr_policies_df_copy = cmr_policies_df[
@@ -2617,16 +2617,16 @@ class AgentDisease:
                             # Check if continue enabled or set disabled
                             policies_status["global_mr"] = \
                                 "enabled" if enabled_steps < \
-                                global_mr_length_in_steps else "disabled"
+                                global_mr_length_steps else "disabled"
 
-                            # In random mode, set unrestricted_time_in_steps
+                            # In random mode, set unrestricted_time_steps
                             # when there will be a change of policies_status
                             # to disabled
                             if global_cyclic_mr.unrestricted_time_mode == \
                                     CyclicMRModes.random:
-                                if enabled_steps == global_mr_length_in_steps:
+                                if enabled_steps == global_mr_length_steps:
                                     global_cyclic_mr.\
-                                        set_unrestricted_time_in_steps(
+                                        set_unrestricted_time(
                                             iteration_time
                                         )
                         # Check the status of each group
@@ -2636,10 +2636,10 @@ class AgentDisease:
                                 # Calling the methods so as to set mr_length
                                 # and time_without_restrictions in steps
                                 cyclic_mr_policies[group].\
-                                    set_mr_length_in_steps(iteration_time)
+                                    set_mr_length(iteration_time)
 
                                 cyclic_mr_policies[group].\
-                                    set_time_without_restrictions_in_steps(
+                                    set_time_without_restrictions(
                                         iteration_time
                                     )
 
