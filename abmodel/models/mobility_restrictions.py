@@ -68,7 +68,7 @@ class MRTimeUnits(Enum):
     weeks = "weeks"
     months = "months"
 
-def time_lenght_in_steps(
+def time_interval_to_steps(
     mr_length: int,
     mr_length_units: MRTimeUnits,
     iteration_time: timedelta
@@ -85,7 +85,7 @@ def time_lenght_in_steps(
             timedelta_to_days(timedelta(days=30*mr_length)) / iteration_time
     return mr_length_in_steps.days
 
-def time_lenght_in_steps_random_case(
+def random_time_interval_to_steps(
     mr_length: int,
     mr_length_units: MRTimeUnits,
     iteration_time: timedelta
@@ -95,19 +95,19 @@ def time_lenght_in_steps_random_case(
     unrestricted_time = int(random.randint(1, mr_length + 1, 1)[0])
 
     if mr_length_units == MRTimeUnits.days:
-        unrestricted_time_in_steps = \
+        unrestricted_time_steps = \
             timedelta(days=unrestricted_time) / iteration_time
     if mr_length_units == MRTimeUnits.weeks:
-        unrestricted_time_in_steps = \
+        unrestricted_time_steps = \
             timedelta_to_days(
                 timedelta(days=unrestricted_time)
             ) / iteration_time
     if mr_length_units == MRTimeUnits.months:
-        unrestricted_time_in_steps = \
+        unrestricted_time_steps = \
             timedelta_to_days(
                 timedelta(days=30*unrestricted_time)
             ) / iteration_time
-    return unrestricted_time_in_steps.days
+    return unrestricted_time_steps.days
 
 
 @dataclass
@@ -187,7 +187,7 @@ class MRTracingPolicies:
         return v
 
     def set_mr_length_in_steps(self, iteration_time: timedelta):
-        self.mr_length_in_steps = time_lenght_in_steps(
+        self.mr_length_in_steps = time_interval_to_steps(
             self.mr_length,
             self.mr_length_units,
             iteration_time
@@ -226,8 +226,8 @@ class GlobalCyclicMR:
     unrestricted_time_mode: CyclicMRModes
     unrestricted_time_units: MRTimeUnits
     unrestricted_time: Optional[int] = None
-    global_mr_length_in_steps: float = field(default=False, init=False)
-    unrestricted_time_in_steps: Union[float, None] = None
+    global_mr_length_steps: float = field(default=False, init=False)
+    unrestricted_time_steps: Union[float, None] = None
 
     @root_validator
     def validate(
@@ -257,30 +257,30 @@ class GlobalCyclicMR:
                 )
         return v
 
-    def set_global_mr_length_in_steps(self, iteration_time: timedelta):
-        self.global_mr_length_in_steps = time_lenght_in_steps(
+    def set_global_mr_length(self, iteration_time: timedelta):
+        self.global_mr_length_steps = time_interval_to_steps(
             self.global_mr_length,
             self.global_mr_length_units,
             iteration_time
         )
 
-    def set_unrestricted_time_in_steps(self, itertation_time: timedelta):
+    def set_unrestricted_time(self, itertation_time: timedelta):
         if self.unrestricted_time_mode == CyclicMRModes.fixed:
-            self.unrestricted_time_in_steps = time_lenght_in_steps(
+            self.unrestricted_time_steps = time_interval_to_steps(
                 self.unrestricted_time,
                 self.unrestricted_time_units,
                 itertation_time
             )
         if self.unrestricted_time_mode == CyclicMRModes.random:
-            self.unrestricted_time_in_steps = \
-                time_lenght_in_steps_random_case(
+            self.unrestricted_time_steps = \
+                random_time_interval_to_steps(
                     self.global_mr_length,
                     self.unrestricted_time_units,
                     itertation_time
                 )
 
-    def set_unrestricted_time_in_steps_None(self):
-        self.unrestricted_time_in_steps = None
+    def set_none_unrestricted_time(self):
+        self.unrestricted_time_steps = None
 
 
 @dataclass
@@ -306,21 +306,21 @@ class CyclicMRPolicies:
     time_without_restrictions: int
     time_without_restrictions_units: MRTimeUnits
     mr_length_in_steps: float = field(default=False, init=False)
-    time_without_restrictions_in_steps: float = \
+    time_without_restrictions_steps: float = \
         field(default=False, init=False)
 
-    def set_mr_length_in_steps(self, iteration_time: timedelta):
-        self.mr_length_in_steps = time_lenght_in_steps(
+    def set_mr_length(self, iteration_time: timedelta):
+        self.mr_length_in_steps = time_interval_to_steps(
             self.mr_length,
             self.mr_length_units,
             iteration_time
         )
 
-    def set_time_without_restrictions_in_steps(
+    def set_time_without_restrictions(
         self,
         iteration_time: timedelta
     ):
-        self.time_without_restrictions_in_steps = time_lenght_in_steps(
+        self.time_without_restrictions_steps = time_interval_to_steps(
             self.time_without_restrictions,
             self.time_without_restrictions_units,
             iteration_time
