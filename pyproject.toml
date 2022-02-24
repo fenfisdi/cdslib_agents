@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "cdslib_agents"
-version = "0.0.2"
+version = "0.0.3"
 description = "Contagious diseases simulation using Agent-Based Models"
 authors = [
     "Camilo Hincapié Gutiérrez <camilo.hincapie@udea.edu.co>",
