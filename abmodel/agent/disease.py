@@ -1034,23 +1034,47 @@ def init_immunization_params_iterative(
     immunization_groups: ImmunizationGroups
 ) -> tuple[float, float]:
     """
-        TODO: Add brief explanation
+        Iterative calculation of immunization_time, immunization_max_time
+        and immunization_slope according to each agent's immunization
+        group and immunization level. 
 
         Parameters
         ----------
-        TODO
+        immunization_group : str
+            String indicating the agent's immunization group
+        
+        immunization_level : float
+            Float containing the agent's immunization level
 
+        immunization_groups : ImmunizationGroups
+            All important information about the inmunization groups and its
+            parameters
+            It's an instance of ImmunizationGroups data class
+        
         Returns
         -------
-        TODO
+        immunization_time, immunization_max_time, immunization_slope : tuple [float, float, float]
+            The calculated values for the agent's immunization_time,
+            immunization_max_time and immunization_slope
 
         Notes
         -----
-        TODO: include mathematical description and explanatory image
+        The immunization_time and immunization_max_time parameters are in
+        scale of days.
+
+        If the agent's immunization level is zero, the parameters
+        immunization_time, immunization_max_time and immunization_slope
+        are set to None.
+
+        The immunization slope is defined as
+        immunization_slope = - immunization_level/
+        and its goal is to model the loss of immunity after the maximum
+        time of immunity is reached.
 
         Examples
         --------
         TODO: include some examples
+        (Avisar a Emil que corrija la salida)
     """
     if immunization_level != 0:
 
@@ -1096,19 +1120,51 @@ def update_immunization_params_iterative(
     natural_history: NaturalHistory
 ) -> tuple[float, float, float, float, bool]:
     """
-        TODO: Add brief explanation
+        Interative update of the agent's immunization_level, immunization_slope,
+        immunization_time, immunization_max_time and do_update_immunization_params
+        parameters according to the former vulnerability group and the 
+        former disease state for each agent before a disease state transition.
 
         Parameters
         ----------
-        TODO
+        key : str
+            String containing the agent's natural history key that 
+            is formed by an union between the agent's vulnerability
+            group and its disease state before a disease state transition.
+
+        disease_state : str
+            String containing the agent's disease state.
+
+        immunization_slope : float
+            Float containing the agent's immunization slope.
+        
+        immunization_time : float
+            Float containing the agent's immunization time in scale
+            of days.
+    
+        immunization_max_time : float
+            Float containing the agent's maximum immunization time
+            in scale of days.
+        
+        do_update_immunization_params : bool
+            Boolean value to indicates if the parameters must be updated.
+
+        natural_history : NaturalHistory
+            All important information about the disease's natural history.
+            It's an instance of NaturalHistory data class.
 
         Returns
         -------
-        TODO
+        immunization_level, immunization_slope, immunization_time,
+            immunization_max_time, do_update_immunization_params
+                : tuple[ float, float, float, float, bool]
+            Updated values of the agent's immunization level, immunization slope,
+            immunization time, immunization maximum time and
+            do update immunization parameters.
 
         Notes
         -----
-        TODO: include mathematical description and explanatory image
+        If do_update_immunization_params is False, the parameters are not modified.
 
         Examples
         --------
@@ -1164,19 +1220,48 @@ def update_immunization_level_iterative(
     immunization_max_time: float  # In scale of days
 ) -> tuple[float, float, float, float]:
     """
-        TODO: Add brief explanation
+        Iterative update of the parameters immunization_level,
+        immunization_slope, immunization_time and immunization_max_time
+        acording to the given time step and the agent's immunization
+        information. 
 
         Parameters
         ----------
-        TODO
+        dt : float
+            Float corresponding to the iteration time step in scale of
+            days.
+
+        immunization_level : float
+            Float containing the agent's immunization level
+        
+        immunization_slope : float
+            Float containing the agent's immunization slope.
+        
+        immunization_time : float
+            Float containing the agent's immunization time in scale
+            of days.
+    
+        immunization_max_time : float
+            Float containing the agent's maximum immunization time
+            in scale of days.
 
         Returns
         -------
-        TODO
+        immunization_level, immunization_slope, immunization_time,
+            immunization_max_time : Series[float] 
+            Modified parameters of the agent's immunization state. 
 
         Notes
         -----
-        TODO: include mathematical description and explanatory image
+        If the immunization time is greater than or equal to the maximum
+        immunization time, the parameters are set as:
+        immunization_level = 0, immunization_slope = None
+        immunization_time = None and immunization_max_time = None
+
+        When the immunization time is less than the maximum immunization 
+        time, the parameters are updated according to:
+        immunization_level = immunization_slope * dt + immunization_level
+        immunization_time = immunization_time + dt
 
         See Also
         --------
@@ -1185,6 +1270,7 @@ def update_immunization_level_iterative(
         Examples
         --------
         TODO: include some examples
+        (decirle a Emil que corrija de tupla a serie)
     """
     if immunization_time < immunization_max_time:
         immunization_level = immunization_slope * dt + immunization_level
@@ -1382,7 +1468,7 @@ class AgentDisease:
             immunization_groups : ImmunizationGroups, optional
                 All important information about the inmunization groups and its
                 parameters
-                It's an instance of InmunizationGroups data class
+                It's an instance of ImmunizationGroups data class
         
             isolation_adherence_groups : IsolationAdherenceGroups, optional
                 All important information about the adherence of the disease 
@@ -1540,23 +1626,36 @@ class AgentDisease:
         execmode: ExecutionModes = ExecutionModes.iterative.value
     ) -> DataFrame:
         """
-            TODO: Add brief explanation
+            Initializes the column "times_infected" in DataFrame taking
+            into account the agent's disease state.
+            If it is infected sets to 1 and to 0 otherwise. 
 
             Parameters
             ----------
-            TODO
+            df : DataFrame
+                DataFrame to apply the transformation
+
+            disease_groups : DiseaseStates
+                All disease groups.
+                It's an instance of DiseaseStates data class
+
+            execmode : ExecutionModes, default = ExecutionModes.iterative.value
+                Mode of Execution
+                It's an instance of ExecutionModes
 
             Returns
             -------
-            TODO
+            df : DataFrame
+                DataFrame with applied transformation.
+                Includes "times_infected" column.
 
             Raises
             ------
-            TODO
+            Exception : 
+                If column "disease_state" is not in DataFrame
 
-            Notes
-            -----
-            TODO: include mathematical description and explanatory image
+            NotImplementedError :
+                If ExecutionModes is not iterative
 
             See Also
             --------
@@ -1597,23 +1696,36 @@ class AgentDisease:
         execmode: ExecutionModes = ExecutionModes.iterative.value
     ) -> DataFrame:
         """
-            TODO: Add brief explanation
+            Initializes the column "immunization_level" according to the agent's
+            immunization group. 
 
             Parameters
             ----------
-            TODO
+            df : DataFrame
+                DataFrame to apply the transformation
+
+            immunization_groups : ImmunizationGroups
+                All important information about the inmunization groups and its
+                parameters
+                It's an instance of ImmunizationGroups data class
+
+            execmode : ExecutionModes, default = ExecutionModes.iterative.value
+                Mode of Execution
+                It's an instance of ExecutionModes
 
             Returns
             -------
-            TODO
+            df : DataFrame
+                DataFrame with applied the transformation.
+                Includes "immunization_level" column.
 
             Raises
             ------
-            TODO
+            Exception : 
+                If column "immunization_group" is not in DataFrame
 
-            Notes
-            -----
-            TODO: include mathematical description and explanatory image
+            NotImplementedError :
+                If ExecutionModes is not iterative
 
             See Also
             --------
@@ -1655,23 +1767,39 @@ class AgentDisease:
         execmode: ExecutionModes = ExecutionModes.iterative.value
     ) -> DataFrame:
         """
-            TODO: Add brief explanation
+            Updates the columns "immunization_time", "immunization_max_time"
+            and "immunization_slope" according to the agent's immunization group
+            and it's immunization level.
 
             Parameters
             ----------
-            TODO
+            df : DataFrame
+                DataFrame to apply the transformation
+
+            immunization_groups : ImmunizationGroups, optional
+                All important information about the inmunization groups and its
+                parameters
+                It's an instance of InmunizationGroups data class
+
+            execmode : ExecutionModes, default = ExecutionModes.iterative.value
+                Mode of Execution
+                It's an instance of ExecutionModes
 
             Returns
             -------
-            TODO
+            df : DataFrame
+                DataFrame with applied the transformation.
+                Includes "immunization_time", "immunization_max_time" and
+                "immunization_slope" columns.
 
             Raises
             ------
-            TODO
+            Exception : 
+                If columns "immunization_group" and "immunization_level" are not
+                in DataFrame
 
-            Notes
-            -----
-            TODO: include mathematical description and explanatory image
+            NotImplementedError :
+                If ExecutionModes is not iterative
 
             See Also
             --------
@@ -2474,23 +2602,45 @@ class AgentDisease:
         execmode: ExecutionModes = ExecutionModes.iterative.value
     ) -> DataFrame:
         """
-            TODO: Add brief explanation
+            Updates each agent's immunization parameters.
 
             Parameters
             ----------
-            TODO
+            df : DataFrame
+                DataFrame to apply the transformation
+
+            natural_history : NaturalHistory
+                All important information about the disease natural history
+                It's an instance of NaturalHistory data class
+
+            execmode : ExecutionModes, default = ExecutionModes.iterative.value
+                Mode of Execution
+                It's an instance of ExecutionModes
 
             Returns
             -------
-            TODO
+            df : DataFrame
+                DataFrame with applied transformation.
 
             Raises
             ------
-            TODO
+            Exception : 
+                If columns "key", "disease_state", "immunization_level",
+                "immunization_slope", "immunization_time", "immunization_max_time"
+                and "do_update_immunization_params" are not in DataFrame
+
+            NotImplementedError :
+                If ExecutionModes is not iterative
 
             Notes
             -----
-            TODO: include mathematical description and explanatory image
+            The key containing the agent's natural history that 
+            is formed by an union between the agent's vulnerability
+            group and its disease state must be a former one, i.e. 
+            before a disease state transition.
+
+            "immunization_time" and "immunization_max_time" must be in 
+            scale of days. 
 
             See Also
             --------
@@ -2547,23 +2697,44 @@ class AgentDisease:
         execmode: ExecutionModes = ExecutionModes.iterative.value
     ) -> DataFrame:
         """
-            TODO: Add brief explanation
+            Updates the DataFrame columns "immunization_level", "immunization_slope",
+            "immunization_time" and "immunization_max_time" according to the 
+            agent's immunization level information.
 
             Parameters
             ----------
-            TODO
+            df : DataFrame
+                DataFrame to apply the transformation
+
+            dt : float
+                Float corresponding to the iteration time scale in days
+
+            natural_history : NaturalHistory
+                All important information about the disease natural history
+                It's an instance of NaturalHistory data class
+
+            execmode : ExecutionModes, default = ExecutionModes.iterative.value
+                Mode of Execution
+                It's an instance of ExecutionModes
 
             Returns
             -------
-            TODO
+            df : DataFrame
+                DataFrame with applied transformation.
 
             Raises
             ------
-            TODO
+            Exception : 
+                If columns "key", "immunization_level", "immunization_slope",
+                "immunization_time" and "immunization_max_time" are not in DataFrame
+
+            NotImplementedError :
+                If ExecutionModes is not iterative
 
             Notes
             -----
-            TODO: include mathematical description and explanatory image
+            "immunization_time" and "immunization_max_time" columns in DataFrame 
+            must be in scale of days. 
 
             See Also
             --------
