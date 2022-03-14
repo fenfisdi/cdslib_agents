@@ -68,46 +68,49 @@ class MRTimeUnits(Enum):
     weeks = "weeks"
     months = "months"
 
+
 def time_interval_to_steps(
     mr_length: int,
     mr_length_units: MRTimeUnits,
     iteration_time: timedelta
 ) -> float:
-
+    """
+        TODO: Add brief explanation
+    """
     iteration_time = timedelta_to_days(iteration_time)
     if mr_length_units == MRTimeUnits.days:
-        mr_length_in_steps = timedelta(days=mr_length) / iteration_time
+        mr_length_in_days = mr_length
     if mr_length_units == MRTimeUnits.weeks:
-        mr_length_in_steps = \
-            timedelta_to_days(timedelta(days=mr_length)) / iteration_time
+        mr_length_in_days = 7*mr_length
     if mr_length_units == MRTimeUnits.months:
-        mr_length_in_steps = \
-            timedelta_to_days(timedelta(days=30*mr_length)) / iteration_time
-    return mr_length_in_steps.days
+        mr_length_in_days = 30*mr_length
+    mr_length_in_steps = \
+        timedelta_to_days(timedelta(days=mr_length_in_days)) / iteration_time
+    return mr_length_in_steps
+
 
 def random_time_interval_to_steps(
     mr_length: int,
     mr_length_units: MRTimeUnits,
     iteration_time: timedelta
 ) -> float:
-
+    """
+        TODO: Add brief explanation
+    """
     iteration_time = timedelta_to_days(iteration_time)
     unrestricted_time = int(random.randint(1, mr_length + 1, 1)[0])
 
     if mr_length_units == MRTimeUnits.days:
-        unrestricted_time_steps = \
-            timedelta(days=unrestricted_time) / iteration_time
+        unrestricted_time_in_days = unrestricted_time
     if mr_length_units == MRTimeUnits.weeks:
-        unrestricted_time_steps = \
-            timedelta_to_days(
-                timedelta(days=unrestricted_time)
-            ) / iteration_time
+        unrestricted_time_in_days = 7*unrestricted_time
     if mr_length_units == MRTimeUnits.months:
-        unrestricted_time_steps = \
+        unrestricted_time_in_days = 30*unrestricted_time
+    unrestricted_time_steps = \
             timedelta_to_days(
-                timedelta(days=30*unrestricted_time)
-            ) / iteration_time
-    return unrestricted_time_steps.days
+                timedelta(days=unrestricted_time_in_days)
+                ) / iteration_time
+    return unrestricted_time_steps
 
 
 @dataclass
@@ -305,9 +308,17 @@ class CyclicMRPolicies:
     mr_length_units: MRTimeUnits
     time_without_restrictions: int
     time_without_restrictions_units: MRTimeUnits
+    delay_in_steps: float = field(default=False, init=False)
     mr_length_in_steps: float = field(default=False, init=False)
     time_without_restrictions_steps: float = \
         field(default=False, init=False)
+
+    def set_delay(self, iteration_time: timedelta):
+        self.delay_in_steps = time_interval_to_steps(
+        self.delay,
+        self.delay_units,
+        iteration_time
+    )
 
     def set_mr_length(self, iteration_time: timedelta):
         self.mr_length_in_steps = time_interval_to_steps(
