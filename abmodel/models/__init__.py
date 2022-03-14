@@ -13,12 +13,12 @@
 #
 # You should have received a copy of the GNU General Public License
 #
-#This package is authored by:
-#Camilo Hincapié (https://www.linkedin.com/in/camilo-hincapie-gutierrez/) (main author)
-#Ian Mejía (https://github.com/IanMejia)
-#Emil Rueda (https://www.linkedin.com/in/emil-rueda-424012207/)
-#Nicole Rivera (https://github.com/nicolerivera1)
-#Carolina Rojas Duque (https://github.com/carolinarojasd)
+# This package is authored by:
+# Camilo Hincapié (https://www.linkedin.com/in/camilo-hincapie-gutierrez/) (main author)
+# Ian Mejía (https://github.com/IanMejia)
+# Emil Rueda (https://www.linkedin.com/in/emil-rueda-424012207/)
+# Nicole Rivera (https://github.com/nicolerivera1)
+# Carolina Rojas Duque (https://github.com/carolinarojasd)
 
 from .base import SimpleGroups
 from .base import SimpleDistGroups
@@ -28,11 +28,13 @@ from .disease import SusceptibilityGroups
 from .disease import ImmunizationGroups
 from .disease import MobilityGroups
 from .disease import IsolationAdherenceGroups
+from .disease import MRAdherenceGroups
 from .disease import DiseaseStates
 from .disease import NaturalHistory
 from .health_system import HealthSystem
 from .mobility_restrictions import InterestVariables
 from .mobility_restrictions import MRTStopModes
+from .mobility_restrictions import MRTimeUnits
 from .mobility_restrictions import MRTracingPolicies
 from .mobility_restrictions import CyclicMRModes
 from .mobility_restrictions import GlobalCyclicMR
@@ -50,11 +52,13 @@ __all__ = [
     "ImmunizationGroups",
     "MobilityGroups",
     "IsolationAdherenceGroups",
+    "MRAdherenceGroups",
     "DiseaseStates",
     "NaturalHistory",
     "HealthSystem",
     "InterestVariables",
     "MRTStopModes",
+    "MRTimeUnits",
     "MRTracingPolicies",
     "CyclicMRModes",
     "GlobalCyclicMR",
