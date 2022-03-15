@@ -812,7 +812,7 @@ def contagion_function(
     kdtree_by_disease_state: dict,
     agents_labels_by_disease_state: dict,
     df_copy: DataFrame
-) -> Series[str, int, list, float, bool, bool]:
+) -> Series([str, int, list, float, bool, bool]):
     """
         TODO
         # Set None the disease_state_time
@@ -957,7 +957,7 @@ def init_immunization_params_iterative(
     immunization_group: str,
     immunization_level: float,
     immunization_groups: ImmunizationGroups
-) -> Series[float, float, float]:
+) -> Series([float, float, float]):
     """
         TODO: Add brief explanation
 
@@ -1019,7 +1019,7 @@ def update_immunization_params_iterative(
     immunization_max_time: float,  # In scale of days
     do_update_immunization_params: bool,
     natural_history: NaturalHistory
-) -> Series[float, float, float, float, bool]:
+) -> Series([float, float, float, float, bool]):
     """
         TODO: Add brief explanation
 
@@ -1087,7 +1087,7 @@ def update_immunization_level_iterative(
     immunization_slope: float,
     immunization_time: float,  # In scale of days
     immunization_max_time: float  # In scale of days
-) -> Series[float, float, float, float]:
+) -> Series([float, float, float, float]):
     """
         TODO: Add brief explanation
 
@@ -1139,7 +1139,7 @@ def alertness_function(
     kdtree_by_disease_state: dict,
     agents_labels_by_disease_state: dict,
     dead_disease_group: str
-) -> tuple[bool, list]:
+) -> Series([bool, list]):
     """
         TODO: Add brief explanation
 
