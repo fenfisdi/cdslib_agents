@@ -13,12 +13,12 @@
 #
 # You should have received a copy of the GNU General Public License
 #
-#This package is authored by:
-#Camilo Hincapié (https://www.linkedin.com/in/camilo-hincapie-gutierrez/) (main author)
-#Ian Mejía (https://github.com/IanMejia)
-#Emil Rueda (https://www.linkedin.com/in/emil-rueda-424012207/)
-#Nicole Rivera (https://github.com/nicolerivera1)
-#Carolina Rojas Duque (https://github.com/carolinarojasd)
+# This package is authored by:
+# Camilo Hincapié (https://www.linkedin.com/in/camilo-hincapie-gutierrez/) (main author)
+# Ian Mejía (https://github.com/IanMejia)
+# Emil Rueda (https://www.linkedin.com/in/emil-rueda-424012207/)
+# Nicole Rivera (https://github.com/nicolerivera1)
+# Carolina Rojas Duque (https://github.com/carolinarojasd)
 
 from typing import Optional
 
@@ -44,6 +44,7 @@ from abmodel.models import DiseaseStates
 from abmodel.models import GlobalCyclicMR
 # from abmodel.models import CyclicMRPolicies
 from abmodel.models import IsolationAdherenceGroups
+from abmodel.models import MRAdherenceGroups
 from abmodel.agent import AgentMovement
 from abmodel.agent import AgentDisease
 from abmodel.agent import AgentNeighbors
@@ -79,6 +80,7 @@ class Population:
         cyclic_mr_policies: Optional[dict] = None,  # CyclicMRPolicies
         immunization_groups: Optional[ImmunizationGroups] = None,
         isolation_adherence_groups: Optional[IsolationAdherenceGroups] = None,
+        mr_adherence_groups: Optional[MRAdherenceGroups] = None,
         execmode: ExecutionModes = ExecutionModes.iterative.value,
         evolmode: EvolutionModes = EvolutionModes.steps.value
     ) -> None:
@@ -117,6 +119,7 @@ class Population:
         self.cyclic_mr_policies = cyclic_mr_policies
         self.immunization_groups = immunization_groups
         self.isolation_adherence_groups = isolation_adherence_groups
+        self.mr_adherence_groups = mr_adherence_groups
         self.execmode = execmode
         self.evolmode = evolmode
 
@@ -129,7 +132,8 @@ class Population:
             "mobility_group": self.mobility_groups,
             "susceptibility_group": self.susceptibility_groups,
             "immunization_group": self.immunization_groups,
-            "isolation_adherence_group": self.isolation_adherence_groups
+            "isolation_adherence_group": self.isolation_adherence_groups,
+            "mr_adherence_group": self.mr_adherence_groups
             }
 
         # TODO: Handle units
@@ -234,9 +238,11 @@ class Population:
         # =====================================================================
         # Initialize __mrt_policies_df
         if self.mrt_policies is not None:
-            self.__mrt_policies_df = DataFrame(
-                columns=["step"] + list(self.mrt_policies.keys())
-                )
+            self.__mrt_policies_df = DataFrame({"step": [self.__step]})
+            columns = [item.value for item in self.mrt_policies.keys()]
+            for item in columns:
+                self.__mrt_policies_df[item] = "disabled"
+
         else:
             self.__mrt_policies_df = None
 
@@ -250,10 +256,10 @@ class Population:
                 self.global_cyclic_mr.grace_time
                 - self.configuration.initial_date
                 )/self.configuration.iteration_time)
-            self.__cmr_policies_df = DataFrame(
-                columns=[
-                    "step", "global_mr"] + list(self.cyclic_mr_policies.keys())
-                )
+            self.__cmr_policies_df = DataFrame({"step": [self.__step],
+                "global_mr": ["disabled"]})
+            for item in list(self.cyclic_mr_policies.keys()):
+                self.__cmr_policies_df[item] = "disabled"
         else:
             self.__grace_time_in_steps = None
             self.__cmr_policies_df = None
@@ -432,6 +438,20 @@ class Population:
         self.__df["datetime"] += self.configuration.iteration_time
 
         # =====================================================================
+        # Update agents' velocities
+        for mobility_group in self.mobility_groups.items.keys():
+            self.__df = AgentMovement.update_velocities(
+                df=self.__df,
+                distribution=self.mobility_groups
+                .items[mobility_group].dist[DistTitles.mobility.value],
+                angle_variance=self.mobility_groups
+                .items[mobility_group].angle_variance,
+                group_field="mobility_group",
+                group_label=mobility_group,
+                preserve_dtypes_dict={"step": int, "agent": int}
+                )
+
+        # =====================================================================
         # Update population states by means of state transition
         self.__df = AgentDisease.disease_state_transition(
             df=self.__df,
@@ -559,7 +579,59 @@ class Population:
 
         # =====================================================================
         # Mobility Restrictions
-        # TODO
+        variables = AgentDisease.apply_mobility_restrictions(
+            step=self.__step,
+            df=self.__df,
+            beta=self.configuration.beta,
+            mrt_policies=self.mrt_policies,
+            mrt_policies_df=self.__mrt_policies_df,
+            global_cyclic_mr=self.global_cyclic_mr,
+            cyclic_mr_policies=self.cyclic_mr_policies,
+            cmr_policies_df=self.__cmr_policies_df,
+            grace_time_in_steps=self.__grace_time_in_steps,
+            iteration_time=self.configuration.iteration_time,
+            mr_adherence_groups=self.mr_adherence_groups,
+            execmode=self.execmode
+            )
+        # Assign values
+        self.__df = variables[0]
+        self.__mrt_policies_df = variables[1]
+        self.__cmr_policies_df = variables[2]
+        
+        # =====================================================================
+        # Stop agents isolated by mobility resytictions
+        indexes = self.__df.query("isolated_by_mr == True").index.values
+
+        if len(indexes) != 0:
+            self.__df = AgentMovement.stop_agents(self.__df, indexes)
+
+        # =====================================================================
+        # Initialize velocities for formerly isolated by mr
+        # agents
+        former_indexes = former_df.query(
+            "isolated_by_mr == True"
+            ).index.values
+
+        mask = isin(former_indexes, indexes, invert=True)
+        should_init_indexes = former_indexes[mask]
+
+        if len(should_init_indexes) != 0:
+            for mobility_group in self.mobility_groups.items.keys():
+                self.__df = AgentMovement.initialize_velocities(
+                    df=self.__df,
+                    distribution=self.mobility_groups.items[
+                        mobility_group].dist[DistTitles.mobility.value],
+                    angle_distribution=Distribution(
+                        dist_type="numpy",
+                        dist_name="uniform",
+                        low=0.0,
+                        high=2*pi
+                        ),
+                    indexes=should_init_indexes,
+                    group_field="mobility_group",
+                    group_label=mobility_group,
+                    preserve_dtypes_dict={"step": int, "agent": int}
+                    )
 
         # =====================================================================
         # Avoid avoidable agents
@@ -582,20 +654,6 @@ class Population:
             box_size=self.configuration.box_size,
             dt=1.0
             )
-
-        # =====================================================================
-        # Update agents' velocities
-        for mobility_group in self.mobility_groups.items.keys():
-            self.__df = AgentMovement.update_velocities(
-                df=self.__df,
-                distribution=self.mobility_groups
-                .items[mobility_group].dist[DistTitles.mobility.value],
-                angle_variance=self.mobility_groups
-                .items[mobility_group].angle_variance,
-                group_field="mobility_group",
-                group_label=mobility_group,
-                preserve_dtypes_dict={"step": int, "agent": int}
-                )
 
     def __get_disease_groups_alive(self) -> None:
         """

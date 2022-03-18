@@ -13,13 +13,14 @@
 #
 # You should have received a copy of the GNU General Public License
 #
-#This package is authored by:
-#Camilo Hincapié (https://www.linkedin.com/in/camilo-hincapie-gutierrez/) (main author)
-#Ian Mejía (https://github.com/IanMejia)
-#Emil Rueda (https://www.linkedin.com/in/emil-rueda-424012207/)
-#Nicole Rivera (https://github.com/nicolerivera1)
-#Carolina Rojas Duque (https://github.com/carolinarojasd)
+# This package is authored by:
+# Camilo Hincapié (https://www.linkedin.com/in/camilo-hincapie-gutierrez/) (main author)
+# Ian Mejía (https://github.com/IanMejia)
+# Emil Rueda (https://www.linkedin.com/in/emil-rueda-424012207/)
+# Nicole Rivera (https://github.com/nicolerivera1)
+# Carolina Rojas Duque (https://github.com/carolinarojasd)
 
+from datetime import timedelta
 from typing import Union, Optional
 from copy import deepcopy
 
@@ -34,19 +35,18 @@ from abmodel.utils import check_field_existance
 from abmodel.utils import exception_burner
 from abmodel.utils import std_str_join_cols
 from abmodel.models import DistTitles
-from abmodel.models import SimpleGroups
 from abmodel.models import NaturalHistory
 from abmodel.models import DiseaseStates
 from abmodel.models import SusceptibilityGroups
 from abmodel.models import ImmunizationGroups
-# from abmodel.models import MobilityGroups
+from abmodel.models import MobilityGroups
 from abmodel.models import IsolationAdherenceGroups
+from abmodel.models import MRAdherenceGroups
 from abmodel.models import HealthSystem
 from abmodel.models import InterestVariables
 from abmodel.models import MRTStopModes
-# from abmodel.models import MRTracingPolicies
+from abmodel.models import CyclicMRModes
 from abmodel.models import GlobalCyclicMR
-# from abmodel.models import CyclicMRPolicies
 
 
 # =============================================================================
@@ -636,7 +636,7 @@ def isolation_handler(
     beta: float,  # Reduction factor of spread prob due to being isolated
     disease_groups: DiseaseStates,
     isolation_adherence_groups: Optional[IsolationAdherenceGroups] = None
-) -> tuple[bool, bool, float, float, bool, float]:
+) -> Series([bool, bool, float, float, bool, float]):
     """
         TODO: Add brief explanation
 
@@ -720,7 +720,78 @@ def isolation_handler(
                     adheres_to_isolation = False
 
     return Series([is_diagnosed, is_isolated, isolation_time,
-                   isolation_max_time, adheres_to_isolation, reduction_factor])
+                   isolation_max_time, adheres_to_isolation,
+                   reduction_factor])
+
+
+def mr_handler(
+    mr_group: str,
+    mr_adherence_group: str,
+    is_diagnosed: bool,
+    isolated_by_mr: bool,
+    adheres_to_mr_isolation: bool,
+    reduction_factor: float,
+    beta: float,  # Reduction factor of spread prob due to being isolated
+    mrc_target_groups: list,
+    mr_adherence_groups: Optional[IsolationAdherenceGroups] = None
+) -> Series([bool, bool, float]):
+    """
+        TODO: Add brief explanation
+
+        Parameters
+        ----------
+        TODO
+
+        Returns
+        -------
+        TODO
+
+        Notes
+        -----
+        TODO: include mathematical description and explanatory image
+
+        See Also
+        --------
+        isolation_function : TODO complete explanation
+
+        Examples
+        --------
+        TODO: include some examples
+    """
+    if not mr_group in mrc_target_groups:
+        # it is not isolated by mr
+        adheres_to_mr_isolation = False
+        isolated_by_mr = False
+    else:
+        # it is isolated by mr
+        isolated_by_mr = True
+        if mr_adherence_groups is None:
+            # Agent always adheres to isolation
+            adheres_to_mr_isolation = True
+            reduction_factor = reduction_factor*beta
+        else:
+            # mr_adherence_groups is not None
+
+            # Does agent adhere to be isolated?
+            # ... Throw the dice
+            dice = random_sample()
+
+            adherence_prob = mr_adherence_groups.items[
+                mr_adherence_group
+                ].dist[
+                    DistTitles.mr_adherence.value
+                    ].sample()
+
+            if dice <= adherence_prob:
+                # Agent adheres to isolation
+                adheres_to_mr_isolation = True
+                if is_diagnosed:
+                    reduction_factor = reduction_factor*beta
+            else:
+                # Agent doesn't adhere to isolation
+                adheres_to_mr_isolation = False
+
+    return Series([isolated_by_mr, adheres_to_mr_isolation, reduction_factor])
 
 
 # =============================================================================
@@ -741,7 +812,7 @@ def contagion_function(
     kdtree_by_disease_state: dict,
     agents_labels_by_disease_state: dict,
     df_copy: DataFrame
-) -> tuple[str, int, list, float, bool, bool]:
+) -> Series([str, int, list, float, bool, bool]):
     """
         TODO
         # Set None the disease_state_time
@@ -886,7 +957,7 @@ def init_immunization_params_iterative(
     immunization_group: str,
     immunization_level: float,
     immunization_groups: ImmunizationGroups
-) -> tuple[float, float]:
+) -> Series([float, float, float]):
     """
         TODO: Add brief explanation
 
@@ -948,7 +1019,7 @@ def update_immunization_params_iterative(
     immunization_max_time: float,  # In scale of days
     do_update_immunization_params: bool,
     natural_history: NaturalHistory
-) -> tuple[float, float, float, float, bool]:
+) -> Series([float, float, float, float, bool]):
     """
         TODO: Add brief explanation
 
@@ -1016,7 +1087,7 @@ def update_immunization_level_iterative(
     immunization_slope: float,
     immunization_time: float,  # In scale of days
     immunization_max_time: float  # In scale of days
-) -> tuple[float, float, float, float]:
+) -> Series([float, float, float, float]):
     """
         TODO: Add brief explanation
 
@@ -1068,7 +1139,7 @@ def alertness_function(
     kdtree_by_disease_state: dict,
     agents_labels_by_disease_state: dict,
     dead_disease_group: str
-) -> tuple[bool, list]:
+) -> Series([bool, list]):
     """
         TODO: Add brief explanation
 
@@ -1253,6 +1324,13 @@ class AgentDisease:
         df = cls.to_isolate_agents(
             df, dt, beta, disease_groups, isolation_adherence_groups, execmode
             )
+
+        # Init has_mr_restictions
+        df = df.assign(isolated_by_mr=False)
+        df = df.assign(adheres_to_mr_isolation=True)
+        # df = cls.mr_isolate_agents(
+        #    df, dt, beta, disease_groups, isolation_adherence_groups, execmode
+        #    )
 
         # Init times_infected
         df = cls.init_times_infected(df, disease_groups, execmode)
@@ -2042,6 +2120,79 @@ class AgentDisease:
             return df
 
     @classmethod
+    def to_isolate_agents_by_mr(
+        cls,
+        df: DataFrame,
+        mrc_target_groups: list,
+        beta: float,  # Reduction factor of spread prob due to being isolated
+        mr_adherence_groups: Optional[IsolationAdherenceGroups] = None,
+        execmode: ExecutionModes = ExecutionModes.iterative.value
+    ) -> DataFrame:
+        """
+            TODO: Add brief explanation
+
+            Parameters
+            ----------
+            TODO
+
+            Returns
+            -------
+            TODO
+
+            Raises
+            ------
+            TODO
+
+            Notes
+            -----
+            TODO: include mathematical description and explanatory image
+
+            See Also
+            --------
+            abmodel.agent.execution_modes.ExecutionModes : TODO complete
+            explanation
+
+            check_field_existance : TODO complete explanation
+
+            isolation_handler : TODO complete explanation
+
+            Examples
+            --------
+            TODO: include some examples
+        """
+        try:
+            if execmode == ExecutionModes.iterative.value:
+                df[["isolated_by_mr", "adheres_to_mr_isolation",
+                    "reduction_factor"]] = df.apply(
+                    lambda row: mr_handler(
+                        row["mr_group"],
+                        row["mr_adherence_group"],
+                        row["is_diagnosed"],
+                        row["isolated_by_mr"],
+                        row["adheres_to_mr_isolation"],
+                        row["reduction_factor"],
+                        beta,
+                        mrc_target_groups,
+                        mr_adherence_groups
+                        ),
+                    axis=1
+                    )
+            else:
+                raise NotImplementedError(
+                    f"`execmode = {execmode}` is still not implemented yet"
+                    )
+        except Exception as error:
+            validation_list = ["mr_group", "mr_adherence_group",
+                               "is_diagnosed", "isolated_by_mr",
+                               "adheres_to_mr_isolation", "reduction_factor"]
+            exception_burner([
+                error,
+                check_field_existance(df, validation_list)
+                ])
+        else:
+            return df
+
+    @classmethod
     def disease_state_transition_by_contagion(
         cls,
         df: DataFrame,
@@ -2366,13 +2517,16 @@ class AgentDisease:
         cls,
         step: int,
         df: DataFrame,
-        mr_groups: SimpleGroups,
+        # mr_groups: MobilityGroups,
+        beta: float,
         mrt_policies: Optional[dict] = None,  # MRTracingPolicies
         mrt_policies_df: Optional[DataFrame] = None,
         global_cyclic_mr: Optional[GlobalCyclicMR] = None,
         cyclic_mr_policies: Optional[dict] = None,  # CyclicMRPolicies
         cmr_policies_df: Optional[DataFrame] = None,
         grace_time_in_steps: Optional[int] = None,
+        iteration_time: Optional[timedelta] = None,
+        mr_adherence_groups: Optional[MRAdherenceGroups] = None,
         execmode: ExecutionModes = ExecutionModes.iterative.value
     ):
         """
@@ -2490,7 +2644,10 @@ class AgentDisease:
                                 # Here "step" is the current step
                                 enabled_length = enabled_start - step
 
-                                mr_length = policie.mr_length
+                                policie.set_mr_length_in_steps(
+                                    iteration_time
+                                )
+                                mr_length = policie.mr_length_in_steps
                                 if enabled_length >= mr_length:
                                     new_activation_status = "disabled"
                                 else:
@@ -2502,10 +2659,13 @@ class AgentDisease:
 
                         # Append target_groups_lists
                         if new_activation_status == "enabled":
-                            target_groups_lists.append()
+                            target_groups_lists.append(policie.target_groups)
 
                     # Append policies_status to mrt_policies_df
-                    mrt_policies_df = mrt_policies_df.append(policies_status)
+                    mrt_policies_df = mrt_policies_df.append(
+                        policies_status,
+                        ignore_index=True
+                    )
 
                     # Flatten list of lists using list comprehension
                     flatten_target_groups_lists = [
@@ -2534,11 +2694,149 @@ class AgentDisease:
                     # Init target_groups_lists
                     target_groups_lists = []
 
+                    global_cyclic_mr.set_global_mr_length(
+                        iteration_time
+                    )
+
                     if step > grace_time_in_steps:
-                        if cmr_policies_df["global_mr"].iloc[-1] == "enabled":
-                            pass
-                        if cmr_policies_df["global_mr"].iloc[-1] == "disabled":
-                            pass
+                        global_activation_satus = \
+                            cmr_policies_df["global_mr"].iloc[-1]
+
+                        if global_activation_satus == "disabled":
+                            # Verify the status of unrestricted_time_steps
+                            if global_cyclic_mr.\
+                                    unrestricted_time_steps is not None:
+                                pass
+                            else:
+                                global_cyclic_mr.\
+                                    set_unrestricted_time(
+                                        iteration_time
+                                    )
+                            unrestricted_time_steps = \
+                                global_cyclic_mr.unrestricted_time_steps
+
+                            #  Calculate the elapsed time disabled
+                            cmr_policies_df_copy = cmr_policies_df[
+                                ["step", "global_mr"]].copy()
+
+                            cmr_policies_df_copy["status_change"] = \
+                                cmr_policies_df_copy["global_mr"].shift() != \
+                                cmr_policies_df["global_mr"]
+
+                            disabled_start_step = \
+                                cmr_policies_df_copy[cmr_policies_df_copy[
+                                    "status_change"]]["step"].iloc[-1]
+
+                            disabled_steps = step - disabled_start_step
+                            # Assign the policies_status for global_mr
+                            # comparing with the elapsed time
+                            policies_status["global_mr"] = \
+                                "disabled" if disabled_steps < \
+                                unrestricted_time_steps else "enabled"
+                            # If enables, assign enabled_steps
+                            if policies_status["global_mr"] == "enabled":
+                                enabled_steps = 0
+                            
+                            # In random mode, set unrestricted_time_steps
+                            # to None and enabled_steps = 0 when there will be
+                            # a change of policies_status to enabled
+                            if global_cyclic_mr.unrestricted_time_mode == \
+                                    CyclicMRModes.random:
+                                if policies_status["global_mr"] == "enabled":
+                                    global_cyclic_mr.\
+                                        set_none_unrestricted_time()
+                                    enabled_steps = 0
+                                else:
+                                    pass
+
+                        if global_activation_satus == "enabled":
+                            # Verify the status of unrestricted_time_steps
+                            # Set None for random mode
+                            global_mr_length_steps = \
+                                global_cyclic_mr.global_mr_length_steps
+
+                            # Calculate the elapsed time enabled
+                            cmr_policies_df_copy = cmr_policies_df[
+                                ["step", "global_mr"]].copy()
+
+                            cmr_policies_df_copy["status_change"] = \
+                                cmr_policies_df_copy["global_mr"].shift() != \
+                                cmr_policies_df["global_mr"]
+
+                            enabled_start_step = \
+                                cmr_policies_df_copy[cmr_policies_df_copy[
+                                    "status_change"]]["step"].iloc[-1]
+
+                            enabled_steps = step - enabled_start_step
+
+                            # Check if continue enabled or set disabled
+                            policies_status["global_mr"] = \
+                                "enabled" if enabled_steps < \
+                                global_mr_length_steps else "disabled"
+
+                            # In random mode, set unrestricted_time_steps
+                            # when there will be a change of policies_status
+                            # to disabled
+                            if global_cyclic_mr.unrestricted_time_mode == \
+                                    CyclicMRModes.random:
+                                if enabled_steps == global_mr_length_steps:
+                                    global_cyclic_mr.\
+                                        set_unrestricted_time(
+                                            iteration_time
+                                        )
+                        # Check the status of each group
+                        if policies_status["global_mr"] == "enabled":
+
+                            for group in cyclic_mr_policies.keys():
+                                # Calling the methods so as to set mr_length
+                                # and time_without_restrictions in steps
+                                cyclic_mr_policies[group].\
+                                    set_mr_length(iteration_time)
+
+                                cyclic_mr_policies[group].\
+                                    set_time_without_restrictions(
+                                        iteration_time
+                                    )
+
+                                delay = cyclic_mr_policies[group].delay
+                                mr_length = cyclic_mr_policies[group].\
+                                    mr_length_in_steps
+
+                                if delay:
+                                    # Assign delay in steps
+                                    cyclic_mr_policies[
+                                        group
+                                        ].set_delay(iteration_time)
+                                    delay = cyclic_mr_policies[
+                                            group
+                                        ].delay_in_steps
+
+                                    # Compare and append to policies_status
+                                    # dict
+                                    if delay > enabled_steps:
+                                        policies_status[group] = "disabled"
+                                    else:
+                                        # Compare and append to policies_status
+                                        # dict
+                                        if delay < enabled_steps and \
+                                                enabled_steps <= mr_length:
+                                            policies_status[group] = "enabled"
+                                        else:
+                                            policies_status[group] = "disabled"
+                                else:
+                                    # Append to policies_status dict
+                                    policies_status[group] = \
+                                        "enabled" if enabled_steps <= \
+                                        mr_length else "disabled"
+                        else:
+                            # Append to policies_status dict diabled for all
+                            # groups
+                            for col in setdiff1d(
+                                cmr_policies_df.columns,
+                                "step"
+                            ):
+                                policies_status[col] = "disabled"
+
                     elif step == grace_time_in_steps:
                         # Append to policies_status dict
                         policies_status["global_mr"] = "enabled"
@@ -2556,7 +2854,38 @@ class AgentDisease:
                             policies_status[col] = "disabled"
 
                     # Append policies_status to cmr_policies_df
-                    cmr_policies_df = cmr_policies_df.append(policies_status)
+                    cmr_policies_df = cmr_policies_df.append(
+                        policies_status,
+                        ignore_index=True
+                    )
+
+                    policies_status_copy = policies_status.copy()
+                    policies_status_copy.pop("step")
+                    policies_status_copy.pop("global_mr")
+                    policies_status_copy = zip(
+                        policies_status_copy.keys(),
+                        policies_status_copy.values()
+                    )
+
+                    # Append cmr_target_groups
+                    for group, status in policies_status_copy:
+                        if status == "enabled":
+                            cmr_target_groups.append(group)
+
+                # Create mrc_target_groups list
+                mrc_target_groups = \
+                    cmr_target_groups + mrt_target_groups
+
+                # Remove duplicates
+                mrc_target_groups = list(set(mrc_target_groups))
+
+                df = cls.to_isolate_agents_by_mr(
+                    df,
+                    mrc_target_groups,
+                    beta,
+                    mr_adherence_groups,
+                    execmode
+                )
 
             else:
                 raise NotImplementedError(
@@ -2569,4 +2898,4 @@ class AgentDisease:
                 check_field_existance(df, validation_list)
                 ])
         else:
-            return df
+            return df, mrt_policies_df, cmr_policies_df
