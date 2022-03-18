@@ -13,12 +13,12 @@
 #
 # You should have received a copy of the GNU General Public License
 #
-#This package is authored by:
-#Camilo Hincapié (https://www.linkedin.com/in/camilo-hincapie-gutierrez/) (main author)
-#Ian Mejía (https://github.com/IanMejia)
-#Emil Rueda (https://www.linkedin.com/in/emil-rueda-424012207/)
-#Nicole Rivera (https://github.com/nicolerivera1)
-#Carolina Rojas Duque (https://github.com/carolinarojasd)
+# This package is authored by:
+# Camilo Hincapié (https://www.linkedin.com/in/camilo-hincapie-gutierrez/) (main author)
+# Ian Mejía (https://github.com/IanMejia)
+# Emil Rueda (https://www.linkedin.com/in/emil-rueda-424012207/)
+# Nicole Rivera (https://github.com/nicolerivera1)
+# Carolina Rojas Duque (https://github.com/carolinarojasd)
 
 from enum import Enum
 from dataclasses import dataclass
@@ -50,6 +50,7 @@ class DistTitles(Enum):
     time = "time_dist"
     alertness = "alertness_prob"
     immunization_level = "immunization_level_dist"
+    mr_adherence = "mr_adherence_prob"
 
 
 @dataclass
@@ -220,6 +221,50 @@ class IsolationAdherenceGroups(SimpleDistGroups):
         """
         self.single_dist_title_validation(
             expected_dist_title=DistTitles.adherence.value
+            )
+        super().__post_init__()
+
+
+@dataclass
+class MRAdherenceGroups(SimpleDistGroups):
+    """
+        Dataclass used for wrapping Adherence groups
+
+        Attributes
+        ----------
+        dist_title : str
+            Distribution title. It must be equal to
+            `DistTitles.adherence`
+
+        group_info : list of dict
+            The list of different single group
+            information required to instantiate
+            a DistributionGroup.
+
+        items : dict
+            The dictionary created from the list `group_info`.
+            Each key of this dictionary corresponds to a single
+            group name.
+
+        See Also
+        --------
+        DistTitles : fundamental distribution titles
+
+        abmodel.models.base.SimpleDistGroups : Simple Distribution groups class
+
+        Examples
+        --------
+        TODO: include some examples
+    """
+    def __post_init__(self):
+        """
+            Validates `dist_title` to be equal to
+            `DistTitles.adherence` and then
+            performs `items` dictionary
+            assignment from `group_info` list.
+        """
+        self.single_dist_title_validation(
+            expected_dist_title=DistTitles.mr_adherence.value
             )
         super().__post_init__()
 

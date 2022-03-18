@@ -13,17 +13,17 @@
 #
 # You should have received a copy of the GNU General Public License
 #
-#This package is authored by:
-#Camilo Hincapié (https://www.linkedin.com/in/camilo-hincapie-gutierrez/) (main author)
-#Ian Mejía (https://github.com/IanMejia)
-#Emil Rueda (https://www.linkedin.com/in/emil-rueda-424012207/)
-#Nicole Rivera (https://github.com/nicolerivera1)
-#Carolina Rojas Duque (https://github.com/carolinarojasd)
+# This package is authored by:
+# Camilo Hincapié (https://www.linkedin.com/in/camilo-hincapie-gutierrez/) (main author)
+# Ian Mejía (https://github.com/IanMejia)
+# Emil Rueda (https://www.linkedin.com/in/emil-rueda-424012207/)
+# Nicole Rivera (https://github.com/nicolerivera1)
+# Carolina Rojas Duque (https://github.com/carolinarojasd)
 
 from typing import Optional, Union
 
 from math import fmod
-from numpy import ndarray, arctan2, cos, sin, pi, sqrt, inf, frompyfunc
+from numpy import ndarray, arctan2, cos, sin, pi, sqrt, inf, frompyfunc, array
 from pandas.core.frame import DataFrame, Series
 
 from abmodel.models.population import BoxSize
@@ -440,7 +440,7 @@ class AgentMovement:
                     nin=1,
                     nout=1
                     )
-                angles = standardize_angle_array(angles).astype(float)
+                angles = array(standardize_angle_array(angles)).astype(float)
 
             df.loc[df.index, "vx"] = new_velocities_norm * cos(angles)
 
