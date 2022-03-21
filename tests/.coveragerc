@@ -7,3 +7,6 @@ omit=
     .venv/*
     setup.py
     *__init__*
+
+[report]
+skip_empty = True
