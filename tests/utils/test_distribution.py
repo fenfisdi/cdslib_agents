@@ -56,8 +56,8 @@ class TestDistribution:
         pytest.data_1D = random.normal(0.0, 0.1, 30)
         pytest.data_3D = random.normal(0.0, 0.1, (1, 3))
         pytest.wrong_filename = "filename"
-        pytest.data_file = genfromtxt('tests/data_empirical.txt')
-        pytest.filename = "tests/data_empirical.txt"
+        pytest.data_file = genfromtxt("data_empirical.txt")
+        pytest.filename = "data_empirical.txt"
         pytest.error_message_None_file_neither_data = (
             "The data is required and must be provided through "
             "the parameter `data` or `filename` when "
@@ -69,7 +69,7 @@ class TestDistribution:
     def fixture_weights_distribution(self) -> None:
         pytest.error_message = "Error initializing distribution."
         pytest.wrong_filename = "filename"
-        pytest.filename = "tests/data_weights.txt"
+        pytest.filename = "data_weights.txt"
         hist = histogram(random.normal(0.0, 0.1, 30))
         data = list(hist[1])
         X_i = [(data[i] + data[i + 1])/2 for i in range(len(data) - 1)]
@@ -77,7 +77,7 @@ class TestDistribution:
         P_i = [i/30 for i in P_i]
         pytest.data_2D = array([X_i, P_i]).T
         pytest.data_3D = array([[X_i, P_i]])
-        pytest.data_file = genfromtxt('tests/data_weights.txt', delimiter=',')
+        pytest.data_file = genfromtxt("data_weights.txt", delimiter=',')
         pytest.error_message_None_file_neither_data = (
             "The data is required and must be provided through "
             "the parameter `data` or `filename` when "
