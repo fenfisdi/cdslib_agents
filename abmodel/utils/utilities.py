@@ -133,7 +133,7 @@ def std_str_join_cols(
     col1: Union[str, Series],
     col2: Union[str, Series],
     separator: str = "-"
-) -> Union[str, list[str]]:
+) -> Union[str, Series]:
     """
         TODO: brief explanation
 
