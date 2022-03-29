@@ -569,7 +569,7 @@ class TestClassDisease:
         )
 
         assert isinstance(disease_groups.items, dict)
-        disease_groups.labels == [
+        assert disease_groups.labels == [
             "can_get_infected",
             "is_infected",
             "can_spread",
