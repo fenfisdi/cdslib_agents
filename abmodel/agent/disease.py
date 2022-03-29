@@ -126,7 +126,7 @@ def calculate_max_time_iterative(
     disease_state_max_time: Union[float, None],
     disease_groups: DiseaseStates,
     natural_history: NaturalHistory
-) -> tuple[float, float]:
+) -> Series([float, float]):
     """
         TODO: Add brief explanation
 
@@ -212,7 +212,7 @@ def transition_function(
     key: str,
     disease_groups: DiseaseStates,
     natural_history: NaturalHistory
-) -> tuple[str, float, bool, bool, bool]:
+) -> Series([str, float, bool, bool, bool]):
     """
         TODO: Add brief explanation
 
@@ -276,11 +276,11 @@ def transition_function(
 
 # =============================================================================
 def hospitalization_vectorized(
-    is_hospitalized: ndarray,
-    is_in_ICU: ndarray,
-    disease_states: ndarray,
-    is_dead: ndarray,
-    reduction_factor: ndarray,
+    is_hospitalized: Series,
+    is_in_ICU: Series,
+    disease_states: Series,
+    is_dead: Series,
+    reduction_factor: Series,
     dead_disease_group: str,
     alpha: float,  # Reduction factor of spread prob due to hospitalization
     disease_groups: DiseaseStates,
