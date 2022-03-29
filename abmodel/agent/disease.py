@@ -758,7 +758,7 @@ def mr_handler(
         --------
         TODO: include some examples
     """
-    if not mr_group in mrc_target_groups:
+    if mr_group not in mrc_target_groups:
         # it is not isolated by mr
         adheres_to_mr_isolation = False
         isolated_by_mr = False
