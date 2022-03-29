@@ -728,8 +728,6 @@ def mr_handler(
     mr_group: str,
     mr_adherence_group: str,
     is_diagnosed: bool,
-    isolated_by_mr: bool,
-    adheres_to_mr_isolation: bool,
     reduction_factor: float,
     beta: float,  # Reduction factor of spread prob due to being isolated
     mrc_target_groups: list,
@@ -2168,8 +2166,6 @@ class AgentDisease:
                         row["mr_group"],
                         row["mr_adherence_group"],
                         row["is_diagnosed"],
-                        row["isolated_by_mr"],
-                        row["adheres_to_mr_isolation"],
                         row["reduction_factor"],
                         beta,
                         mrc_target_groups,
