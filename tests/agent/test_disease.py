@@ -18,9 +18,12 @@ from abmodel.models.disease import IsolationAdherenceGroups
 from abmodel.models.disease import ImmunizationGroups
 from abmodel.models import HealthSystem
 from abmodel.utils.execution_modes import ExecutionModes
-from abmodel.models.mobility_restrictions import InterestVariables, MRTracingPolicies
-from abmodel.models.mobility_restrictions import MRTStopModes, MRTimeUnits
-from abmodel.models.mobility_restrictions import CyclicMRPolicies, GlobalCyclicMR
+from abmodel.models.mobility_restrictions import InterestVariables
+from abmodel.models.mobility_restrictions import MRTracingPolicies
+from abmodel.models.mobility_restrictions import MRTStopModes
+from abmodel.models.mobility_restrictions import MRTimeUnits
+from abmodel.models.mobility_restrictions import CyclicMRPolicies
+from abmodel.models.mobility_restrictions import GlobalCyclicMR
 from abmodel.models.mobility_restrictions import CyclicMRModes
 from abmodel.models.disease import MRAdherenceGroups
 from abmodel.models.base import SimpleGroups
