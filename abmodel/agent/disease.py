@@ -482,24 +482,24 @@ def hospitalization_vectorized(
                 completely_new_hospitalized_not_in_ICU
             ])
 
-            # Update disease state of those that died
-            disease_states[must_die] = dead_disease_group
+        # Update disease state of those that died
+        disease_states[must_die] = dead_disease_group
 
-            # Update is_dead for those that died
-            is_dead[must_die] = True
+        # Update is_dead for those that died
+        is_dead[must_die] = True
 
-            is_hospitalized_False = where(equal(is_hospitalized, False))[0]
-            is_hospitalized_True = where(equal(is_hospitalized, True))[0]
+        is_hospitalized_False = where(equal(is_hospitalized, False))[0]
+        is_hospitalized_True = where(equal(is_hospitalized, True))[0]
 
-            new_is_hospitalized_False = concatenate([
-                is_hospitalized_False, must_die
-                ])
-            mask = isin(is_hospitalized_True, must_die, invert=True)
-            new_is_hospitalized_True = is_hospitalized_True[mask]
+        new_is_hospitalized_False = concatenate([
+            is_hospitalized_False, must_die
+            ])
+        mask = isin(is_hospitalized_True, must_die, invert=True)
+        new_is_hospitalized_True = is_hospitalized_True[mask]
 
-            # Update values
-            is_hospitalized[new_is_hospitalized_False] = False
-            is_hospitalized[new_is_hospitalized_True] = True
+        # Update values
+        is_hospitalized[new_is_hospitalized_False] = False
+        is_hospitalized[new_is_hospitalized_True] = True
 
     # Determine indexes for changing reduction factor
     new_hospitalized_indexes = where(
@@ -756,7 +756,7 @@ def mr_handler(
         --------
         TODO: include some examples
     """
-    if not mr_group in mrc_target_groups:
+    if mr_group not in mrc_target_groups:
         # it is not isolated by mr
         adheres_to_mr_isolation = False
         isolated_by_mr = False
@@ -2638,7 +2638,7 @@ class AgentDisease:
                                     ]["step"].iloc[-1]
 
                                 # Here "step" is the current step
-                                enabled_length = enabled_start - step
+                                enabled_length = step - enabled_start
 
                                 policie.set_mr_length_in_steps(
                                     iteration_time
