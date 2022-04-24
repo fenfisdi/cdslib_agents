@@ -24,11 +24,13 @@ from datetime import timedelta
 from typing import Union, Optional
 from copy import deepcopy
 
-from numpy import where, full, ndarray, isin, concatenate, setdiff1d, array
+from numpy import where, full, isin, concatenate, setdiff1d, array
 from numpy import isnan, nan, transpose, equal
 from numpy.random import choice, random_sample
 from pandas.core.frame import DataFrame
 from pandas.core.series import Series
+from pandas import concat
+from dask.dataframe import from_pandas
 
 from abmodel.utils import ExecutionModes
 from abmodel.utils import check_field_existance
@@ -1393,7 +1395,16 @@ class AgentDisease:
                     lambda row: disease_groups
                     .items[row["disease_state"]].is_dead,
                     axis=1
-                    )
+                )
+            elif execmode == ExecutionModes.dask.value:
+                df = from_pandas(df, npartitions=1)
+                df["is_dead"] = df.apply(
+                    lambda row: disease_groups
+                    .items[row["disease_state"]].is_dead,
+                    axis=1,
+                    meta=('is_dead', 'bool')
+                )
+                df = df.compute()
             else:
                 raise NotImplementedError(
                     f"`execmode = {execmode}` is still not implemented yet"
@@ -1412,7 +1423,8 @@ class AgentDisease:
         cls,
         df: DataFrame,
         disease_groups: DiseaseStates,
-        execmode: ExecutionModes = ExecutionModes.iterative.value
+        execmode: ExecutionModes = ExecutionModes.iterative.value,
+        npartitions: Optional[int] = 1
     ) -> DataFrame:
         """
             TODO: Add brief explanation
@@ -1451,6 +1463,15 @@ class AgentDisease:
                     .items[row["disease_state"]].is_infected else 0,
                     axis=1
                     )
+            elif execmode == ExecutionModes.dask.value:
+                df = from_pandas(df, npartitions=npartitions)
+                df["times_infected"] = df.apply(
+                    lambda row: 1 if disease_groups
+                    .items[row["disease_state"]].is_infected else 0,
+                    axis=1,
+                    meta=(0, "int64")
+                    )
+                df = df.compute()
             else:
                 raise NotImplementedError(
                     f"`execmode = {execmode}` is still not implemented yet"
@@ -1469,7 +1490,8 @@ class AgentDisease:
         cls,
         df: DataFrame,
         immunization_groups: ImmunizationGroups,
-        execmode: ExecutionModes = ExecutionModes.iterative.value
+        execmode: ExecutionModes = ExecutionModes.iterative.value,
+        npartitions: Optional[int] = 1
     ) -> DataFrame:
         """
             TODO: Add brief explanation
@@ -1509,6 +1531,16 @@ class AgentDisease:
                         DistTitles.immunization_level.value].sample(),
                     axis=1
                     )
+            elif execmode == ExecutionModes.dask.value:
+                df = from_pandas(df, npartitions=npartitions)
+                df["immunization_level"] = df.apply(
+                    lambda row: immunization_groups
+                    .items[row["immunization_group"]].dist[
+                        DistTitles.immunization_level.value].sample(),
+                    axis=1,
+                    meta=(0, "int64")
+                    )
+                df = df.compute()
             else:
                 raise NotImplementedError(
                     f"`execmode = {execmode}` is still not implemented yet"
@@ -1527,7 +1559,8 @@ class AgentDisease:
         cls,
         df: DataFrame,
         immunization_groups: Optional[ImmunizationGroups],
-        execmode: ExecutionModes = ExecutionModes.iterative.value
+        execmode: ExecutionModes = ExecutionModes.iterative.value,
+        npartitions: Optional[int] = 1
     ) -> DataFrame:
         """
             TODO: Add brief explanation
@@ -1570,6 +1603,23 @@ class AgentDisease:
                         ),
                     axis=1
                     )
+            elif execmode == ExecutionModes.dask.value:
+                df = from_pandas(df, npartitions=npartitions)
+                df[["immunization_time", "immunization_max_time",
+                    "immunization_slope"]] = df.apply(
+                    lambda row: init_immunization_params_iterative(
+                        row["immunization_group"],
+                        row["immunization_level"],
+                        immunization_groups
+                        ),
+                    axis=1,
+                    meta={
+                        0: "float64",
+                        1: "float64",
+                        2: "float64"
+                    }
+                    )
+                df = df.compute()
             else:
                 raise NotImplementedError(
                     f"`execmode = {execmode}` is still not implemented yet"
@@ -1587,7 +1637,8 @@ class AgentDisease:
     def generate_key_col(
         cls,
         df: DataFrame,
-        execmode: ExecutionModes = ExecutionModes.iterative.value
+        execmode: ExecutionModes = ExecutionModes.iterative.value,
+        npartitions: Optional[int] = 1
     ) -> DataFrame:
         """
             TODO: Add brief explanation
@@ -1630,6 +1681,17 @@ class AgentDisease:
                         ),
                     axis=1
                     )
+            elif execmode == ExecutionModes.dask.value:
+                df = from_pandas(df, npartitions=npartitions)
+                df["key"] = df.apply(
+                    lambda row: std_str_join_cols(
+                        str(row["vulnerability_group"]),
+                        str(row["disease_state"])
+                        ),
+                    axis=1,
+                    meta=(0, "str")
+                    )
+                df = df.compute()
             elif execmode == ExecutionModes.vectorized.value:
                 df["key"] = std_str_join_cols(
                     df["vulnerability_group"],
@@ -1654,7 +1716,8 @@ class AgentDisease:
         df: DataFrame,
         disease_groups: DiseaseStates,
         natural_history: NaturalHistory,
-        execmode: ExecutionModes = ExecutionModes.iterative.value
+        execmode: ExecutionModes = ExecutionModes.iterative.value,
+        npartitions: Optional[int] = 1
     ) -> DataFrame:
         """
             TODO: Add brief explanation
@@ -1734,7 +1797,8 @@ class AgentDisease:
         df: DataFrame,
         disease_groups: DiseaseStates,
         natural_history: NaturalHistory,
-        execmode: ExecutionModes = ExecutionModes.iterative.value
+        execmode: ExecutionModes = ExecutionModes.iterative.value,
+        npartitions: Optional[float] = 1
     ) -> DataFrame:
         """
             TODO: Add brief explanation
@@ -1785,6 +1849,26 @@ class AgentDisease:
                         ),
                     axis=1
                     )
+            elif execmode == ExecutionModes.dask.value:
+                df = from_pandas(df, npartitions=npartitions)
+                df[["disease_state_time",
+                    "disease_state_max_time"]] = df.apply(
+                    lambda row: calculate_max_time_iterative(
+                        row["key"],
+                        row["disease_state"],
+                        row["do_calculate_max_time"],
+                        row["disease_state_time"],
+                        row["disease_state_max_time"],
+                        disease_groups,
+                        natural_history
+                        ),
+                    axis=1,
+                    meta={
+                        0: "float64",
+                        1: "float64"
+                    }
+                    )
+                df = df.compute()
             # TODO: Reimplement calculate_max_time_vectorized
             # elif execmode == ExecutionModes.vectorized.value:
             #     df["disease_state_max_time"] = calculate_max_time_vectorized(
@@ -1817,7 +1901,8 @@ class AgentDisease:
         dt: float,  # In scale of days
         disease_groups: DiseaseStates,
         natural_history: NaturalHistory,
-        execmode: ExecutionModes = ExecutionModes.iterative.value
+        execmode: ExecutionModes = ExecutionModes.iterative.value,
+        npartitions: Optional[int] = 1
     ) -> DataFrame:
         """
             TODO: Add brief explanation
@@ -1872,6 +1957,34 @@ class AgentDisease:
                         ),
                     axis=1
                     )
+            elif execmode == ExecutionModes.dask.value:
+                # Update disease state time
+                df = from_pandas(df, npartitions=npartitions)
+                df["disease_state_time"] = df["disease_state_time"] + dt
+
+                df[["disease_state", "disease_state_time", "is_dead",
+                    "do_calculate_max_time",
+                    "do_update_immunization_params"]] = df.apply(
+                    lambda row: transition_function(
+                        row["disease_state"],
+                        row["disease_state_time"],
+                        row["disease_state_max_time"],
+                        row["is_dead"],
+                        row["key"],
+                        disease_groups,
+                        natural_history
+                        ),
+                    axis=1,
+                    meta={
+                        0: "str",
+                        1: "float64",
+                        2: "bool",
+                        3: "bool",
+                        4: "bool"
+                    }
+                    )
+                df = df.compute()
+
             else:
                 raise NotImplementedError(
                     f"`execmode = {execmode}` is still not implemented yet"
@@ -1978,7 +2091,8 @@ class AgentDisease:
         cls,
         df: DataFrame,
         disease_groups: DiseaseStates,
-        execmode: ExecutionModes = ExecutionModes.iterative.value
+        execmode: ExecutionModes = ExecutionModes.iterative.value,
+        npartitions: Optional[int] = 1
     ) -> DataFrame:
         """
             TODO: Add brief explanation
@@ -2023,6 +2137,19 @@ class AgentDisease:
                         ),
                     axis=1
                     )
+            elif execmode == ExecutionModes.dask.value:
+                df = from_pandas(df, npartitions=npartitions)
+                df["is_diagnosed"] = df.apply(
+                    lambda row: diagnosis_function(
+                        row["disease_state"],
+                        row["is_dead"],
+                        row["is_diagnosed"],
+                        disease_groups
+                        ),
+                    axis=1,
+                    meta=(0, "bool")
+                    )
+                df = df.compute()
             else:
                 raise NotImplementedError(
                     f"`execmode = {execmode}` is still not implemented yet"
@@ -2044,7 +2171,8 @@ class AgentDisease:
         beta: float,  # Reduction factor of spread prob due to being isolated
         disease_groups: DiseaseStates,
         isolation_adherence_groups: Optional[IsolationAdherenceGroups] = None,
-        execmode: ExecutionModes = ExecutionModes.iterative.value
+        execmode: ExecutionModes = ExecutionModes.iterative.value,
+        npartitions: Optional[int] = 1
     ) -> DataFrame:
         """
             TODO: Add brief explanation
@@ -2101,6 +2229,38 @@ class AgentDisease:
                         ),
                     axis=1
                     )
+            elif execmode == ExecutionModes.dask.value:
+                # Update isolation time
+                df = from_pandas(df, npartitions=npartitions)
+                df["isolation_time"] = df["isolation_time"] + dt
+
+                df[["is_diagnosed", "is_isolated", "isolation_time",
+                    "isolation_max_time", "adheres_to_isolation",
+                    "reduction_factor"]] = df.apply(
+                    lambda row: isolation_handler(
+                        row["disease_state"],
+                        row["isolation_adherence_group"],
+                        row["is_diagnosed"],
+                        row["is_isolated"],
+                        row["isolation_time"],
+                        row["isolation_max_time"],
+                        row["adheres_to_isolation"],
+                        row["reduction_factor"],
+                        beta,
+                        disease_groups,
+                        isolation_adherence_groups
+                        ),
+                    axis=1,
+                    meta={
+                        0: "bool",
+                        1: "bool",
+                        2: "float64",
+                        3: "float64",
+                        4: "bool",
+                        5: "float64",
+                    }
+                    )
+                df = df.compute()
             else:
                 raise NotImplementedError(
                     f"`execmode = {execmode}` is still not implemented yet"
@@ -2124,7 +2284,8 @@ class AgentDisease:
         mrc_target_groups: list,
         beta: float,  # Reduction factor of spread prob due to being isolated
         mr_adherence_groups: Optional[IsolationAdherenceGroups] = None,
-        execmode: ExecutionModes = ExecutionModes.iterative.value
+        execmode: ExecutionModes = ExecutionModes.iterative.value,
+        npartitions: Optional[int] = 1
     ) -> DataFrame:
         """
             TODO: Add brief explanation
@@ -2173,6 +2334,27 @@ class AgentDisease:
                         ),
                     axis=1
                     )
+            elif execmode == ExecutionModes.dask.value:
+                df = from_pandas(df, npartitions=npartitions)
+                df[["isolated_by_mr", "adheres_to_mr_isolation",
+                    "reduction_factor"]] = df.apply(
+                    lambda row: mr_handler(
+                        row["mr_group"],
+                        row["mr_adherence_group"],
+                        row["is_diagnosed"],
+                        row["reduction_factor"],
+                        beta,
+                        mrc_target_groups,
+                        mr_adherence_groups
+                        ),
+                    axis=1,
+                    meta={
+                        0: "bool",
+                        1: "bool",
+                        2: "float64"
+                    }
+                    )
+                df = df.compute()
             else:
                 raise NotImplementedError(
                     f"`execmode = {execmode}` is still not implemented yet"
@@ -2197,7 +2379,8 @@ class AgentDisease:
         natural_history: NaturalHistory,
         disease_groups: DiseaseStates,
         susceptibility_groups: SusceptibilityGroups,
-        execmode: ExecutionModes = ExecutionModes.iterative.value
+        execmode: ExecutionModes = ExecutionModes.iterative.value,
+        npartitions: Optional[int] = 1
     ) -> DataFrame:
         """
             TODO: Add brief explanation
@@ -2260,6 +2443,42 @@ class AgentDisease:
                         ),
                     axis=1
                     )
+            elif execmode == ExecutionModes.dask.value:
+                df_copy = df.copy()
+                df = from_pandas(df, npartitions=npartitions)
+
+                df[["disease_state", "times_infected", "infected_by",
+                    "disease_state_time", "do_calculate_max_time",
+                    "do_update_immunization_params"]] = df.apply(
+                    lambda row: contagion_function(
+                        row["agent"],
+                        row["x"],
+                        row["y"],
+                        row["immunization_level"],
+                        row["key"],
+                        row["disease_state"],
+                        row["susceptibility_group"],
+                        row["times_infected"],
+                        row["disease_state_time"],
+                        row["reduction_factor"],
+                        natural_history,
+                        disease_groups,
+                        susceptibility_groups,
+                        kdtree_by_disease_state,
+                        agents_labels_by_disease_state,
+                        df_copy
+                        ),
+                    axis=1,
+                    meta={
+                        0: "str",
+                        1: "int64",
+                        2: "object",
+                        3: "float64",
+                        4: "bool",
+                        5: "bool"
+                    }
+                    )
+                df = df.compute()
             else:
                 raise NotImplementedError(
                     f"`execmode = {execmode}` is still not implemented yet"
@@ -2282,7 +2501,7 @@ class AgentDisease:
 
         except Exception as error:
             validation_list = ["agent", "x", "y", "immunization_level",
-                               "key", "disease_state", "susceptibility_groups",
+                               "key", "disease_state", "susceptibility_group",
                                "times_infected", "disease_state_time",
                                "reduction_factor"]
             exception_burner([
@@ -2297,7 +2516,8 @@ class AgentDisease:
         cls,
         df: DataFrame,
         natural_history: NaturalHistory,
-        execmode: ExecutionModes = ExecutionModes.iterative.value
+        execmode: ExecutionModes = ExecutionModes.iterative.value,
+        npartitions: Optional[int] = 1
     ) -> DataFrame:
         """
             TODO: Add brief explanation
@@ -2348,6 +2568,31 @@ class AgentDisease:
                         ),
                     axis=1
                     )
+            elif execmode == ExecutionModes.dask.value:
+                df = from_pandas(df, npartitions=npartitions)
+                df[["immunization_level", "immunization_slope",
+                    "immunization_time", "immunization_max_time",
+                    "do_update_immunization_params"]] = df.apply(
+                    lambda row: update_immunization_params_iterative(
+                        row["key"],  # In this case, this key is the old one
+                        row["disease_state"],
+                        row["immunization_level"],
+                        row["immunization_slope"],
+                        row["immunization_time"],  # In scale of days
+                        row["immunization_max_time"],  # In scale of days
+                        row["do_update_immunization_params"],
+                        natural_history
+                        ),
+                    axis=1,
+                    meta={
+                        0: "float64",
+                        1: "float64",
+                        2: "float64",
+                        3: "float64",
+                        4: "bool"
+                    }
+                    )
+                df = df.compute()
             else:
                 raise NotImplementedError(
                     f"`execmode = {execmode}` is still not implemented yet"
@@ -2370,7 +2615,8 @@ class AgentDisease:
         df: DataFrame,
         dt: float,  # In scale of days
         natural_history: NaturalHistory,
-        execmode: ExecutionModes = ExecutionModes.iterative.value
+        execmode: ExecutionModes = ExecutionModes.iterative.value,
+        npartitions: Optional[int] = 1
     ) -> DataFrame:
         """
             TODO: Add brief explanation
@@ -2417,6 +2663,26 @@ class AgentDisease:
                         ),
                     axis=1
                     )
+            elif execmode == ExecutionModes.dask.value:
+                df = from_pandas(df, npartitions=npartitions)
+                df[["immunization_level", "immunization_slope",
+                    "immunization_time", "immunization_max_time"]] = df.apply(
+                    lambda row: update_immunization_level_iterative(
+                        dt,  # In scale of days
+                        row["immunization_level"],
+                        row["immunization_slope"],
+                        row["immunization_time"],  # In scale of days
+                        row["immunization_max_time"]  # In scale of days
+                        ),
+                    axis=1,
+                    meta={
+                        0: "float64",
+                        1: "float64",
+                        2: "float64",
+                        3: "float64",
+                    }
+                    )
+                df = df.compute()
             else:
                 raise NotImplementedError(
                     f"`execmode = {execmode}` is still not implemented yet"
@@ -2441,7 +2707,8 @@ class AgentDisease:
         natural_history: NaturalHistory,
         disease_groups: DiseaseStates,
         dead_disease_group: str,
-        execmode: ExecutionModes = ExecutionModes.iterative.value
+        execmode: ExecutionModes = ExecutionModes.iterative.value,
+        npartitions: Optional[int] = 1
     ) -> DataFrame:
         """
             TODO: Add brief explanation
@@ -2494,6 +2761,30 @@ class AgentDisease:
                         ),
                     axis=1
                     )
+            elif execmode == ExecutionModes.dask.value:
+                df = from_pandas(df, npartitions=npartitions)
+                df[["is_alert", "alerted_by"]] = df.apply(
+                    lambda row: alertness_function(
+                        row["agent"],
+                        row["key"],
+                        row["x"],
+                        row["y"],
+                        row["is_dead"],
+                        row["vulnerability_group"],
+                        row["disease_state"],
+                        natural_history,
+                        disease_groups,
+                        kdtree_by_disease_state,
+                        agents_labels_by_disease_state,
+                        dead_disease_group
+                        ),
+                    axis=1,
+                    meta={
+                        0: "bool",
+                        1: "object"
+                    }
+                    )
+                df = df.compute()
             else:
                 raise NotImplementedError(
                     f"`execmode = {execmode}` is still not implemented yet"
@@ -2523,8 +2814,9 @@ class AgentDisease:
         grace_time_in_steps: Optional[int] = None,
         iteration_time: Optional[timedelta] = None,
         mr_adherence_groups: Optional[MRAdherenceGroups] = None,
-        execmode: ExecutionModes = ExecutionModes.iterative.value
-    ):
+        execmode: ExecutionModes = ExecutionModes.iterative.value,
+        npartitions: Optional[int] = 1
+    ) -> tuple[DataFrame, DataFrame, DataFrame]:
         """
             TODO: Add brief explanation
 
@@ -2651,15 +2943,16 @@ class AgentDisease:
                                     new_activation_status = "enabled"
 
                         # Append to policies_status dict
-                        policies_status[variable.value] = new_activation_status
+                        policies_status[variable.value] = \
+                            [new_activation_status]
 
                         # Append target_groups_lists
                         if new_activation_status == "enabled":
                             target_groups_lists.append(policie.target_groups)
 
                     # Append policies_status to mrt_policies_df
-                    mrt_policies_df = mrt_policies_df.append(
-                        policies_status,
+                    mrt_policies_df = concat(
+                        [mrt_policies_df, DataFrame(policies_status)],
                         ignore_index=True
                     )
 
@@ -2732,7 +3025,7 @@ class AgentDisease:
                             # If enables, assign enabled_steps
                             if policies_status["global_mr"] == "enabled":
                                 enabled_steps = 0
-                            
+
                             # In random mode, set unrestricted_time_steps
                             # to None and enabled_steps = 0 when there will be
                             # a change of policies_status to enabled
@@ -2850,8 +3143,10 @@ class AgentDisease:
                             policies_status[col] = "disabled"
 
                     # Append policies_status to cmr_policies_df
-                    cmr_policies_df = cmr_policies_df.append(
-                        policies_status,
+                    cmr_policies_df = concat(
+                        [cmr_policies_df, DataFrame(
+                            policies_status, index=[0]
+                            )],
                         ignore_index=True
                     )
 
@@ -2882,7 +3177,6 @@ class AgentDisease:
                     mr_adherence_groups,
                     execmode
                 )
-
             else:
                 raise NotImplementedError(
                     f"`execmode = {execmode}` is still not implemented yet"
