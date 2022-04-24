@@ -21,6 +21,7 @@
 # Carolina Rojas Duque (https://github.com/carolinarojasd)
 
 from .base import SimpleGroups
+from .base import DistributionGroup
 from .base import SimpleDistGroups
 from .base import ComplexDistGroups
 from .disease import DistTitles
@@ -30,6 +31,7 @@ from .disease import MobilityGroups
 from .disease import IsolationAdherenceGroups
 from .disease import MRAdherenceGroups
 from .disease import DiseaseStates
+from .disease import Transitions
 from .disease import NaturalHistory
 from .health_system import HealthSystem
 from .mobility_restrictions import InterestVariables
@@ -45,6 +47,7 @@ from .population import Configutarion
 
 __all__ = [
     "SimpleGroups",
+    "DistributionGroup",
     "SimpleDistGroups",
     "ComplexDistGroups",
     "DistTitles",
@@ -54,6 +57,7 @@ __all__ = [
     "IsolationAdherenceGroups",
     "MRAdherenceGroups",
     "DiseaseStates",
+    "Transitions",
     "NaturalHistory",
     "HealthSystem",
     "InterestVariables",

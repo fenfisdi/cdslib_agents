@@ -18,14 +18,26 @@
 # Ian Mejía (https://github.com/IanMejia)
 # Emil Rueda (https://www.linkedin.com/in/emil-rueda-424012207/)
 # Nicole Rivera (https://github.com/nicolerivera1)
-# Carolina Rojas Duque (https://github.com/carolinarojasd)
+# Carolina Rojas Duque (https://github.com/carolinarojasd)import pytest
 
-# from scimath.units.length import
-from datetime import timedelta
+import pytest
 
+from abmodel.utils.execution_modes import ExecutionModes
 
-def timedelta_to_days(td: timedelta) -> float:
-    """
-    """
-    # 86400 s = 60 s * 60 m * 24 h
-    return td.total_seconds()/86400
+class TestExecutionModes:
+
+    def setup_method(self, method):
+        """Allows to see a brief description of the test in the report."""
+        print('\u21B4' + '\n' + '\u273C' + method.__doc__.strip())
+
+    @pytest.mark.parametrize(
+    "ExecutionModes, expected", [
+        (getattr(getattr(ExecutionModes, "iterative"), 'value'), "iterative"),
+        (getattr(getattr(ExecutionModes, "vectorized"), 'value'), "vectorized"),
+        (getattr(getattr(ExecutionModes, "dask"), 'value'), "dask"),
+        ],
+        ids=["iterative", "vectorized", "dask"]
+    )
+    def test_execution_modes(self, ExecutionModes, expected):
+        """Verifies the correct enumerates of the different execution modes."""
+        assert ExecutionModes == expected
