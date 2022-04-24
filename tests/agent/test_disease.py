@@ -1566,7 +1566,7 @@ class TestAgentDisease:
             mr_length_units=None,
             mr_groups=sm,
             target_groups=["mr_group_1"]
-       )
+        )
         mrt_policies_lenght = MRTracingPolicies(
             variable=InterestVariables.dead,
             mr_start_level=10,
@@ -1575,7 +1575,7 @@ class TestAgentDisease:
             mr_length_units=MRTimeUnits.days,
             mr_groups=sm,
             target_groups=["mr_group_1"]
-       )
+        )
 
         return data_df, mrt_policies_level, mrt_policies_lenght
 
@@ -1771,6 +1771,26 @@ class TestAgentDisease:
 
         assert all(df["is_dead"].eq(expected))
 
+    def test_init_is_dead_dask(
+        self,
+        fixture_init_required_fields
+    ):
+        """
+            verifies whether init_is_dead assigns correctly values to
+            is_dead column when `ExecutionModes` is equals to dask.
+        """
+
+        df = DataFrame({"disease_state": ["susceptible", "dead", "immune"]})
+        disease_groups = fixture_init_required_fields[1]
+        df = AgentDisease.init_is_dead(
+            df,
+            disease_groups,
+            execmode=ExecutionModes.dask.value
+        )
+
+        expected = [False, True, False]
+        assert all(df["is_dead"].eq(expected))
+
     def test_init_is_dead_raise_NotImplementedError(
         self,
         fixture_init_required_fields
@@ -1794,8 +1814,8 @@ class TestAgentDisease:
         fixture_init_required_fields
     ):
         """
-        Raises a ValueError when `disease_state`
-        column is not in the input DataFrame.
+            Raises a ValueError when `disease_state`
+            column is not in the input DataFrame.
         """
 
         df = DataFrame({"disease": ["susceptible", "dead", "immune"]})
@@ -1815,9 +1835,25 @@ class TestAgentDisease:
             Verifies whether the column `key` is created on the input
             DataFrame and assigns correctly values in iterative mode.
         """
-        df = AgentDisease().generate_key_col(
+        df = AgentDisease.generate_key_col(
             df=fixture_generate_key_col_iterative[0]
             )
+        expected = fixture_generate_key_col_iterative[1]
+
+        assert all(df["key"].eq(expected))
+
+    def test_generate_key_col_dask(
+        self,
+        fixture_generate_key_col_iterative
+    ):
+        """
+            Verifies whether the column `key` is created on the input
+            DataFrame and assigns correctly values in dask mode.
+        """
+        df = AgentDisease.generate_key_col(
+            df=fixture_generate_key_col_iterative[0],
+            execmode=ExecutionModes.dask.value
+        )
         expected = fixture_generate_key_col_iterative[1]
 
         assert all(df["key"].eq(expected))
@@ -1830,7 +1866,7 @@ class TestAgentDisease:
             Verifies whether the column `key` is created on the input
             DataFrame and assigns correct values in vectorized mode.
         """
-        df = AgentDisease().generate_key_col(
+        df = AgentDisease.generate_key_col(
             df=fixture_generate_key_col_iterative[0],
             execmode=ExecutionModes.vectorized.value
             )
@@ -1853,10 +1889,10 @@ class TestAgentDisease:
             )
 
         with pytest.raises(ValueError, match=error_message):
-            AgentDisease().generate_key_col(
+            AgentDisease.generate_key_col(
                 df=fixture_generate_key_col_iterative[0],
                 execmode=ExecutionModes.vectorized.value
-                )
+            )
 
     def test_generate_key_col_raise_NotImplementedError(
         self,
@@ -1868,10 +1904,10 @@ class TestAgentDisease:
             or `ExecutionModes.vectorized.value`.
         """
         with pytest.raises(TypeError, match="NotImplementedError"):
-            AgentDisease().generate_key_col(
+            AgentDisease.generate_key_col(
                 df=fixture_generate_key_col_iterative[0],
                 execmode=ExecutionModes
-                )
+            )
 
     def test_init_calculate_max_time_iterative_False(
         self,
@@ -1901,7 +1937,7 @@ class TestAgentDisease:
             is different from a None type distribution.
         """
         natural_history = fixture_init_required_fields[0]
-        print(natural_history.items)
+
         value = init_calculate_max_time_iterative(
             key="vulnerable-susceptible",
             natural_history=natural_history
@@ -2045,7 +2081,7 @@ class TestAgentDisease:
         """
             Verifies whether determine_disease_state_max_time
             raises a NotImplementedError when the `execmode` is
-            different from `ExecutionModes.iterative.value`.
+            not implemented yet.
         """
         natural_history = fixture_init_required_fields[0]
         disease_groups = fixture_init_required_fields[1]
@@ -2071,14 +2107,14 @@ class TestAgentDisease:
                 execmode=ExecutionModes.vectorized.value
             )
 
-    def test_init_disease_state_max(
+    def test_init_disease_state_max_time_iterative(
         self,
         fixture_init_required_fields
     ):
         """
             Verifies whether determine_disease_state_max_time
             raises a NotImplementedError when the `execmode` is
-            different from `ExecutionModes.iterative.value`.
+            not implemented yet.
         """
         natural_history = fixture_init_required_fields[0]
         disease_groups = fixture_init_required_fields[1]
@@ -2235,7 +2271,6 @@ class TestAgentDisease:
         assert len(is_hospitalized) == 2
         assert all(df[1].eq(expected_is_in_ICU))
         assert len(is_dead) == 3
-        print(df)
 
     def test_to_hospitalize_agents(
         self,
@@ -2422,7 +2457,7 @@ class TestAgentDisease:
 
         assert is_diagnosed == False
 
-    def test_to_diagnose_agents(
+    def test_to_diagnose_agents_iterative(
             self,
             fixture_diagnosis_function
     ):
@@ -2437,6 +2472,27 @@ class TestAgentDisease:
         df = AgentDisease.to_diagnose_agents(
             df=df,
             disease_groups=disease_groups
+        )
+        expected = [False, False, True, True]
+
+        assert all(df["is_diagnosed"].eq(expected))
+
+    def test_to_diagnose_agents_dask(
+            self,
+            fixture_diagnosis_function
+    ):
+        """
+            to_diagnose_agents modifies correctly the `is_diagnosed` column
+            of the input DataFrame. Setting `ExecutionModes` equals to dask.
+        """
+        disease_groups = fixture_diagnosis_function[0]
+        data_dict = fixture_diagnosis_function[1]
+        df = DataFrame(data_dict)
+
+        df = AgentDisease.to_diagnose_agents(
+            df=df,
+            disease_groups=disease_groups,
+            execmode=ExecutionModes.dask.value
         )
         expected = [False, False, True, True]
 
@@ -2621,14 +2677,15 @@ class TestAgentDisease:
 
         assert all(s.eq(expected_s))
 
-    def test_to_isolate_agents(
+    def test_to_isolate_agents_iterative(
         self,
         fixture_to_isolate_agents
     ):
         """
             Verifies whether isolation_handler returns correct values
             when `is_isolated` is False the `isolation_adherence_groups`
-            has a constant distribution with constant equals to 0.
+            has a constant distribution with constant equals to 0 and
+            `ExecutionModes` is equals to dask.
         """
         data_dict = fixture_to_isolate_agents[6]
         beta = data_dict.pop("beta")
@@ -2645,6 +2702,46 @@ class TestAgentDisease:
             beta=beta,
             disease_groups=disease_groups,
             isolation_adherence_groups=isolation_adherence_groups
+        )
+        expected_df = DataFrame(
+            {
+                "is_diagnosed": [True, True],
+                "is_isolated": [True, False],
+                "isolation_time": [0.0 + dt, 8 + dt],
+                "isolation_max_time": [10, 10],
+                "adheres_to_isolation": [True, False],
+                "reduction_factor": [0.3*beta, 0.3]
+            }
+        )
+
+        assert all(df.eq(expected_df))
+
+    def test_to_isolate_agents_dask(
+        self,
+        fixture_to_isolate_agents
+    ):
+        """
+            Verifies whether isolation_handler returns correct values
+            when `is_isolated` is False, the `isolation_adherence_groups`
+            has a constant distribution with constant equals to 0 and
+            `ExecutionModes` is equals to dask.
+        """
+        data_dict = fixture_to_isolate_agents[6]
+        beta = data_dict.pop("beta")
+        disease_groups = data_dict.pop("disease_groups")
+        isolation_adherence_groups = data_dict.pop(
+            "isolation_adherence_groups"
+        )
+        dt = data_dict.pop("dt")
+
+        df = DataFrame(data_dict)
+        df = AgentDisease.to_isolate_agents(
+            df=df,
+            dt=dt,
+            beta=beta,
+            disease_groups=disease_groups,
+            isolation_adherence_groups=isolation_adherence_groups,
+            execmode=ExecutionModes.dask.value
         )
         expected_df = DataFrame(
             {
@@ -2742,6 +2839,38 @@ class TestAgentDisease:
 
         assert all(df["times_infected"].eq(times_infected_expected))
 
+    def test_init_times_infected_dask(
+            self,
+            fixture_init_times_infected
+    ):
+        """
+            Verifies whether init_times_infected method assigns correct values
+            according to the `is_infected` values in the `DiseaseStates`.
+        """
+        disease_groups = fixture_init_times_infected
+
+        df = DataFrame(
+            {
+                "agent": [i + 1 for i in range(6)],
+                "disease_state": [
+                    "susceptible",
+                    "latency",
+                    "immune",
+                    "infectious",
+                    "hospital",
+                    "dead"
+                ]
+            }
+        )
+        df = AgentDisease.init_times_infected(
+            df,
+            disease_groups,
+            execmode=ExecutionModes.dask.value
+        )
+        times_infected_expected = [0, 1, 0, 1, 1, 0]
+
+        assert all(df["times_infected"].eq(times_infected_expected))
+
     def test_init_times_infected_NotImplementedError(
             self,
             fixture_init_times_infected
@@ -2817,6 +2946,38 @@ class TestAgentDisease:
             }
         )
         df = AgentDisease.init_immunization_level(df, immunization_groups)
+        expected_immunization_level = [0, 1, 0, 1]
+
+        assert all(df["immunization_level"].eq(expected_immunization_level))
+
+    def test_init_immunization_level_dask(
+        self,
+        fixture_init_immunization
+    ):
+        """
+            Verifies whether init_immunization_level creates
+            `immunization_level` column and assigns correctly
+            values according with a ImmunizationGroups provided
+            when `ExecutionModes` is equals to dask.
+        """
+        immunization_groups = fixture_init_immunization
+
+        df = DataFrame(
+            {
+                "agent": [i + 1 for i in range(4)],
+                "immunization_group": [
+                    "not_immunized",
+                    "immunized",
+                    "not_immunized",
+                    "immunized",
+                ]
+            }
+        )
+        df = AgentDisease.init_immunization_level(
+            df,
+            immunization_groups,
+            execmode=ExecutionModes.dask.value
+        )
         expected_immunization_level = [0, 1, 0, 1]
 
         assert all(df["immunization_level"].eq(expected_immunization_level))
@@ -2904,7 +3065,54 @@ class TestAgentDisease:
                 "immunization_level": [0.1, 0.5, 1.0]
             }
         )
-        df = AgentDisease.init_immunization_params(df, immunization_groups)
+        df = AgentDisease.init_immunization_params(
+            df=df,
+            immunization_groups=immunization_groups
+        )
+        expected_df = DataFrame(
+            {
+                "agent": [i + 1 for i in range(3)],
+                "immunization_group": [
+                    "immunized",
+                    "immunized",
+                    "immunized",
+                ],
+                "immunization_level": [0.1, 0.5, 1.0],
+                "immunization_time": [0.0, 0.0, 0.0],
+                "immunization_max_time": [30.0, 30.0, 30.0],
+                "immunization_slope": [0.1/30.0, 0.5/30.0, 1/30.0]
+            }
+        )
+
+        assert all(df.eq(expected_df))
+
+    def test_init_immunization_dask(
+        self,
+        fixture_init_immunization
+    ):
+        """
+            Verifies whether init_immunization_level creates
+            `immunization_level` column and assigns correctly
+            values according with a ImmunizationGroups provided.
+        """
+        immunization_groups = fixture_init_immunization
+
+        df = DataFrame(
+            {
+                "agent": [i + 1 for i in range(3)],
+                "immunization_group": [
+                    "immunized",
+                    "immunized",
+                    "immunized",
+                ],
+                "immunization_level": [0.1, 0.5, 1.0]
+            }
+        )
+        df = AgentDisease.init_immunization_params(
+            df=df,
+            immunization_groups=immunization_groups,
+            execmode=ExecutionModes.dask.value
+        )
         expected_df = DataFrame(
             {
                 "agent": [i + 1 for i in range(3)],
@@ -3099,13 +3307,14 @@ class TestAgentDisease:
         assert transition[2] == is_dead_expected
         assert transition[3] == do_calculate_max_time_expected
 
-    def test_disease_state_transition(
+    def test_disease_state_transition_iterative(
             self,
             fixture_transition_function
     ):
         """
             Verifies whether `disease_state_transition`
-            applies correctly the function `transition_function`.
+            applies correctly the function `transition_function`
+            when execmode is set to iterative.
         """
         natural_history = fixture_transition_function[0]
         disease_groups = fixture_transition_function[1]
@@ -3117,6 +3326,54 @@ class TestAgentDisease:
             dt=2,
             disease_groups=disease_groups,
             natural_history=natural_history
+            )
+
+        disease_state_expected = [
+            "latency",
+            "immune",
+            "susceptible",
+            "dead"
+        ]
+        is_dead_expected = [False, False, False, True]
+        disease_state_max_time_expected = Series(
+            [nan, nan, 5, nan],
+            name="disease_state_max_time"
+        )
+        initial_disease_state_time = data_dict["disease_state_time"]
+        cond_disease_state = df["disease_state"].eq(disease_state_expected)
+        cond_disease_state_time = df[
+            "disease_state_time"
+        ].ne(initial_disease_state_time)
+        cond_is_dead = df["is_dead"].eq(is_dead_expected)
+
+        assert all(cond_disease_state)
+        assert all(cond_disease_state_time)
+        assert all(cond_is_dead)
+        testing.assert_series_equal(
+            df["disease_state_max_time"],
+            disease_state_max_time_expected
+        )
+
+    def test_disease_state_transition_dask(
+            self,
+            fixture_transition_function
+    ):
+        """
+            Verifies whether `disease_state_transition`
+            applies correctly the function `transition_function`
+            when execmode is set to dask.
+        """
+        natural_history = fixture_transition_function[0]
+        disease_groups = fixture_transition_function[1]
+        data_dict = fixture_transition_function[2]
+
+        df = DataFrame(data_dict)
+        df = AgentDisease.disease_state_transition(
+            df=df,
+            dt=2,
+            disease_groups=disease_groups,
+            natural_history=natural_history,
+            execmode=ExecutionModes.dask.value
             )
 
         disease_state_expected = [
