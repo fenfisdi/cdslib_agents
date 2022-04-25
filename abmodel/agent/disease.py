@@ -1716,8 +1716,7 @@ class AgentDisease:
         df: DataFrame,
         disease_groups: DiseaseStates,
         natural_history: NaturalHistory,
-        execmode: ExecutionModes = ExecutionModes.iterative.value,
-        npartitions: Optional[int] = 1
+        execmode: ExecutionModes = ExecutionModes.iterative.value
     ) -> DataFrame:
         """
             TODO: Add brief explanation
