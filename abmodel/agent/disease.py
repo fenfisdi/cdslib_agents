@@ -1263,7 +1263,8 @@ class AgentDisease:
         health_system: HealthSystem,
         immunization_groups: Optional[ImmunizationGroups] = None,
         isolation_adherence_groups: Optional[IsolationAdherenceGroups] = None,
-        execmode: ExecutionModes = ExecutionModes.iterative.value
+        execmode: ExecutionModes = ExecutionModes.iterative.value,
+        npartitions: Optional[int] = 1
     ) -> DataFrame:
         """
             TODO: Add brief explanation
@@ -1293,14 +1294,18 @@ class AgentDisease:
             TODO: include some examples
         """
         # Initialize is_dead
-        df = cls.init_is_dead(df, disease_groups, execmode)
+        df = cls.init_is_dead(df, disease_groups, execmode, npartitions)
 
         # Generate key column
-        df = cls.generate_key_col(df, execmode)
+        df = cls.generate_key_col(df, execmode, npartitions)
 
         # Init disease_state_max_time
-        df = cls.init_disease_state_max_time(df, disease_groups,
-                                             natural_history, execmode)
+        df = cls.init_disease_state_max_time(
+            df,
+            disease_groups,
+            natural_history,
+            ExecutionModes.iterative.value
+        )
 
         # Init is_hospìtalized and is_in_ICU
         df = df.assign(is_hospitalized=False)
@@ -1313,7 +1318,7 @@ class AgentDisease:
 
         # Init is_diagnosed
         df = df.assign(is_diagnosed=False)
-        df = cls.to_diagnose_agents(df, disease_groups, execmode)
+        df = cls.to_diagnose_agents(df, disease_groups, execmode, npartitions)
 
         # Init is_isolated
         df = df.assign(is_isolated=False)
@@ -1322,7 +1327,8 @@ class AgentDisease:
         df = df.assign(adheres_to_isolation=True)
         dt = 0.0  # Set dt to zero for initialization purposes
         df = cls.to_isolate_agents(
-            df, dt, beta, disease_groups, isolation_adherence_groups, execmode
+            df, dt, beta, disease_groups,
+            isolation_adherence_groups, execmode, npartitions
             )
 
         # Init has_mr_restictions
@@ -1333,14 +1339,18 @@ class AgentDisease:
         #    )
 
         # Init times_infected
-        df = cls.init_times_infected(df, disease_groups, execmode)
+        df = cls.init_times_infected(df, disease_groups, execmode, npartitions)
 
         if immunization_groups is not None:
             # Init immunization_level
-            df = cls.init_immunization_level(df, immunization_groups, execmode)
+            df = cls.init_immunization_level(
+                df, immunization_groups, execmode, npartitions
+            )
 
             # Init immunization params
-            df = cls.init_immunization_params(df, immunization_groups)
+            df = cls.init_immunization_params(
+                df, immunization_groups, execmode, npartitions
+            )
         else:
             # Init immunization_level
             df = df.assign(immunization_level=0)
@@ -1357,7 +1367,8 @@ class AgentDisease:
         cls,
         df: DataFrame,
         disease_groups: DiseaseStates,
-        execmode: ExecutionModes = ExecutionModes.iterative.value
+        execmode: ExecutionModes = ExecutionModes.iterative.value,
+        npartitions: Optional[int] = 1
     ) -> DataFrame:
         """
             TODO: Add brief explanation
@@ -1397,7 +1408,7 @@ class AgentDisease:
                     axis=1
                 )
             elif execmode == ExecutionModes.dask.value:
-                df = from_pandas(df, npartitions=1)
+                df = from_pandas(df, npartitions=npartitions)
                 df["is_dead"] = df.apply(
                     lambda row: disease_groups
                     .items[row["disease_state"]].is_dead,
@@ -1470,7 +1481,7 @@ class AgentDisease:
                     .items[row["disease_state"]].is_infected else 0,
                     axis=1,
                     meta=(0, "int64")
-                    )
+                )
                 df = df.compute()
             else:
                 raise NotImplementedError(
@@ -1539,7 +1550,7 @@ class AgentDisease:
                         DistTitles.immunization_level.value].sample(),
                     axis=1,
                     meta=(0, "int64")
-                    )
+                )
                 df = df.compute()
             else:
                 raise NotImplementedError(
@@ -1601,23 +1612,23 @@ class AgentDisease:
                         row["immunization_level"],
                         immunization_groups
                         ),
-                    axis=1
+                        axis=1
                     )
             elif execmode == ExecutionModes.dask.value:
                 df = from_pandas(df, npartitions=npartitions)
                 df[["immunization_time", "immunization_max_time",
                     "immunization_slope"]] = df.apply(
-                    lambda row: init_immunization_params_iterative(
-                        row["immunization_group"],
-                        row["immunization_level"],
-                        immunization_groups
+                        lambda row: init_immunization_params_iterative(
+                            row["immunization_group"],
+                            row["immunization_level"],
+                            immunization_groups
                         ),
-                    axis=1,
-                    meta={
-                        0: "float64",
-                        1: "float64",
-                        2: "float64"
-                    }
+                        axis=1,
+                        meta={
+                            0: "float64",
+                            1: "float64",
+                            2: "float64"
+                        }
                     )
                 df = df.compute()
             else:
