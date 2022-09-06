@@ -82,7 +82,8 @@ class Population:
         isolation_adherence_groups: Optional[IsolationAdherenceGroups] = None,
         mr_adherence_groups: Optional[MRAdherenceGroups] = None,
         execmode: ExecutionModes = ExecutionModes.iterative.value,
-        evolmode: EvolutionModes = EvolutionModes.steps.value
+        evolmode: EvolutionModes = EvolutionModes.steps.value,
+        npartitions: Optional[int] = 1
     ) -> None:
         """
             Constructor of Population class.
@@ -121,7 +122,8 @@ class Population:
         self.isolation_adherence_groups = isolation_adherence_groups
         self.mr_adherence_groups = mr_adherence_groups
         self.execmode = execmode
-        self.evolmode = evolmode
+        self.evolmode = evolmode,
+        self.npartitions = npartitions 
 
         # Required columns
         self.__req_cols_dict = {
@@ -227,7 +229,8 @@ class Population:
             health_system=self.health_system,
             immunization_groups=self.immunization_groups,
             isolation_adherence_groups=self.isolation_adherence_groups,
-            execmode=self.execmode
+            execmode=self.execmode,
+            npartitions=self.npartitions
             )
 
         # =====================================================================
@@ -458,7 +461,8 @@ class Population:
             dt=self.dt,
             disease_groups=self.disease_groups,
             natural_history=self.natural_history,
-            execmode=self.execmode
+            execmode=self.execmode,
+            npartitions=self.npartitions
             )
 
         # =====================================================================
@@ -477,7 +481,8 @@ class Population:
         self.__df = AgentDisease.to_diagnose_agents(
             df=self.__df,
             disease_groups=self.disease_groups,
-            execmode=self.execmode
+            execmode=self.execmode,
+            npartitions=self.npartitions
             )
 
         # =====================================================================
@@ -488,7 +493,8 @@ class Population:
             beta=self.configuration.beta,
             disease_groups=self.disease_groups,
             isolation_adherence_groups=self.isolation_adherence_groups,
-            execmode=self.execmode
+            execmode=self.execmode,
+            npartitions=self.npartitions
             )
 
         # =====================================================================
@@ -553,7 +559,8 @@ class Population:
             natural_history=self.natural_history,
             disease_groups=self.disease_groups,
             dead_disease_group=self.dead_disease_group,
-            execmode=self.execmode
+            execmode=self.execmode,
+            npartitions=self.npartitions
             )
 
         # =====================================================================
@@ -565,7 +572,8 @@ class Population:
             natural_history=self.natural_history,
             disease_groups=self.disease_groups,
             susceptibility_groups=self.susceptibility_groups,
-            execmode=self.execmode
+            execmode=self.execmode,
+            npartitions=self.npartitions
             )
 
         # =====================================================================
@@ -574,7 +582,8 @@ class Population:
             df=self.__df,
             dt=self.dt,
             natural_history=self.natural_history,
-            execmode=self.execmode
+            execmode=self.execmode,
+            npartitions=self.npartitions
             )
 
         # =====================================================================
@@ -591,7 +600,7 @@ class Population:
             grace_time_in_steps=self.__grace_time_in_steps,
             iteration_time=self.configuration.iteration_time,
             mr_adherence_groups=self.mr_adherence_groups,
-            execmode=self.execmode
+            execmode=ExecutionModes.iterative.value
             )
         # Assign values
         self.__df = variables[0]
