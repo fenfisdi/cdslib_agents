@@ -72,10 +72,6 @@ def trace_neighbors_vectorized(
         [array([], dtype=int) for index in range(n_agents)]
     total_neighbors = \
         [array([], dtype=int) for index in range(n_agents)]
-    
-    data_empty = array([susceptible_neighbors, infected_spreader_neighbors,
-                  infected_non_spreader_neighbors, immune_neighbors,
-                  total_neighbors], dtype="object")
 
     # Cycle through each state of the neighbors
     for disease_state in disease_groups.items.keys():
