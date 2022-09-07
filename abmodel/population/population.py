@@ -648,7 +648,10 @@ class Population:
         df_to_avoid = filtered_df \
             .explode("alerted_by") \
             .rename(columns={"alerted_by": "agent_to_avoid"})
+<<<<<<< HEAD
 
+=======
+>>>>>>> ba522d63c51a615d39e2eb510951aa1330a58315
         if df_to_avoid.empty is False:
             self.__df = AgentMovement.avoid_agents(
                 df=self.__df,
