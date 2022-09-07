@@ -183,7 +183,20 @@ def trace_neighbors_vectorized(
                   total_neighbors], dtype="object")
     data_transposed = transpose(data)
 
-    return DataFrame(data_transposed)
+    if data_transposed.size == 0:
+        columns = [i for i in range(5)]
+        column_data = [
+                [
+                    array([]) for agent in range(n_agents)
+            ] for column in range(len(columns))
+        ]
+        data_empty = zip(columns, column_data)
+        _df = DataFrame(
+            {k: v for k,v in data_empty}
+        )
+        return _df
+    else:
+        return DataFrame(data_transposed)
 
 
 class AgentNeighbors:
